@@ -1,6 +1,6 @@
 import json, os, re, glob, collections
 
-D = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../research/job-trend/')
+D = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../research/job-trend/')
 H = os.path.expanduser('~/Documents/')  # 2026 채용 게시판 원본 (repo 밖, 팀원 PC에만 있음)
 
 rows = []

@@ -8,11 +8,16 @@
 |---|---|
 | `docs/prd/` | 요구사항 정의서. `00-root.md`가 전체 지도, `P01`~`P06`이 페이지별 PRD |
 | `docs/spec/` | 페이지별 개발 명세. PRD가 확정된 뒤에 만든다 (`_template.md` 참고) |
-| `design/canvas/` | Claude 디자인 캔버스 원본 화면 (`.dc.html`, `canvas.json`) |
-| `design/scripts/` | 화면 생성 스크립트. `build_screens.py`가 캔버스를, `export_static.py`가 정적 HTML을 만든다 |
-| `design/data/` | 화면에 들어가는 데이터 (공고, SeSAC 과정, 청년 정책) |
-| `prototype/` | Vercel에 배포되는 정적 프로토타입. 직접 고치지 말고 `design/build.sh`로 다시 만든다 |
+| `docs/notion/` | 노션 "DDP - 해커톤" 문서, 회의록, 태스크를 옮긴 것 (개인정보 삭제) |
+| `docs/meetings/` | 회의 진행 스크립트, `transcripts/` 회의와 멘토링 녹음 받아쓰기 |
+| `docs/design/`, `docs/pitch/`, `docs/policy/` | UX 와이어프레임 v1, 발표 자료 준비물, 정책 연계 보강 시트 |
+| `design/` | 프로토타입 화면 원본. 자세한 구조는 [`design/README.md`](design/README.md) |
+| `design/screens/` | 페이지별 화면 정의 (`10_home.py` ~ `70_auth.py`). 화면은 여기서 고친다 |
+| `design/data/` | 화면에 들어가는 데이터 (공고, SeSAC 과정, 청년 정책). `design/scripts/data_tools/`로 다시 만든다 |
+| `prototype/` | Vercel에 배포되는 정적 프로토타입. 직접 고치지 말고 `./design/build.sh`로 다시 만든다 |
 | `research/` | 팀 조사 자료와 원본 데이터 (공고, SeSAC, 공공데이터, 사용자 조사) |
+
+프로토타입 코드는 디자인 확인과 시연용이다. 실제 서비스는 PRD와 Spec 확정 뒤 `app/` 같은 새 폴더에서 처음부터 만든다.
 
 ## 일하는 순서 (멘토 권장, SDD)
 
