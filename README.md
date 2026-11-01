@@ -7,9 +7,15 @@
 
 ## 시작하기
 
-1. `CLAUDE.md`를 먼저 읽어 주세요. 일하는 순서와 원칙이 있어요.
-2. 맡은 페이지의 PRD를 `docs/prd/`에서 읽고 고칠 점을 남겨 주세요.
-3. 화면을 고칠 때는 `design/` 원본을 고치고 `./design/build.sh`를 실행해요.
+새 팀원은 [CONTRIBUTING.md](CONTRIBUTING.md)부터 읽어 주세요. 설정, 읽을 순서, Git 규칙이 있어요.
+
+| 가이드 | 내용 |
+|---|---|
+| [CLAUDE.md](CLAUDE.md) | 원칙, 폴더, ID 규칙 (AI도 읽어요) |
+| [docs/guides/01-prd.md](docs/guides/01-prd.md) | PRD 쓰는 법, 리뷰 체크리스트 |
+| [docs/guides/02-spec.md](docs/guides/02-spec.md) | Spec 쓰는 법 |
+| [docs/guides/03-vibe-coding.md](docs/guides/03-vibe-coding.md) | Claude Code로 일하는 법, 명령어 `/prd-draft` `/prd-review` `/spec-draft` `/build-feature` `/qa-cases` |
+| [design/README.md](design/README.md) | 프로토타입 화면 고치는 법 |
 
 ## 시연 흐름 (2분)
 

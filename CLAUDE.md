@@ -29,6 +29,8 @@
 
 PRD가 틀리면 Spec과 코드가 다 틀린다. 코드보다 PRD를 먼저 고친다.
 
+자세한 방법: [`docs/guides/`](docs/guides/) (PRD, Spec, AI 코딩). 명령어: `/prd-draft`, `/prd-review`, `/spec-draft`, `/build-feature`, `/qa-cases` (`.claude/commands/`). 팀원 규칙: [`CONTRIBUTING.md`](CONTRIBUTING.md).
+
 ## ID 규칙
 
 - 페이지: `P01` 홈, `P02` 직무 찾기, `P03` 공고 비교와 다음 행동, `P04` 교육과정과 정책, `P05` 마이페이지, `P06` 로그인과 회원가입
