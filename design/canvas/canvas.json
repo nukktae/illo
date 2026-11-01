@@ -1,0 +1,368 @@
+{
+  "v": 3,
+  "attachments": {},
+  "boards": {
+    "Main.dc.html": {
+      "h": 1060,
+      "is_interactive": true,
+      "title": "S0 홈",
+      "w": 1280,
+      "x": 0,
+      "y": 0
+    },
+    "S1-list.dc.html": {
+      "h": 1680,
+      "is_interactive": true,
+      "title": "S1 직무 찾기 (신입, 인턴은 적합도 / 경력은 공고)",
+      "w": 1280,
+      "x": 1360,
+      "y": 0
+    },
+    "S3-compare.dc.html": {
+      "h": 1369,
+      "is_interactive": true,
+      "title": "S2 공고 원문 + AI 비교 (한 화면)",
+      "w": 1280,
+      "x": 2720,
+      "y": 0
+    },
+    "S4-next.dc.html": {
+      "h": 1700,
+      "is_interactive": true,
+      "title": "S3 다음 행동 · 교육",
+      "w": 1280,
+      "x": 4080,
+      "y": 0
+    },
+    "C2-course.dc.html": {
+      "h": 2156,
+      "is_interactive": true,
+      "title": "C2 SeSAC 과정 상세 (강북5기)",
+      "w": 1280,
+      "x": 4080,
+      "y": 1780
+    },
+    "S4-cert.dc.html": {
+      "h": 1332,
+      "is_interactive": true,
+      "title": "S3b 자격증, 어학",
+      "w": 1280,
+      "x": 4080,
+      "y": 4016
+    },
+    "S4-activity.dc.html": {
+      "h": 1366,
+      "is_interactive": true,
+      "title": "S3c 대외활동, 프로젝트",
+      "w": 1280,
+      "x": 4080,
+      "y": 5428
+    },
+    "S4-apply.dc.html": {
+      "h": 1385,
+      "is_interactive": true,
+      "title": "S3d 지원 준비",
+      "w": 1280,
+      "x": 4080,
+      "y": 6874
+    },
+    "E1-edu.dc.html": {
+      "h": 1800,
+      "is_interactive": true,
+      "title": "E1 교육과정 (SeSAC 210, 청년 정책, 자격증, 대외활동)",
+      "w": 1280,
+      "x": 5440,
+      "y": 0
+    },
+    "P2-policy.dc.html": {
+      "h": 1746,
+      "is_interactive": true,
+      "title": "P2 청년 정책 상세 (서울형 청년인턴 직무캠프)",
+      "w": 1280,
+      "x": 5440,
+      "y": 1880
+    },
+    "S5-path.dc.html": {
+      "h": 1167,
+      "is_interactive": true,
+      "title": "S5 마이페이지 (내 경험, 내 경로)",
+      "w": 1280,
+      "x": 6800,
+      "y": 0
+    },
+    "S5-saved.dc.html": {
+      "h": 1100,
+      "is_interactive": true,
+      "title": "S5a 마이페이지 · 저장함",
+      "w": 1280,
+      "x": 6800,
+      "y": 1247
+    },
+    "S5-resume.dc.html": {
+      "h": 3724,
+      "is_interactive": true,
+      "title": "S5b 마이페이지 · 이력서 등록",
+      "w": 1280,
+      "x": 6800,
+      "y": 2427
+    },
+    "S6-story.dc.html": {
+      "h": 900,
+      "is_interactive": true,
+      "title": "S6 취업 수기 (마이페이지에서)",
+      "w": 1280,
+      "x": 8160,
+      "y": 0
+    },
+    "L1-login.dc.html": {
+      "h": 900,
+      "is_interactive": true,
+      "title": "L1 로그인",
+      "w": 1280,
+      "x": 9520,
+      "y": 0
+    },
+    "L2-signup.dc.html": {
+      "h": 1265,
+      "is_interactive": true,
+      "title": "L2 회원가입",
+      "w": 1280,
+      "x": 9520,
+      "y": 980
+    },
+    "m-Main.dc.html": {
+      "h": 1131,
+      "is_interactive": true,
+      "title": "M0 홈 (모바일)",
+      "w": 390,
+      "x": 0,
+      "y": 8659
+    },
+    "m-S1-list.dc.html": {
+      "h": 2469,
+      "is_interactive": true,
+      "title": "M1 직무 찾기 (모바일)",
+      "w": 390,
+      "x": 470,
+      "y": 8659
+    },
+    "m-S3-compare.dc.html": {
+      "h": 2526,
+      "is_interactive": true,
+      "title": "M2 공고 원문 + AI 비교 (모바일)",
+      "w": 390,
+      "x": 940,
+      "y": 8659
+    },
+    "m-S4-next.dc.html": {
+      "h": 3200,
+      "is_interactive": true,
+      "title": "M3 다음 행동 · 교육 (모바일)",
+      "w": 390,
+      "x": 1410,
+      "y": 8659
+    },
+    "m-C2-course.dc.html": {
+      "h": 3800,
+      "is_interactive": true,
+      "title": "MC2 SeSAC 과정 상세 (모바일)",
+      "w": 390,
+      "x": 1880,
+      "y": 8659
+    },
+    "m-S4-cert.dc.html": {
+      "h": 1882,
+      "is_interactive": true,
+      "title": "M3b 자격증, 어학 (모바일)",
+      "w": 390,
+      "x": 2350,
+      "y": 8659
+    },
+    "m-S4-activity.dc.html": {
+      "h": 1912,
+      "is_interactive": true,
+      "title": "M3c 대외활동, 프로젝트 (모바일)",
+      "w": 390,
+      "x": 2820,
+      "y": 8659
+    },
+    "m-S4-apply.dc.html": {
+      "h": 1791,
+      "is_interactive": true,
+      "title": "M3d 지원 준비 (모바일)",
+      "w": 390,
+      "x": 3290,
+      "y": 8659
+    },
+    "m-E1-edu.dc.html": {
+      "h": 2993,
+      "is_interactive": true,
+      "title": "ME1 교육과정 (모바일)",
+      "w": 390,
+      "x": 3760,
+      "y": 8659
+    },
+    "m-P2-policy.dc.html": {
+      "h": 2991,
+      "is_interactive": true,
+      "title": "MP2 청년 정책 상세 (모바일)",
+      "w": 390,
+      "x": 4230,
+      "y": 8659
+    },
+    "m-S5-path.dc.html": {
+      "h": 1484,
+      "is_interactive": true,
+      "title": "M5 마이페이지 (모바일)",
+      "w": 390,
+      "x": 4700,
+      "y": 8659
+    },
+    "m-S5-saved.dc.html": {
+      "h": 1300,
+      "is_interactive": true,
+      "title": "M5a 저장함 (모바일)",
+      "w": 390,
+      "x": 5170,
+      "y": 8659
+    },
+    "m-S5-resume.dc.html": {
+      "h": 4392,
+      "is_interactive": true,
+      "title": "M5b 이력서 등록 (모바일)",
+      "w": 390,
+      "x": 5640,
+      "y": 8659
+    },
+    "m-S6-story.dc.html": {
+      "h": 973,
+      "is_interactive": true,
+      "title": "M6 취업 수기 (모바일)",
+      "w": 390,
+      "x": 6110,
+      "y": 8659
+    },
+    "m-L1-login.dc.html": {
+      "h": 850,
+      "is_interactive": true,
+      "title": "ML1 로그인 (모바일)",
+      "w": 390,
+      "x": 6580,
+      "y": 8659
+    },
+    "m-L2-signup.dc.html": {
+      "h": 1324,
+      "is_interactive": true,
+      "title": "ML2 회원가입 (모바일)",
+      "w": 390,
+      "x": 7050,
+      "y": 8659
+    }
+  },
+  "createdOnFiles": {
+    "at": "2026-10-30T00:30:00Z",
+    "v": 1
+  },
+  "designSystems": [],
+  "launch": {
+    "view": "canvas"
+  },
+  "noteOrder": [
+    "flow",
+    "rule",
+    "modeNote",
+    "pathNote",
+    "afterNote",
+    "mobileTitle",
+    "mobileNote"
+  ],
+  "notes": {
+    "flow": {
+      "kind": "title1",
+      "maxW": 6720,
+      "text": "시연 2분 흐름: 홈, 직무 찾기, 공고와 AI 비교, 다음 행동 (10/30 회의 반영 v4)",
+      "w": 240,
+      "x": 0,
+      "y": -300
+    },
+    "rule": {
+      "color": "gray",
+      "text": "메뉴는 홈, 직무 찾기, 교육과정, 마이페이지 4개. 경험은 마이페이지에 한 번 저장하고 공고 페이지에서 바로 AI 비교. 다음 행동 4개는 고정, 사용자가 고름. 트렌드 상세는 팝업. AI가 쓰인 곳은 보라색 AI 배지로 표시. 판정은 규칙, AI는 근거 문장 찾기. 공고 104건과 SeSAC 과정 210개는 팀 수집 실제 데이터(10/27 기준).",
+      "w": 1280,
+      "x": 0,
+      "y": -170
+    },
+    "modeNote": {
+      "color": "blue",
+      "text": "직무 찾기: 신입, 인턴을 고르면 내 경험 기준 직무 적합도(AI)를 먼저, 경력을 고르면 공고 비교로 바로. 트렌드 TOP 3 옆 \"전체 순위 보기\"는 팝업.",
+      "w": 1280,
+      "x": 1360,
+      "y": -170
+    },
+    "pathNote": {
+      "color": "blue",
+      "text": "\"어느 부분을 먼저 채울까요?\" 4개 선택지가 S3, S3b, S3c, S3d로 연결. 교육과정 메뉴에서도 같은 내용을 분야별로 볼 수 있음.",
+      "w": 1280,
+      "x": 4080,
+      "y": -170
+    },
+    "afterNote": {
+      "color": "orange",
+      "text": "마이페이지 = 내 경험(PDF를 AI가 읽어 채움) + 내 취업 경로 + 취업 수기. 수기 저장은 계정이 필요해서 11/6에는 화면만.",
+      "w": 1280,
+      "x": 6800,
+      "y": -170
+    },
+    "mobileTitle": {
+      "kind": "title1",
+      "maxW": 5200,
+      "text": "모바일 (390px) · 하단 탭 바: 홈, 직무 찾기, 교육과정, 마이페이지",
+      "w": 240,
+      "x": 0,
+      "y": 8399
+    },
+    "mobileNote": {
+      "color": "blue",
+      "text": "데스크톱과 같은 흐름과 데이터. 트렌드 전체 순위는 아래에서 올라오는 시트. 공고 비교 화면은 위에 뒤로 가기와 단계 바.",
+      "w": 1280,
+      "x": 0,
+      "y": 8529
+    }
+  },
+  "order": [
+    "Main.dc.html",
+    "S1-list.dc.html",
+    "S3-compare.dc.html",
+    "S4-next.dc.html",
+    "C2-course.dc.html",
+    "S4-cert.dc.html",
+    "S4-activity.dc.html",
+    "S4-apply.dc.html",
+    "E1-edu.dc.html",
+    "P2-policy.dc.html",
+    "S5-path.dc.html",
+    "S5-saved.dc.html",
+    "S5-resume.dc.html",
+    "S6-story.dc.html",
+    "L1-login.dc.html",
+    "L2-signup.dc.html",
+    "m-Main.dc.html",
+    "m-S1-list.dc.html",
+    "m-S3-compare.dc.html",
+    "m-S4-next.dc.html",
+    "m-C2-course.dc.html",
+    "m-S4-cert.dc.html",
+    "m-S4-activity.dc.html",
+    "m-S4-apply.dc.html",
+    "m-E1-edu.dc.html",
+    "m-P2-policy.dc.html",
+    "m-S5-path.dc.html",
+    "m-S5-saved.dc.html",
+    "m-S5-resume.dc.html",
+    "m-S6-story.dc.html",
+    "m-L1-login.dc.html",
+    "m-L2-signup.dc.html"
+  ],
+  "pages": [],
+  "title": "일로 서비스 화면 디자인"
+}

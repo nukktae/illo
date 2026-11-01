@@ -1,0 +1,17 @@
+# 키와 로컬 설정 (절대 올리지 않음)
+.env
+.env.*
+!.env.example
+.vercel/
+**/.vercel/
+.claude/
+.preview/
+
+# 개인 계정 화면이 담긴 캡처, 용량 큰 공공 원본 (필요하면 다시 받기)
+jobcare-test/
+research/public-data/raw/
+
+__pycache__/
+*.pyc
+.DS_Store
+node_modules/
