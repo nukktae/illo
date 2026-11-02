@@ -9,6 +9,7 @@ ASSETS = {
     '/_blob/a4f09a990e0582846a840e9525e3e4e3': (os.path.join(REPO, 'assets/illustrations/woman_cards_web.png'), 'assets/woman-cards.png'),
     '/_blob/967096ee53e44801f4e34a94c058eadc': (os.path.join(REPO, 'design/assets/sesac-1421.png'), 'assets/sesac-1421.png'),
     '/_blob/8431548dc6d24b077041f20d09190c12': (os.path.join(REPO, 'design/assets/sesac-1235.jpg'), 'assets/sesac-1235.jpg'),
+    '/_blob/70b2d2f6c328b6f5ee29ac16d9bb4509': (os.path.join(REPO, 'design/assets/avatar-haneul.jpg'), 'assets/avatar-haneul.jpg'),
 }
 
 
