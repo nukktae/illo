@@ -4,7 +4,7 @@ from pathlib import Path
 import shutil
 import subprocess
 import sys
-from test_compare import load_screens, ROOT
+from screen_loader import load_screens, ROOT
 
 out = Path(sys.argv[1])
 ns = load_screens()

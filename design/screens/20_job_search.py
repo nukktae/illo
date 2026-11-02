@@ -180,8 +180,9 @@ boards['S1-list.dc.html'] = ('S1 직무 찾기 (신입, 인턴은 적합도 / �
 m_jobs = f'''<div class="illo-scroll" style="display: flex; gap: 6px; overflow-x: auto; padding: 4px 0;"><sc-for list="@@jobs@@" as="j" hint-placeholder-count="7"><button type="button" onClick="@@j.go@@" style="@@j.style@@">@@j.label@@</button></sc-for></div>
 <label style="display: flex; gap: 8px; align-items: center; font-size: 13px;">직무 검색<input type="search" aria-label="직무 검색" value="@@jq@@" onChange="@@setJq@@" placeholder="다른 직무 검색" style="flex: 1; min-width: 0; height: 36px; border: none; border-radius: 12px; padding: 0 12px; background: {FILL}; font: inherit;"></label>
 <sc-if value="@@noJob@@" hint-placeholder-val="@@false@@"><span style="font-size: 13px; color: {SUB};">"@@jq@@" 직무는 아직 준비 중이에요. 검색어를 지우면 7개 직무가 다시 보여요</span></sc-if>'''
-m_s1 = f'''    {m_jobs}
+m_s1 = f'''
     <div style="display: flex; gap: 8px; justify-content: space-between; align-items: flex-end; padding: 8px 4px 4px;"><div style="min-width: 0; display: flex; flex-direction: column; gap: 4px;"><h1 style="margin: 0; font-size: 26px; font-weight: 700; letter-spacing: -0.02em;">@@jobName@@</h1><span style="font-size: 13px; color: {SUB};">@@count@@</span></div><sc-if value="@@isSns@@" hint-placeholder-val="@@true@@"><button type="button" onClick="@@openTrend@@" style="flex-shrink: 0; border: none; background: none; padding: 0 0 2px; font-size: 13px; font-weight: 600; color: {BLUE}; cursor: pointer;">트렌드 ›</button></sc-if></div>
+    {m_jobs}
     <div role="tablist" aria-label="경력 구분" style="display: flex; gap: 2px; padding: 4px; border-radius: 12px; background: rgba(0,23,51,0.06);"><button type="button" role="tab" onClick="@@pickNew@@" style="@@newStyle@@">신입, 인턴</button><button type="button" role="tab" onClick="@@pickExp@@" style="@@expStyle@@">경력</button></div>
     <sc-if value="@@showFit@@" hint-placeholder-val="@@true@@">{job_fit_card(True)}</sc-if>
     <sc-if value="@@fitTodo@@" hint-placeholder-val="@@false@@"><section style="padding: 18px; {CARD} font-size: 14px; line-height: 1.5;">이 직무의 역량 분석은 준비 중이에요. 공고 원문은 지금 볼 수 있고, 공고 비교는 SNS 콘텐츠 마케팅으로 시연해요</section></sc-if>

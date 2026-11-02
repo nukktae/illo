@@ -2,11 +2,15 @@
 import json
 import subprocess
 import unittest
-from test_compare import load_screens
+from screen_loader import load_screens
 
 
 class JobSearchTests(unittest.TestCase):
-    def test_state_sort_and_page_contract(self):
+    def test_P02_T21_mobile_title_before_controls(self):
+        html = load_screens()['boards']['m-S1-list.dc.html'][1]
+        self.assertLess(html.index('<h1'), html.index('aria-label="직무 검색"'))
+
+    def test_P02_T04_T20_state_sort_and_page_contract(self):
         ns = load_screens()
         harness = r'''
 const assert = require('node:assert/strict');
