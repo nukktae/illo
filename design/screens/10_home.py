@@ -37,7 +37,7 @@ def ex_card(mobile):
                  f'<span style="font-size: 13px; line-height: 1.5; color: {SUB};">{ev}</span></div>')
     return (f'<div style="display: flex; flex-direction: column; gap: 12px; {"padding: 18px 16px; border-radius: 18px;" if mobile else "padding: 40px 36px; height: 100%; box-sizing: border-box; justify-content: center;"} background: {BLUE_BG};">'
             f'<div style="display: flex; align-items: center; gap: 8px;"><span style="font-size: {15 if mobile else 16}px; font-weight: 700; color: {INK};">이렇게 비교해요</span>{AI}'
-            f'<span style="margin-left: auto; padding: 3px 8px; border-radius: 6px; background: #FFFFFF; color: #4E5968; font-size: 12px; font-weight: 600;">시연 예시</span></div>'
+            f'</div>'
             f'{rows}</div>')
 
 
