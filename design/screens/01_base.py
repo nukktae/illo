@@ -80,13 +80,18 @@ def save_btn(p, size=36, bg=None):
             f'<sc-if value="@@{p}.unsaved@@" hint-placeholder-val="@@true@@"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B95A1" stroke-width="1.8" stroke-linejoin="round">{BOOK}</svg></sc-if></button>')
 
 
+def AVATAR_IMG(size):
+    # 김하늘 프로필 사진 (데스크톱 상단, 마이페이지 프로필)
+    return f'<img src="/_blob/70b2d2f6c328b6f5ee29ac16d9bb4509" alt="" style="width: {size}px; height: {size}px; flex-shrink: 0; border-radius: 50%; object-fit: cover; display: block;">'
+
+
 def auth_desktop():
     return (f'<div style="justify-self: end; display: flex; align-items: center; gap: 8px;">'
             f'<sc-if value="@@loggedOut@@" hint-placeholder-val="@@true@@"><a href="L1-login.dc.html" style="height: 40px; padding: 0 14px; display: flex; align-items: center; color: {INK}; font-size: 14px; font-weight: 600; text-decoration: none;">로그인</a>'
             f'<a href="L2-signup.dc.html" style="height: 40px; padding: 0 18px; display: flex; align-items: center; border-radius: 999px; background: {INK}; color: #FFFFFF; font-size: 14px; font-weight: 600; text-decoration: none;">회원가입</a></sc-if>'
             f'<sc-if value="@@loggedIn@@" hint-placeholder-val="@@false@@"><a href="S5-saved.dc.html" aria-label="저장함 @@savedCount@@개" style="position: relative; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 50%; color: {INK};"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round">{BOOK}</svg>'
             f'<sc-if value="@@hasSaved@@" hint-placeholder-val="@@true@@"><span style="position: absolute; top: 3px; right: 1px; min-width: 18px; height: 18px; padding: 0 5px; box-sizing: border-box; border-radius: 999px; background: {BLUE}; color: #FFFFFF; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center;">@@savedCount@@</span></sc-if></a>'
-            f'<a href="S5-path.dc.html" style="display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 14px 0 4px; border-radius: 999px; background: #FFFFFF; color: {INK}; font-size: 14px; font-weight: 600; text-decoration: none;"><img src="/_blob/70b2d2f6c328b6f5ee29ac16d9bb4509" alt="" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; display: block;">@@userName@@님</a></sc-if></div>')
+            f'<a href="S5-path.dc.html" style="display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 14px 0 4px; border-radius: 999px; background: #FFFFFF; color: {INK}; font-size: 14px; font-weight: 600; text-decoration: none;">{AVATAR_IMG(32)}@@userName@@님</a></sc-if></div>')
 
 
 def auth_mobile():
