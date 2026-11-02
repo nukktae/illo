@@ -156,9 +156,9 @@ def list_card(mobile):
 
 def job_fit_card_d():
     items = ''.join(f'<span style="display: flex; align-items: center; gap: 6px; font-size: 14px; color: #4E5968;"><span style="font-weight: 700; color: {BLUE_D};">{i}</span>{name}</span>' for i, (name, _, _) in enumerate(RANK, 1))
-    return (f'<section aria-label="이 직무가 원하는 역량" style="display: flex; align-items: center; gap: 28px; padding: 20px 28px; {CARD}">'
-            f'<h2 style="flex-shrink: 0; margin: 0; font-size: 15px; font-weight: 700;">많이 찾는 역량</h2><div style="display: flex; gap: 10px 22px; flex-wrap: wrap;">{items}</div>'
-            '<sc-if value="@@unregistered@@" hint-placeholder-val="@@true@@"><span style="flex-shrink: 0; margin-left: auto; padding: 3px 8px; border-radius: 6px; background: #F2F4F6; color: #4E5968; font-size: 12px;">이력서를 등록해주세요</span></sc-if></section>')
+    return (f'<section aria-label="이 직무가 원하는 역량" style="display: flex; align-items: center; gap: 24px; padding: 20px 28px; {CARD}">'
+            f'<h2 style="flex-shrink: 0; margin: 0; font-size: 15px; font-weight: 700;">많이 찾는 역량</h2><div style="display: flex; gap: 8px 16px; flex-wrap: wrap;">{items}</div>'
+            f'<div style="flex-shrink: 0; margin-left: auto; display: flex; align-items: center; gap: 16px;"><sc-if value="@@unregistered@@" hint-placeholder-val="@@true@@"><span style="padding: 3px 8px; border-radius: 6px; background: #F2F4F6; color: #4E5968; font-size: 12px;">이력서를 등록해주세요</span></sc-if><button type="button" onClick="@@openTrend@@" style="flex-shrink: 0; border: none; background: none; padding: 0; font-size: 14px; font-weight: 600; color: {BLUE_D}; cursor: pointer; font-family: inherit; white-space: nowrap;">이 직무 트렌드 보기 ›</button></div></section>')
 
 
 def job_fit_card(mobile):
@@ -168,9 +168,8 @@ def job_fit_card(mobile):
             '<sc-if value="@@unregistered@@" hint-placeholder-val="@@true@@"><span style="align-self: flex-start; padding: 3px 8px; border-radius: 6px; background: #F2F4F6; color: #4E5968; font-size: 12px;">이력서를 등록해주세요</span></sc-if></section>')
 
 
-s1_body = f'''  <div style="padding: 28px 56px 0; display: flex; justify-content: space-between; align-items: flex-end;">
-    <div style="display: flex; flex-direction: column; gap: 6px;"><h1 style="margin: 0; font-size: 32px; font-weight: 700; letter-spacing: -0.02em;">@@jobName@@</h1>
-      <div style="display: flex; align-items: center; gap: 12px;"><span style="font-size: 15px; color: {SUB};">@@count@@</span><sc-if value="@@isSns@@" hint-placeholder-val="@@true@@"><button type="button" onClick="@@openTrend@@" style="border: none; background: none; padding: 0; font-size: 14px; font-weight: 600; color: {BLUE_D}; cursor: pointer; font-family: inherit;">이 직무 트렌드 보기 ›</button></sc-if></div></div>
+s1_body = f'''  <div style="padding: 28px 56px 0; display: flex; justify-content: space-between; align-items: center;">
+    <h1 style="margin: 0; font-size: 32px; font-weight: 700; letter-spacing: -0.02em;">@@jobName@@</h1>
     <div role="tablist" aria-label="경력 구분" style="display: flex; gap: 2px; padding: 4px; border-radius: 12px; background: rgba(0,23,51,0.06);"><button type="button" role="tab" onClick="@@pickNew@@" style="@@newStyle@@">신입, 인턴</button><button type="button" role="tab" onClick="@@pickExp@@" style="@@expStyle@@">경력</button></div>
   </div>
   <nav aria-label="직무" style="margin: 20px 56px 0; display: flex; align-items: flex-end; gap: 4px; border-bottom: 1px solid #E5E8EB;"><sc-for list="@@jobs@@" as="j" hint-placeholder-count="7"><button type="button" onClick="@@j.go@@" aria-current="@@j.cur@@" style="@@j.tab@@">@@j.label@@</button></sc-for>
@@ -180,8 +179,8 @@ s1_body = f'''  <div style="padding: 28px 56px 0; display: flex; justify-content
     <sc-if value="@@showFit@@" hint-placeholder-val="@@true@@">
 {job_fit_card_d()}    </sc-if>
     <sc-if value="@@fitTodo@@" hint-placeholder-val="@@false@@"><section style="display: flex; align-items: center; gap: 12px; padding: 20px 28px; {CARD}">{AI}<span style="font-size: 15px; line-height: 1.5; color: #4E5968;">이 직무의 역량 분석은 준비 중이에요. 공고 원문은 지금 볼 수 있고, 공고 비교는 <b style="color: {INK};">SNS 콘텐츠 마케팅</b>으로 시연해요</span></section></sc-if>
-    <sc-if value="@@isExp@@" hint-placeholder-val="@@false@@">
-{exp_card(False)}    </sc-if>
+    <sc-if value="@@isExp@@" hint-placeholder-val="@@false@@"><div style="position: relative;">
+{exp_card(False)}<sc-if value="@@isSns@@" hint-placeholder-val="@@true@@"><div style="position: absolute; top: 24px; right: 28px;"><button type="button" onClick="@@openTrend@@" style="flex-shrink: 0; border: none; background: none; padding: 0; font-size: 14px; font-weight: 600; color: {BLUE_D}; cursor: pointer; font-family: inherit; white-space: nowrap;">이 직무 트렌드 보기 ›</button></div></sc-if></div>    </sc-if>
 {list_card(False)}  </div>
 {trend_popup(False, None)}'''
 s1_script = LIST_JS.replace('@@ON@@', seg_style(True)).replace('@@OFF@@', seg_style(False))
