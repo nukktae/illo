@@ -14,6 +14,18 @@ for p in POSTS:
     for co, tit, h in LOGOS:
         if p['c'] == co and (tit is None or tit in p['t']):
             p['logo'] = '/_blob/' + h
+# 시연용 예시 마감일: 원본에 마감일이 없는 공고 (상시, 채용 시 마감)에 11/6 ~ 12/24 사이 날짜를 고르게 넣는다
+import datetime as _dt
+for _i, p in enumerate(q for q in POSTS if not q['d']):
+    p['d'] = (_dt.date(2026, 11, 6) + _dt.timedelta(days=(_i * 11) % 49)).isoformat()
+    p['mockD'] = True
+# 시연용 예시 조회수, 기업 형태 (원본에 없는 값만)
+_SIZES = ['중소기업', '스타트업', '중견기업', '대기업', '중소기업', '스타트업']
+for _i, p in enumerate(POSTS):
+    p['v'] = 180 + (_i * 7919 + len(p['t']) * 131) % 4800
+    if not p['s']:
+        p['s'] = {'카카오': '대기업', '클래스101': '중견기업', '트립비토즈': '스타트업', '앳홈': '중견기업', '패스트뷰': '중소기업', '퍼포즈드': '스타트업'}.get(p['c'], _SIZES[_i % len(_SIZES)])
+        p['mockS'] = True
 POSTS_JSON = json.dumps(POSTS, ensure_ascii=False)
 _OTHER = json.load(open(os.path.join(DATA, 'jobs_other.json'), encoding='utf-8'))
 JOB_KEYS = [('sns', 'SNS 콘텐츠 마케팅')] + [(k, v['label']) for k, v in _OTHER.items()]
@@ -85,7 +97,7 @@ LIST_JS = MATCH_JS + f'''  constructor(props) {{ super(props); const jm = (typeo
       const n = dleft(p.d), code = [...p.c].reduce((a, ch) => a + ch.charCodeAt(0), 0);
       const tags = [p.ty].concat(p.s ? [p.s] : []);
       const md = p.d ? p.d.slice(5).replace('-', '.') : '';
-      return {{ logoImg: p.logo || '', hasLogo: !!p.logo, noLogo: !p.logo, c: p.c, t: p.t, tags, ty: p.ty, size: p.s || '정보 없음', closeTxt: p.d ? '~ ' + md : '상시 채용', closeStyle: 'font-size: 14px; color: ' + (n !== null && n < 0 ? '{MUTE}' : '{INK}') + ';', init: p.c.replace(/[()㈜\\s]/g, '').slice(0, 1), logo: 'width: 40px; height: 40px; flex-shrink: 0; border-radius: 12px; background: ' + BG[code % BG.length] + '; color: #FFFFFF; font-size: 16px; font-weight: 700; display: flex; align-items: center; justify-content: center;',
+      return {{ views: p.v ? p.v.toLocaleString('ko-KR') : '-', dueStyle: 'font-size: 12px; font-weight: 700; color: ' + (n !== null && n <= 7 ? '{RED}' : '{MUTE}') + ';', logoImg: p.logo || '', hasLogo: !!p.logo, noLogo: !p.logo, c: p.c, t: p.t, tags, ty: p.ty, size: p.s || '정보 없음', closeTxt: p.d ? '~ ' + md : '상시 채용', closeStyle: 'font-size: 14px; color: ' + (n !== null && n < 0 ? '{MUTE}' : '{INK}') + ';', init: p.c.replace(/[()㈜\\s]/g, '').slice(0, 1), logo: 'width: 40px; height: 40px; flex-shrink: 0; border-radius: 12px; background: ' + BG[code % BG.length] + '; color: #FFFFFF; font-size: 16px; font-weight: 700; display: flex; align-items: center; justify-content: center;',
         ov: p.match.status === 'unregistered' ? '이력서를 등록해주세요' : p.match.status === 'pending' ? '역량 분석 준비 중' : '내 경험과 겹치는 역량 ' + p.match.count,
         ovStyle: 'padding: 3px 8px; border-radius: 6px; font-size: 12px; ' + (p.match.status === 'analyzed' ? 'background: {BLUE_BG}; color: {BLUE_D};' : 'background: #F2F4F6; color: #4E5968;'), demo: p.demo, notDemo: !p.demo, url: p.u || '#',
         sv: this.sv({{ id: p.id, kind: '공고', t: p.t, s: p.c + ' · ' + p.ty, u: p.u, h: p.demo ? 'S3-compare.dc.html' : '' }}),
@@ -113,7 +125,7 @@ LIST_JS = MATCH_JS + f'''  constructor(props) {{ super(props); const jm = (typeo
     const fopts = jobOn ? jobOpts : og ? og[2].map((v) => {{ const on = s[og[0]].indexOf(v) >= 0; return {{ label: v, on: on ? 'true' : 'false', go: toggle(og[0], v), style: on ? '{FCHIP_ON}' : '{FCHIP_OFF}' }}; }}) : [];
     const fsel = [];
     FG.forEach(([k, label]) => s[k].forEach((v) => fsel.push({{ label: label + ' > ' + v, go: toggle(k, v) }})));
-    return {{ unregistered, registered: !unregistered, sortNote, hasSortNote: !!sortNote, jobName: J.label, isSns, notSns: !isSns, showFit: isSns && m === 'new', fitTodo: !isSns && m === 'new', jobs, jq: s.jq, setJq: (e) => this.setState({{ jq: e && e.target ? e.target.value : '' }}), noJob: jobs.length === 0, srcNote: J.src + ' ' + POSTS.length + '건' + (isSns ? ' · 시연은 올리브인터내셔널 공고로 비교해요' : ' · 공고 비교는 SNS 콘텐츠 마케팅으로 시연해요'),
+    return {{ unregistered, registered: !unregistered, sortNote, hasSortNote: !!sortNote, jobName: J.label, isSns, notSns: !isSns, showFit: isSns && m === 'new', fitTodo: !isSns && m === 'new', jobs, jq: s.jq, setJq: (e) => this.setState({{ jq: e && e.target ? e.target.value : '' }}), noJob: jobs.length === 0, srcNote: J.src + ' ' + POSTS.length + '건' + (POSTS.some((p) => p.mockD) ? ' · 조회수, 원본에 없는 마감일과 기업 형태는 시연용 예시' : '') + (isSns ? ' · 시연은 올리브인터내셔널 공고로 비교해요' : ' · 공고 비교는 SNS 콘텐츠 마케팅으로 시연해요'),
       cntAll: '전체 ' + cnt('all'), cntIntern: '인턴 ' + cnt('인턴'), cntNew: '신입 ' + cnt('신입'),
       count: m === 'new' ? '신입, 인턴 공고 ' + POSTS.length + '건' : (isSns ? '경력 공고 22건 · 2026.10 수집' : '경력 공고는 준비 중'), isNew: m === 'new', isExp: m === 'exp', newStyle: st(m === 'new'), expStyle: st(m === 'exp'), pickNew: () => this.setState({{ mode: 'new' }}), pickExp: () => this.setState({{ mode: 'exp' }}),
       {TREND_VALS},
@@ -180,7 +192,7 @@ def list_sortrow(search):
             f'<div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 4px;"><span style="font-size: 14px; color: {SUB};"><b style="color: {INK}; font-weight: 700;">@@total@@</b>건 중 @@range@@</span><div style="display: flex; gap: 10px; align-items: center;">{sorts}</div></div>')
 
 
-GRID = '200px minmax(0, 1fr) 72px 88px 92px 150px'
+GRID = '190px minmax(0, 1fr) 64px 80px 84px 64px 150px'
 
 
 def list_rows(mobile):
@@ -205,7 +217,8 @@ def list_rows(mobile):
                f'<span style="display: flex; gap: 4px; flex-wrap: wrap;">{demo_tag}{ov}</span></span>'
                f'<span style="font-size: 14px; color: {INK}; text-align: center;">@@r.ty@@</span>'
                f'<span style="font-size: 14px; color: #4E5968; text-align: center;">@@r.size@@</span>'
-               f'<span style="display: flex; flex-direction: column; align-items: center; gap: 2px;"><span style="@@r.closeStyle@@">@@r.closeTxt@@</span><sc-if value="@@r.hasDue@@" hint-placeholder-val="@@false@@"><span style="font-size: 12px; font-weight: 700; color: {RED};">@@r.due@@</span></sc-if></span>'
+               f'<span style="display: flex; flex-direction: column; align-items: center; gap: 2px;"><span style="@@r.closeStyle@@">@@r.closeTxt@@</span><sc-if value="@@r.hasDue@@" hint-placeholder-val="@@false@@"><span style="@@r.dueStyle@@">@@r.due@@</span></sc-if></span>'
+               f'<span style="font-size: 14px; color: #4E5968; text-align: center;">@@r.views@@</span>'
                f'<span style="display: flex; justify-content: flex-end; gap: 8px;">{save_btn("r.sv", 38)}{act}</span></div>')
     empty = (f'<sc-if value="@@empty@@" hint-placeholder-val="@@false@@"><div style="display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 48px 0; border-top: 1px solid {LINE}; color: {SUB}; font-size: 15px;">'
              f'@@emptyMsg@@<button type="button" onClick="@@clearQ@@" style="height: 38px; padding: 0 14px; border: none; border-radius: 10px; background: {FILL}; color: {INK}; font-size: 14px; font-weight: 600; cursor: pointer;">검색어 지우기</button></div></sc-if>')
@@ -214,7 +227,7 @@ def list_rows(mobile):
              f'<sc-for list="@@nums@@" as="p" hint-placeholder-count="5"><button type="button" onClick="@@p.go@@" aria-current="@@p.cur@@" style="@@p.style@@">@@p.n@@</button></sc-for>'
              f'<button type="button" onClick="@@next@@" aria-label="다음 페이지" style="@@nextStyle@@">›</button></nav></sc-if>')
     head = '' if mobile else (f'<div style="display: grid; grid-template-columns: {GRID}; gap: 16px; padding: 10px 0; font-size: 13px; color: {SUB};">'
-                              '<span>기업명</span><span>공고명</span><span style="text-align: center;">채용형태</span><span style="text-align: center;">기업 형태</span><span style="text-align: center;">마감일</span><span></span></div>')
+                              '<span>기업명</span><span>공고명</span><span style="text-align: center;">채용형태</span><span style="text-align: center;">기업 형태</span><span style="text-align: center;">마감일</span><span style="text-align: center;">조회수</span><span></span></div>')
     return f'{head}<sc-for list="@@rows@@" as="r" hint-placeholder-count="10">{row}</sc-for>{empty}{pager}'
 
 
