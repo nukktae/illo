@@ -52,6 +52,34 @@ def hot_row(k, company, title, href):
     return f'<div style="display: flex; align-items: center; gap: 10px; border-top: 1px solid {LINE};">{body}{save_btn("sv." + k)}</div>'
 
 
+# P01-F10 AI 맞춤 공고 (로그인했을 때 핫 공고 자리). 시연은 김하늘 이력서로 미리 고른 3개
+import hashlib as _hl
+_LOGO = lambda n: '/_blob/' + _hl.md5(('logo-' + n).encode()).hexdigest()
+AI_POSTS = [('olive', 'olive', '올리브인터내셔널', '성분에디터 콘텐츠 마케팅 인턴', 'S3-compare.dc.html', '인스타그램 운영 1년과 겹쳐요'),
+            ('kakao', 'kakao', '카카오', '숏폼 서비스 영상 콘텐츠 제작 및 운영', None, '카드뉴스 제작 경험과 겹쳐요'),
+            ('c101', 'class101', '클래스101', '[인턴] 콘텐츠 마케터', None, '팔로워 성장 경험과 겹쳐요')]
+
+
+def ai_row(k, logo, company, title, href, why):
+    act = (f'<span style="flex-shrink: 0; font-size: 14px; font-weight: 600; color: {BLUE_D};">비교하기 ›</span>' if href else
+           f'<span style="flex-shrink: 0; padding: 4px 9px; border-radius: 999px; background: {FILL}; font-size: 12px; color: #4E5968;">비교 준비 중</span>')
+    inner = (f'<img src="{_LOGO(logo)}" alt="" style="width: 40px; height: 40px; flex-shrink: 0; border-radius: 12px; border: 1px solid {LINE}; object-fit: cover; box-sizing: border-box;">'
+             f'<span style="flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: 3px;"><span style="font-size: 12px; color: {SUB};">{company}</span>'
+             f'<span style="font-size: 16px; font-weight: 600; color: {INK};">{title}</span>'
+             f'<span style="align-self: flex-start; margin-top: 2px; padding: 2px 8px; border-radius: 6px; background: #F0EBFF; color: #6B4EE6; font-size: 12px;">{why}</span></span>{act}')
+    row = 'flex: 1 1 0; min-width: 0; display: flex; align-items: center; gap: 14px; padding: 14px 0;'
+    body = f'<a href="{href}" style="{row} text-decoration: none;">{inner}</a>' if href else f'<span style="{row}">{inner}</span>'
+    return f'<div style="display: flex; align-items: center; gap: 10px; border-top: 1px solid {LINE};">{body}{save_btn("sv." + k)}</div>'
+
+
+def ai_section():
+    rows = ''.join(ai_row(*a) for a in AI_POSTS)
+    return (f'<section aria-labelledby="aihot" style="display: flex; flex-direction: column; padding: 26px 32px 12px; {CARD}">'
+            f'<div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;"><h2 id="aihot" style="margin: 0; font-size: 20px; font-weight: 700;">@@userName@@님께 맞는 공고</h2>{AI}'
+            f'<span style="font-size: 13px; color: {MUTE};">내 이력서와 저장한 공고로 골랐어요</span>'
+            f'<a href="S1-list.dc.html" style="margin-left: auto; font-size: 14px; color: {SUB}; text-decoration: none;">더 보기 ›</a></div>{rows}</section>')
+
+
 def hot_section(pre, mobile):
     rows = (hot_row('olive', '올리브인터내셔널', '성분에디터 콘텐츠 마케팅 인턴', f'{pre}S3-compare.dc.html')
             + hot_row('ks', '카카오스타일', 'SNS 콘텐츠 마케터', None)
@@ -92,13 +120,13 @@ main_body = f'''  <div style="margin: 24px 56px 0;">{resume_strip('', False)}</d
     {ex_card(False)}
   </section>
   <div style="margin: 20px 56px 56px; display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 20px; align-items: start;">
-    {hot_section('', False)}
+    <sc-if value="@@loggedOut@@" hint-placeholder-val="@@true@@">{hot_section('', False)}</sc-if><sc-if value="@@loggedIn@@" hint-placeholder-val="@@false@@">{ai_section()}</sc-if>
     {kw_section('', False)}
   </div>
 {trend_popup(False, 'S1-list.dc.html')}'''
 TREND_SCRIPT = (f"  constructor(props) {{ super(props); this.state = {{ trendOpen: {TREND_JS} }}; }}\n"
                 f"  renderVals() {{ return {{ {TREND_VALS} }}; }}")
-boards['Main.dc.html'] = ('S0 홈', dpage('Main.dc.html', '일로 홈', 'home', main_body, TREND_SCRIPT, saves=('olive', 'ks', 'rxc')))
+boards['Main.dc.html'] = ('S0 홈', dpage('Main.dc.html', '일로 홈', 'home', main_body, TREND_SCRIPT, saves=('olive', 'ks', 'rxc', 'kakao', 'c101')))
 
 # --- mobile (11/6까지 데스크톱만 개편, 모바일은 이전 구조 유지) ---
 m_main = f'''    <section style="display: flex; flex-direction: column; gap: 16px; padding: 26px 20px; {CARD}">

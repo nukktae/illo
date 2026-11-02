@@ -30,6 +30,8 @@ SAVE_ITEMS = {
     'olive': {'id': 'post-327326', 'kind': '공고', 't': '성분에디터 콘텐츠 마케팅 인턴', 's': '올리브인터내셔널 · 채용연계형 인턴', 'u': POSTING, 'h': 'S3-compare.dc.html'},
     'ks': {'id': 'post-ks', 'kind': '공고', 't': 'SNS 콘텐츠 마케터', 's': '카카오스타일 · 인턴', 'u': 'https://linkareer.com/activity/342493', 'h': ''},
     'rxc': {'id': 'post-rxc', 'kind': '공고', 't': '숏폼 콘텐츠 기획 편집', 's': 'RXC · 인턴 6개월', 'u': 'https://linkareer.com', 'h': ''},
+    'kakao': {'id': 'post-358108', 'kind': '공고', 't': '숏폼 서비스 영상 콘텐츠 제작 및 운영_어시스턴트', 's': '카카오 · 신입', 'u': 'https://linkareer.com/activity/358108', 'h': ''},
+    'c101': {'id': 'post-327328', 'kind': '공고', 't': '[인턴] 콘텐츠 마케터', 's': '클래스101 · 인턴', 'u': 'https://linkareer.com/activity/327328', 'h': ''},
     'e1421': {'id': 'edu-1421', 'kind': '교육', 't': '(강북5기) AI 활용 SNS 마케터 양성 과정', 's': 'SeSAC 강북 · 모집 중 · 11.08 마감', 'u': SESAC + '1421', 'h': 'C2-course.dc.html'},
     'e1235': {'id': 'edu-1235', 'kind': '교육', 't': '전Z전능 브랜드 마케팅 실전 과정', 's': 'SeSAC 금천 · 모집 중 · 11.10 마감', 'u': SESAC + '1235', 'h': ''},
     'e1266': {'id': 'edu-1266', 'kind': '교육', 't': '(강동7기) 생성형 AI 기반 숏폼 영상콘텐츠 제작 실무과정', 's': 'SeSAC 강동 · 종료', 'u': SESAC + '1266', 'h': ''},
