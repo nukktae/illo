@@ -1,12 +1,6 @@
 """P04 교육과정: SeSAC 과정 210개, 청년 정책 213건, 정책 상세 1건."""
 
-def ai_banner(mobile):
-    pre = 'm-' if mobile else ''
-    return (f'<a href="{pre}S3-compare.dc.html#result" style="display: flex; {"flex-direction: column; align-items: flex-start;" if mobile else "align-items: center;"} gap: {10 if mobile else 16}px; padding: {"16px 18px" if mobile else "18px 24px"}; border-radius: 16px; background: #F4F9FF; color: {INK}; text-decoration: none;">'
-            f'{AI}<span style="flex: 1 1 0; font-size: {14 if mobile else 15}px; line-height: 1.5;">내 비교 결과에서 비어 있는 <b style="font-weight: 700;">숏폼 발행, 영상 툴, 트렌드, 실무 경험</b>을 채울 수 있는 것부터 보여드려요</span>'
-            f'<span style="flex-shrink: 0; font-size: 13px; font-weight: 600; color: {BLUE};">비교 결과 보기 ›</span></a>')
-
-E1_JS = '''  constructor(props) { super(props); const h = (typeof location !== 'undefined' && location.hash) || ''; this.state = { tab: h === '#policy' ? 'pol' : 'edu', q: '', g: 'all', live: true, sort: 'rec', page: 1, pq: '', pc: 'all', pr: 'all', pOpen: false, pp: 1 }; }
+E1_JS = '''  constructor(props) { super(props); const h = (typeof location !== 'undefined' && location.hash) || ''; this.state = { tab: h === '#policy' ? 'pol' : 'edu', q: '', g: 'all', live: false, sort: 'rec', page: 1, pq: '', pc: 'all', pr: 'all', pOpen: true, pp: 1 }; }
   pageVals() {
     const C = __C__, P = __P__, GC = __GC__, SC = __SC__, TH = __TH__;
     const s = this.state, set = (o) => this.setState(o);
@@ -16,7 +10,7 @@ E1_JS = '''  constructor(props) { super(props); const h = (typeof location !== '
     const pager = (page, pages, key) => { const nums = []; const lo = Math.max(1, Math.min(page - 2, pages - 4)), hi = Math.min(pages, lo + 4); for (let i = lo; i <= hi; i++) nums.push({ n: i, style: pg(i === page), cur: i === page ? 'page' : 'false', go: () => set({ [key]: i }) }); return { nums, prev: () => set({ [key]: Math.max(1, page - 1) }), next: () => set({ [key]: Math.min(pages, page + 1) }), prevStyle: pg(false) + (page === 1 ? ' opacity: 0.35;' : ''), nextStyle: pg(false) + (page === pages ? ' opacity: 0.35;' : ''), first: pages > 5 && lo > 1, last: pages > 5 && hi < pages, pages, goFirst: () => set({ [key]: 1 }), goLast: () => set({ [key]: pages }) }; };
     const T = (k) => ({ style: tabStyle(s.tab === k), go: () => set({ tab: k }) });
     // SeSAC courses
-    const isLive = (c) => c.st === '모집 중' || c.st === '모집 예정' || c.st === '상시';
+    const isLive = (c) => c.st === '모집 중' || c.st === '모집 예정';
     const q = s.q.trim().toLowerCase();
     const base = C.filter((c) => (!s.live || isLive(c)) && (!q || (c.n + ' ' + c.cp + ' ' + c.f + ' ' + c.tags.join(' ')).toLowerCase().indexOf(q) >= 0));
     const groups = ['all', '마케팅', 'AI', '데이터', '기획, PM', '개발', '디자인', '기타'].map((g) => ({ label: (g === 'all' ? '전체' : g) + ' ' + base.filter((c) => g === 'all' || c.g === g).length, style: pill(s.g === g), go: () => set({ g, page: 1 }) }));
@@ -54,7 +48,7 @@ E1_JS = '''  constructor(props) { super(props); const h = (typeof location !== '
       preg: { all: { style: pill(s.pr === 'all'), go: () => set({ pr: 'all', pp: 1 }) }, seoul: { style: pill(s.pr === '서울'), go: () => set({ pr: '서울', pp: 1 }) }, gov: { style: pill(s.pr === '중앙부처'), go: () => set({ pr: '중앙부처', pp: 1 }) } },
       popen: { style: pill(s.pOpen), go: () => set({ pOpen: !s.pOpen, pp: 1 }), label: s.pOpen ? '✓ 신청 가능만' : '신청 가능만' },
       pols, ptotal: PL.length, prange: PL.length ? ((ppage - 1) * pper + 1) + '–' + Math.min(ppage * pper, PL.length) : '0', pempty: PL.length === 0, hasPols: PL.length > 0, pp,
-      pclear: () => set({ pq: '', pc: 'all', pr: 'all', pOpen: false, pp: 1 }) };
+      pclear: () => set({ pq: '', pc: 'all', pr: 'all', pOpen: true, pp: 1 }) };
   }'''
 
 
@@ -134,7 +128,7 @@ def e1_v5(mobile):
            f'<span style="font-size: 12px; color: {MUTE};">출처: 온통청년 청년정책 API (일자리 분야 중 서울시, 중앙부처 {len(POL_ALL)}건, 2026.11.01 조회). 신청 조건은 각 정책 페이지에서 확인해요</span></div></sc-if>')
     head = (f'<div style="display: flex; flex-direction: column; gap: 6px; {"padding: 8px 4px 4px;" if mobile else ""}"><h1 style="margin: 0; font-size: {26 if mobile else 32}px; font-weight: 700; letter-spacing: -0.02em;">교육과정과 취업 지원</h1>'
             f'<span style="font-size: {13 if mobile else 15}px; line-height: 1.5; color: {SUB};">SeSAC 과정 {len(COURSES_ALL)}개와 청년 일자리 정책 {len(POL_ALL)}건을 한곳에서 찾아요. 마음에 들면 저장해 두세요</span></div>')
-    body = f'{head}{ai_banner(mobile)}{tabs}{edu}{pol}'
+    body = f'{head}{tabs}{edu}{pol}'
     if mobile:
         return '    ' + body.replace('href="S4-', 'href="m-S4-') + '\n'
     return f'  <div style="display: flex; flex-direction: column; gap: 20px; padding: 24px 56px 56px;">{body}</div>\n'
