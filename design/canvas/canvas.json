@@ -19,7 +19,7 @@
       "y": 0
     },
     "S3-compare.dc.html": {
-      "h": 1369,
+      "h": 1650,
       "is_interactive": true,
       "title": "S2 공고 원문 + AI 비교 (한 화면)",
       "w": 1280,
@@ -147,7 +147,7 @@
       "y": 8659
     },
     "m-S3-compare.dc.html": {
-      "h": 2526,
+      "h": 2750,
       "is_interactive": true,
       "title": "M2 공고 원문 + AI 비교 (모바일)",
       "w": 390,

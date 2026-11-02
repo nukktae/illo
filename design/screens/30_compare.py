@@ -19,13 +19,14 @@ POST_REQ = [
 ]
 DUTIES = ['Meta(FB/IG), YouTube, TikTok 등 주요 매체에 최적화된 숏폼 영상 및 이미지 광고 소재를 직접 기획하고 제작',
           '본인이 기획한 콘텐츠의 CTR, CVR, ROAS 데이터를 분석하고 A/B 테스트 진행', '뷰티 및 라이프스타일 시장 내 고효율 콘텐츠 트렌드 모니터링']
-V6_JS = ("  constructor(props) { super(props); this.state = { done: (typeof location !== 'undefined' && location.hash === '#result') }; }\n"
+PROCEDURE = "서류 전형, 1차 인터뷰, 최종 합격 · 포트폴리오 자유 양식"
+V6_JS = ("  constructor(props) { super(props); this.state = { trendOpen: false, done: (typeof location !== 'undefined' && location.hash === '#result') }; }\n"
          "  pageVals() {\n    const d = this.state.done;\n"
          "    const hl = (k) => d ? __HL__[k] : '';\n"
-         "    return { done: d, notDone: !d, run: () => this.setState({ done: true }), reset: () => this.setState({ done: false }), hl: { ok: hl('ok'), part: hl('part'), no: hl('no') } };\n  }")
+         "    return { __TREND_VALS__, done: d, notDone: !d, run: () => this.setState({ done: true }), reset: () => this.setState({ done: false }), hl: { ok: hl('ok'), part: hl('part'), no: hl('no') } };\n  }")
 HL = {'ok': f'background: {BLUE_BG}; color: {BLUE_D}; border-radius: 4px; padding: 1px 2px; font-weight: 600;',
       'part': f'background: {OR_BG}; color: {OR}; border-radius: 4px; padding: 1px 2px; font-weight: 600;',
-      'no': 'background: #EEF0F3; color: #4E5968; border-radius: 4px; padding: 1px 2px; text-decoration: underline dotted #B0B8C1; text-underline-offset: 3px;'}
+      'no': 'background: #D5DCE5; color: #333D4B; border-radius: 4px; padding: 1px 2px; font-weight: 600; text-decoration: none; -webkit-box-decoration-break: clone; box-decoration-break: clone;'}
 
 
 def mk_badge(k):
@@ -39,29 +40,41 @@ def post_li(pieces, finds, mobile):
     ev = ''
     for k, note, act, href in finds:
         a = f'<a href="{pre}{href}" style="flex-shrink: 0; font-size: 13px; font-weight: 600; text-decoration: none; white-space: nowrap;">{act} ›</a>' if act else ''
-        ev += f'<div style="display: flex; align-items: flex-start; gap: 8px; font-size: 13px; line-height: 1.5; color: #4E5968;">{mk_badge(k)}<span style="flex: 1 1 0;">{note}</span>{a}</div>'
+        if act == '트렌드 보기':
+            a = f'<button type="button" onClick="@@openTrend@@" style="flex-shrink: 0; border: none; padding: 0; background: none; color: {BLUE}; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer;">{act} ›</button>'
+        ev += f'<div style="display: flex; flex-wrap: wrap; align-items: flex-start; gap: 8px; font-size: 13px; line-height: 1.5; color: #4E5968;">{mk_badge(k)}<span style="flex: 1 1 100px; min-width: 0;">{note}</span>{a}</div>'
     evb = (f'<sc-if value="@@done@@" hint-placeholder-val="@@false@@"><div style="display: flex; flex-direction: column; gap: 6px; margin-top: 8px; padding: 10px 12px; border-radius: 10px; background: #F9FAFB;">{ev}</div></sc-if>' if ev else
            f'<sc-if value="@@done@@" hint-placeholder-val="@@false@@"><div style="margin-top: 6px; font-size: 12px; color: {MUTE};">관심, 태도 문장이라 비교하지 않았어요</div></sc-if>')
     return f'<li style="padding: 2px 0;"><span style="font-size: 15px; line-height: 1.75; color: #333D4B;">{txt}</span>{evb}</li>'
 
 
+def posting_section(title, content, mobile, subtitle=''):
+    pad = '20px' if mobile else '32px 36px'
+    body = content if content.strip() else '<p style="margin: 0; font-size: 15px; color: #6B7684;">공고에 기재된 내용이 없어요</p>'
+    sub = f'<span style="font-size: 13px; font-weight: 600; color: {SUB};">{subtitle}</span>' if subtitle else ''
+    return (f'<section aria-label="{title}" style="display: flex; flex-direction: column; gap: 10px; padding: {pad}; {CARD} background: #EDF2F8; min-width: 0; overflow-wrap: anywhere;">'
+            f'<h3 style="margin: 0; font-size: 16px; font-weight: 700;">{title}</h3>{sub}{body}</section>')
+
+
 def posting_card(mobile):
     pad = '20px' if mobile else '32px 36px'
-    h3 = lambda t, extra='': f'<h3 style="margin: 0; font-size: 16px; font-weight: 700;">{t}{extra}</h3>'
-    ul = lambda items: f'<ul style="margin: 0; padding: 0 0 0 18px; display: flex; flex-direction: column; gap: 8px;">{items}</ul>'
+    ul = lambda items: f'<ul style="margin: 0; padding: 0 0 0 18px; display: flex; flex-direction: column; gap: 8px;">{items}</ul>' if items else ''
     duties = ''.join(f'<li style="font-size: 15px; line-height: 1.75; color: #333D4B;">{t}</li>' for t in DUTIES)
     quals = ''.join(post_li(p, f, mobile) for k, p, f in POST_REQ if k == '자격요건')
     prefs = ''.join(post_li(p, f, mobile) for k, p, f in POST_REQ if k == '우대사항')
     meta = ''.join(f'<div style="display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 12px; color: {MUTE};">{k}</span><span style="font-size: 14px;">{v}</span></div>'
                    for k, v in [('직무', '콘텐츠 마케터'), ('고용형태', '인턴 (채용연계)'), ('경력', '경력 무관'), ('마감', '채용 시 마감')])
-    return (f'<article aria-label="채용 공고" style="display: flex; flex-direction: column; gap: 24px; padding: {pad}; {CARD} min-width: 0;">'
+    procedure = f'<p style="margin: 0; font-size: 15px; line-height: 1.75; color: #333D4B;">{PROCEDURE}</p>' if PROCEDURE.strip() else ''
+    return (f'<article aria-label="채용 공고" style="display: flex; flex-direction: column; gap: 16px; min-width: 0;">'
+            f'<div style="display: flex; flex-direction: column; gap: 24px; padding: {pad}; {CARD} min-width: 0; overflow-wrap: anywhere;">'
             f'<div style="display: flex; align-items: center; gap: 12px;">{mark("olive")}<span style="flex: 1 1 0; display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 15px; font-weight: 600;">올리브인터내셔널</span><span style="font-size: 12px; color: {MUTE};">뷰티 브랜드 성분에디터 운영 · 마케팅본부</span></span>{save_btn("sv.olive", 40)}</div>'
             f'<h1 style="margin: 0; font-size: {20 if mobile else 26}px; font-weight: 700; line-height: 1.4; letter-spacing: -0.02em;">[마케팅본부] 성분에디터 콘텐츠 마케팅 인턴 (채용연계형)</h1>'
             f'<div style="display: grid; grid-template-columns: repeat({2 if mobile else 4}, minmax(0, 1fr)); gap: 12px; padding: 14px 16px; border-radius: 12px; background: #F9FAFB;">{meta}</div>'
-            f'<section style="display: flex; flex-direction: column; gap: 10px;">{h3("담당업무")}{ul(duties)}</section>'
-            f'<section style="display: flex; flex-direction: column; gap: 10px;">{h3("자격요건")}<span style="font-size: 13px; font-weight: 600; color: {SUB};">Skillset</span>{ul(quals)}</section>'
-            f'<section style="display: flex; flex-direction: column; gap: 10px;">{h3("우대사항")}{ul(prefs)}</section>'
-            f'<section style="display: flex; flex-direction: column; gap: 10px;">{h3("전형절차")}<p style="margin: 0; font-size: 15px; line-height: 1.75; color: #333D4B;">서류 전형, 1차 인터뷰, 최종 합격 · 포트폴리오 자유 양식</p></section>'
+            '</div>'
+            f'{posting_section("담당업무", ul(duties), mobile)}'
+            f'{posting_section("자격요건", ul(quals), mobile, "Skillset")}'
+            f'{posting_section("우대사항", ul(prefs), mobile)}'
+            f'{posting_section("전형절차", procedure, mobile)}'
             '</article>')
 
 
@@ -93,11 +106,13 @@ def side_panel(mobile):
     pre = 'm-' if mobile else ''
     seg = lambda c: f'<span style="flex: 1 1 0; height: 8px; border-radius: 999px; background: {c};"></span>'
     exp = (f'<div style="display: flex; flex-direction: column; gap: 8px; padding: 14px; border-radius: 14px; background: #F9FAFB;">'
-           f'<div style="display: flex; justify-content: space-between; align-items: center;"><span style="font-size: 13px; font-weight: 700;">비교에 쓰는 내 경험</span><a href="{pre}S5-resume.dc.html" style="font-size: 12px; color: {SUB}; text-decoration: none;">이력서 수정 ›</a></div>'
+           f'<div style="display: flex; justify-content: space-between; align-items: center;"><span style="font-size: 13px; font-weight: 700;">비교에 쓰는 내 경험</span></div>'
            f'<span style="font-size: 13px; line-height: 1.55; color: #4E5968;">학생회 홍보부 인스타그램 운영 1년 · 카드뉴스 주 1회 (캔바) · 팔로워 300명에서 1,200명 · 컴활 2급 · OPIc IM2</span></div>')
     before = (f'<sc-if value="@@notDone@@" hint-placeholder-val="@@true@@"><div style="display: flex; flex-direction: column; gap: 14px;">{AI}'
               f'<span style="font-size: 20px; font-weight: 700; line-height: 1.4;">이 공고 문장에<br>내 경험을 맞춰 볼게요</span>{exp}'
-              f'<button type="button" onClick="@@run@@" style="height: 54px; border: none; border-radius: 14px; background: {BLUE}; color: #FFFFFF; font-size: 17px; font-weight: 600; cursor: pointer;">AI로 비교하기</button>'
+              f'<div style="display: flex; flex-direction: column; gap: 8px;">'
+              f'<a href="{pre}S5-resume.dc.html" style="display: flex; align-items: center; justify-content: center; height: 54px; border-radius: 14px; background: #F2F4F6; color: #191F28; font-size: 17px; font-weight: 600; text-decoration: none;">나의 이력서 수정</a>'
+              f'<button type="button" onClick="@@run@@" style="height: 54px; border: none; border-radius: 14px; background: {BLUE}; color: #FFFFFF; font-size: 17px; font-weight: 600; cursor: pointer;">AI로 비교하기</button></div>'
               f'<span style="font-size: 12px; line-height: 1.5; color: {MUTE};">AI가 문장마다 근거를 찾고, 판정은 규칙으로 해요. 합격 여부는 예측하지 않아요</span></div></sc-if>')
     tile = lambda n, label, bg, fg: f'<div style="display: flex; flex-direction: column; gap: 2px; padding: 12px; border-radius: 14px; background: {bg};"><span style="font-size: 22px; font-weight: 800; color: {fg}; letter-spacing: -0.02em;">{n}</span><span style="font-size: 12px; font-weight: 600; color: {fg};">{label}</span></div>'
     refresh = f'<svg aria-hidden="true" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg>'
@@ -116,8 +131,8 @@ def side_panel(mobile):
 
 v6_body = (f'  <div style="padding: 16px 56px 0;"><a href="S1-list.dc.html" style="font-size: 14px; color: {SUB}; text-decoration: none;">‹ 공고 목록</a></div>\n'
            f'  <div style="display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 24px; padding: 16px 56px 56px; align-items: start;">{posting_card(False)}{side_panel(False)}</div>\n')
-V6_SCRIPT = V6_JS.replace('__HL__', json.dumps(HL, ensure_ascii=False))
-boards['S3-compare.dc.html'] = ('S2 공고 원문 + AI 비교 (한 화면)', dpage('S3-compare.dc.html', '공고와 내 경험 비교', 'find', v6_body, V6_SCRIPT, saves=('olive',)))
+V6_SCRIPT = V6_JS.replace('__HL__', json.dumps(HL, ensure_ascii=False)).replace('__TREND_VALS__', TREND_VALS)
+boards['S3-compare.dc.html'] = ('S2 공고 원문 + AI 비교 (한 화면)', dpage('S3-compare.dc.html', '공고와 내 경험 비교', 'find', v6_body + trend_popup(False, None, '공고 비교로 돌아가기'), V6_SCRIPT, saves=('olive',)))
 m_v6 = f'    {side_panel(True)}\n    {posting_card(True)}\n'
 # phone: the panel goes first so the button and the score are on the first screen
-boards['m-S3-compare.dc.html'] = ('M2 공고 원문 + AI 비교 (모바일)', mpage('m-S3-compare.dc.html', 'M2 공고와 내 경험 비교 (모바일)', topbar_back('m-S1-list.dc.html', '공고와 비교'), m_v6, 'find', V6_SCRIPT, saves=('olive',)))
+boards['m-S3-compare.dc.html'] = ('M2 공고 원문 + AI 비교 (모바일)', mpage('m-S3-compare.dc.html', 'M2 공고와 내 경험 비교 (모바일)', topbar_back('m-S1-list.dc.html', '공고와 비교'), m_v6 + trend_popup(True, None, '공고 비교로 돌아가기'), 'find', V6_SCRIPT, saves=('olive',)))
