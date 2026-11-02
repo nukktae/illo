@@ -3,7 +3,7 @@ from pathlib import Path
 import subprocess
 import shutil
 import sys
-from test_compare import ROOT, load_screens
+from screen_loader import ROOT, load_screens
 
 output = Path(sys.argv[1])
 for kind in ('empty', 'long'):
@@ -20,7 +20,7 @@ for kind in ('empty', 'long'):
     if kind == 'long':
         body = body.replace('학생회 홍보부 인스타그램 운영 1년', '긴 경험 요약 검증 ' * 80)
     html = ns['mpage']('m-S3-compare.dc.html', '테스트 공고', ns['topbar_back']('m-S1-list.dc.html', '공고와 비교'),
-                       body, 'find', ns['V6_SCRIPT'], saves=('olive',))
+                       body + ns['compare_trend_popup'](True), 'find', ns['V6_SCRIPT'], saves=('olive',))
     canvas = output / (kind + '-canvas')
     canvas.mkdir(parents=True, exist_ok=True)
     (canvas / 'm-S3-compare.dc.html').write_text(html)
