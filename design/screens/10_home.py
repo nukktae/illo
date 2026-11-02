@@ -58,7 +58,7 @@ def hot_section(pre, mobile):
             + hot_row('rxc', 'RXC', '숏폼 콘텐츠 기획 편집', None))
     return (f'<section aria-labelledby="{pre}hot" style="display: flex; flex-direction: column; padding: {"20px 18px 8px" if mobile else "26px 32px 12px"}; {CARD}">'
             f'<div style="display: flex; align-items: baseline; gap: 10px; margin-bottom: 8px;"><h2 id="{pre}hot" style="margin: 0; font-size: {18 if mobile else 20}px; font-weight: 700;">이번 주 핫 공고</h2>'
-            f'<span style="font-size: 13px; color: {MUTE};">지금은 시연 공고 하나로 비교할 수 있어요</span></div>{rows}</section>')
+            f'</div>{rows}</section>')
 
 
 # P01-F04 실시간 공고 키워드: 핫 공고 아래, 작게, LIVE 표시 없음
@@ -71,7 +71,7 @@ def kw_section(pre, mobile):
 
 
 H1 = '공고 문장마다,<br>내 경험을 비교해요'
-SUBLINE = '맞는 근거와 비어 있는 부분을 보여 주고, 채울 SeSAC 과정과 청년 정책까지 이어 드려요'
+SUBLINE = '비어 있는 부분은 SeSAC 과정과 청년 정책으로 채워요'
 SLOGAN = '청년의 경험으로, 다음 청년의 기회를'
 CTA = '시연 공고로 비교해 보기'
 
@@ -86,7 +86,6 @@ main_body = f'''  <div style="margin: 24px 56px 0;">{resume_strip('', False)}</d
         <a href="S1-list.dc.html" style="font-size: 15px; font-weight: 600; color: #4E5968; text-decoration: none;">직무별 공고 보기 ›</a>
       </div>
       <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 12px; padding-top: 20px; border-top: 1px solid {LINE};">
-        <span style="font-size: 13px; color: {SUB};">다른 직무도 볼 수 있어요</span>
         <div style="display: flex; gap: 8px; flex-wrap: wrap;">{job_chips('')}</div>
       </div>
     </div>
