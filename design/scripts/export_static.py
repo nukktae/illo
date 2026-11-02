@@ -15,6 +15,7 @@ ASSETS = {
     '/_blob/2903327b271a5f5367228d0fbc308a83': (os.path.join(REPO, 'design/assets/pol-sesac.jpg'), 'assets/pol-sesac.jpg'),
     '/_blob/7260be2b13adc600fd41dc50e54baf09': (os.path.join(REPO, 'design/assets/pol-yc-camp.jpg'), 'assets/pol-yc-camp.jpg'),
     '/_blob/a63c4957a0dce8ee767691f6f6c7fd7f': (os.path.join(REPO, 'design/assets/pol-yc-challenge.jpg'), 'assets/pol-yc-challenge.jpg'),
+    '/_blob/3f861b175e3d523ff52cf3b172a934bc': (os.path.join(REPO, 'design/assets/pol-heritage.jpg'), 'assets/pol-heritage.jpg'),
 }
 
 
