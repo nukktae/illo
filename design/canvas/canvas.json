@@ -11,7 +11,7 @@
       "y": 0
     },
     "S1-list.dc.html": {
-      "h": 1680,
+      "h": 1800,
       "is_interactive": true,
       "title": "S1 직무 찾기 (신입, 인턴은 적합도 / 경력은 공고)",
       "w": 1280,
@@ -139,7 +139,7 @@
       "y": 8659
     },
     "m-S1-list.dc.html": {
-      "h": 2469,
+      "h": 2750,
       "is_interactive": true,
       "title": "M1 직무 찾기 (모바일)",
       "w": 390,
