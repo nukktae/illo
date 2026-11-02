@@ -40,7 +40,26 @@ E1_JS = '''  constructor(props) { super(props); const h = (typeof location !== '
       detail: p.id === 'pol-20261018005400213991', noDetail: p.id !== 'pol-20261018005400213991', dhref: '__DPRE__P2-policy.dc.html',
       sv: this.sv({ id: p.id, kind: '정책', t: p.n, s: p.o + ' · ' + p.st, u: p.u, h: p.id === 'pol-20261018005400213991' ? 'P2-policy.dc.html' : '' }) }));
     const pp = pager(ppage, ppages, 'pp');
-    return { tabs: { edu: T('edu'), pol: T('pol') }, isEdu: s.tab === 'edu', isPol: s.tab === 'pol',
+    const FOP = s.fo || '', isE = s.tab === 'edu';
+    const ftab = (k, label, n, always) => ({ label: label + (n ? ' ' + n : '') + (FOP === k ? ' ▴' : ' ▾'), cur: FOP === k ? 'true' : 'false', go: () => set({ fo: FOP === k ? '' : k }),
+      style: '__FTAB__' + (FOP === k ? ' border-bottom-color: #3182F6;' : '') + (always || n || FOP === k ? ' color: #1B64DA; font-weight: 700;' : '') });
+    const etabs = [ftab('kind', isE ? 'SeSAC 과정' : '청년 정책', 0, true)].concat(isE
+      ? [ftab('g', '분야', s.g !== 'all' ? 1 : 0), ftab('st', '모집 상태', s.live ? 1 : 0)]
+      : [ftab('org', '기관', s.pr !== 'all' ? 1 : 0), ftab('pc', '분야', s.pc !== 'all' ? 1 : 0), ftab('ps', '신청 상태', s.pOpen ? 1 : 0)]);
+    const ch = (label, on, go) => ({ label, on: on ? 'true' : 'false', go, style: on ? '__FON__' : '__FOFF__' });
+    let eopts = [], etitle = '';
+    if (FOP === 'kind') { etitle = '종류'; eopts = [ch('SeSAC 과정', isE, () => set({ tab: 'edu', fo: '' })), ch('청년 정책', !isE, () => set({ tab: 'pol', fo: '' }))]; }
+    if (FOP === 'g' && isE) { etitle = '분야'; eopts = ['마케팅', 'AI', '데이터', '기획, PM', '개발', '디자인', '기타'].map((g) => ch(g, s.g === g, () => set({ g: s.g === g ? 'all' : g, page: 1 }))); }
+    if (FOP === 'st' && isE) { etitle = '모집 상태'; eopts = [ch('모집 중, 예정만', s.live, () => set({ live: !s.live, page: 1 }))]; }
+    if (FOP === 'org' && !isE) { etitle = '기관'; eopts = [ch('서울시', s.pr === '서울', () => set({ pr: s.pr === '서울' ? 'all' : '서울', pp: 1 })), ch('중앙부처', s.pr === '중앙부처', () => set({ pr: s.pr === '중앙부처' ? 'all' : '중앙부처', pp: 1 }))]; }
+    if (FOP === 'pc' && !isE) { etitle = '분야'; eopts = ['취업', '창업', '재직자', '권익보호'].map((c) => ch(c, s.pc === c, () => set({ pc: s.pc === c ? 'all' : c, pp: 1 }))); }
+    if (FOP === 'ps' && !isE) { etitle = '신청 상태'; eopts = [ch('신청 가능만', s.pOpen, () => set({ pOpen: !s.pOpen, pp: 1 }))]; }
+    const esel = [];
+    if (isE) { if (s.g !== 'all') esel.push({ label: '분야 > ' + s.g, go: () => set({ g: 'all', page: 1 }) }); if (s.live) esel.push({ label: '모집 상태 > 모집 중, 예정만', go: () => set({ live: false, page: 1 }) }); }
+    else { if (s.pr !== 'all') esel.push({ label: '기관 > ' + (s.pr === '서울' ? '서울시' : s.pr), go: () => set({ pr: 'all', pp: 1 }) }); if (s.pc !== 'all') esel.push({ label: '분야 > ' + s.pc, go: () => set({ pc: 'all', pp: 1 }) }); if (s.pOpen) esel.push({ label: '신청 상태 > 신청 가능만', go: () => set({ pOpen: false, pp: 1 }) }); }
+    const evals = { etabs, eopts, ePanel: eopts.length > 0, etitle, esel, hasE: esel.length > 0, ereset: () => set(isE ? { g: 'all', live: false, page: 1 } : { pr: 'all', pc: 'all', pOpen: false, pp: 1 }),
+      eq: isE ? s.q : s.pq, eph: isE ? '과정명, 캠퍼스, 해시태그 검색' : '정책 이름, 기관, 키워드 검색', setEq: (e) => set(isE ? { q: e && e.target ? e.target.value : '', page: 1 } : { pq: e && e.target ? e.target.value : '', pp: 1 }) };
+    return { ...evals, tabs: { edu: T('edu'), pol: T('pol') }, isEdu: s.tab === 'edu', isPol: s.tab === 'pol',
       q: s.q, setQ: (e) => set({ q: e && e.target ? e.target.value : '', page: 1 }), groups, live: { style: pill(s.live), go: () => set({ live: !s.live, page: 1 }), label: s.live ? '✓ 모집 중, 예정만' : '모집 중, 예정만' },
       sort: { rec: { style: srt(s.sort === 'rec'), go: () => set({ sort: 'rec', page: 1 }) }, close: { style: srt(s.sort === 'close'), go: () => set({ sort: 'close', page: 1 }) }, rv: { style: srt(s.sort === 'rv'), go: () => set({ sort: 'rv', page: 1 }) } },
       cards, total: L.length, range: L.length ? ((page - 1) * per + 1) + '–' + Math.min(page * per, L.length) : '0', empty: L.length === 0, hasCards: L.length > 0, cp,
@@ -58,7 +77,7 @@ def e1_js(mobile):
     TAB = 'flex-shrink: 0; height: 44px; padding: 0 18px; border: none; border-radius: 12px; font-size: 15px; cursor: pointer; white-space: nowrap;'
     js = (E1_JS.replace('__C__', COURSE_JSON).replace('__P__', POL_JSON).replace('__GC__', json.dumps(GCOL, ensure_ascii=False)).replace('__SC__', json.dumps(STC, ensure_ascii=False))
           .replace('__TH__', json.dumps(THUMBS)).replace('__PTH__', json.dumps(PTHUMBS)).replace('__PPER__', '10' if mobile else '9').replace('__PCOL__', json.dumps({'취업': (BLUE_BG, BLUE_D), '창업': ('#E6F7F1', '#0E8A63'), '재직자': ('#FFF4E5', '#C26A00'), '권익보호': ('#F0EBFF', '#6B4EE6')})).replace('__PER__', '6' if mobile else '9').replace('__DPRE__', 'm-' if mobile else '')
-          .replace('__RON__', seg_style(True)).replace('__ROFF__', seg_style(False)).replace('__BON__', 'display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 5px; font-size: 12px; font-weight: 700; color: #FFFFFF; box-sizing: border-box; background: ' + BLUE + '; border: 1.5px solid ' + BLUE + ';').replace('__BOFF__', 'display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 5px; font-size: 12px; font-weight: 700; color: #FFFFFF; box-sizing: border-box; background: #FFFFFF; border: 1.5px solid #C9CED4;').replace('__TABON__', TAB_ON).replace('__TABOFF__', TAB_OFF).replace('__TON__', TAB + f' background: {INK}; color: #FFFFFF; font-weight: 700;').replace('__TOFF__', TAB + ' background: #FFFFFF; color: #4E5968;')
+          .replace('__RON__', seg_style(True)).replace('__ROFF__', seg_style(False)).replace('__BON__', 'display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 5px; font-size: 12px; font-weight: 700; color: #FFFFFF; box-sizing: border-box; background: ' + BLUE + '; border: 1.5px solid ' + BLUE + ';').replace('__BOFF__', 'display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 5px; font-size: 12px; font-weight: 700; color: #FFFFFF; box-sizing: border-box; background: #FFFFFF; border: 1.5px solid #C9CED4;').replace('__FTAB__', FTAB).replace('__FON__', FCHIP_ON).replace('__FOFF__', FCHIP_OFF).replace('__TABON__', TAB_ON).replace('__TABOFF__', TAB_OFF).replace('__TON__', TAB + f' background: {INK}; color: #FFFFFF; font-weight: 700;').replace('__TOFF__', TAB + ' background: #FFFFFF; color: #4E5968;')
           .replace('__PON__', PILL_ON).replace('__POFF__', PILL_OFF).replace('__SON__', SORT_ON).replace('__SOFF__', SORT_OFF).replace('__GON__', PG_ON).replace('__GOFF__', PG_OFF))
     return js
 
@@ -107,9 +126,10 @@ def e1_v5(mobile):
     if not mobile:  # 데스크톱: 칩에 개수 없음, 토글은 체크박스
         chips = '<sc-for list="@@groups@@" as="g" hint-placeholder-count="8"><button type="button" onClick="@@g.go@@" style="@@g.style@@">@@g.name@@</button></sc-for>'
         live = f'<div style="margin-left: auto;">{chk("liveBox", "live.go", "모집 중, 예정만")}</div>'
+    edu_tools = (f'<div style="display: flex; {"flex-direction: column; align-items: stretch;" if mobile else "align-items: center;"} gap: 10px;">{search_box("q", "setQ", "과정명, 캠퍼스, 해시태그", None if mobile else 320)}{live}</div>'
+                 f'<div{sc} style="display: flex; gap: 6px; {"overflow-x: auto; margin: 0 -16px; padding: 0 16px;" if mobile else "flex-wrap: wrap;"}">{chips}</div>') if mobile else ''
     edu = (f'<sc-if value="@@isEdu@@" hint-placeholder-val="@@true@@"><div style="display: flex; flex-direction: column; gap: 14px;">'
-           f'<div style="display: flex; {"flex-direction: column; align-items: stretch;" if mobile else "align-items: center;"} gap: 10px;">{search_box("q", "setQ", "과정명, 캠퍼스, 해시태그", None if mobile else 320)}{live}</div>'
-           f'<div{sc} style="display: flex; gap: 6px; {"overflow-x: auto; margin: 0 -16px; padding: 0 16px;" if mobile else "flex-wrap: wrap;"}">{chips}</div>'
+           f'{edu_tools}'
            f'<div style="display: flex; justify-content: space-between; align-items: center; {"flex-direction: column; align-items: flex-start; gap: 8px;" if mobile else ""}"><span style="font-size: 14px; color: {SUB};"><b style="color: {INK}; font-weight: 700;">@@total@@</b>개 중 @@range@@</span><div style="display: flex; gap: 10px; align-items: center;">{sorts}</div></div>'
            f'<sc-if value="@@hasCards@@" hint-placeholder-val="@@true@@"><div style="display: grid; grid-template-columns: repeat({cols}, minmax(0, 1fr)); gap: 12px;"><sc-for list="@@cards@@" as="c" hint-placeholder-count="{6 if mobile else 9}">{card}</sc-for></div>{pager_html("cp", mobile)}</sc-if>'
            f'<sc-if value="@@empty@@" hint-placeholder-val="@@false@@">{empty("clear", "조건에 맞는 과정이 없어요")}</sc-if>'
@@ -141,9 +161,10 @@ def e1_v5(mobile):
              f'<div style="margin-top: auto; display: flex; justify-content: flex-end;">'
              f'<sc-if value="@@p.detail@@" hint-placeholder-val="@@false@@"><a href="@@p.dhref@@" style="font-size: 13px; font-weight: 600; color: {BLUE_D}; text-decoration: none;">자세히 보기 ›</a></sc-if>'
              f'<sc-if value="@@p.noDetail@@" hint-placeholder-val="@@true@@"><a href="@@p.u@@" {EXT} style="font-size: 13px; font-weight: 600; color: {BLUE_D}; text-decoration: none;">온통청년에서 보기 ↗</a></sc-if></div></div>')
+    pol_tools = (f'<div style="display: flex; {"flex-direction: column; align-items: stretch;" if mobile else "align-items: center;"} gap: 10px;">{search_box("pq", "setPq", "정책 이름, 기관, 키워드", None if mobile else 320)}<div{sc} style="display: flex; gap: 6px; {"overflow-x: auto; margin: 0 -16px; padding: 0 16px;" if mobile else "flex: 1 1 0; align-items: center; gap: 10px;"}">{preg}</div></div>'
+                 f'<div{sc} style="display: flex; gap: 6px; {"overflow-x: auto; margin: 0 -16px; padding: 0 16px;" if mobile else "flex-wrap: wrap;"}">{pchips}</div>') if mobile else ''
     pol = (f'<sc-if value="@@isPol@@" hint-placeholder-val="@@false@@"><div style="display: flex; flex-direction: column; gap: 14px;">'
-           f'<div style="display: flex; {"flex-direction: column; align-items: stretch;" if mobile else "align-items: center;"} gap: 10px;">{search_box("pq", "setPq", "정책 이름, 기관, 키워드", None if mobile else 320)}<div{sc} style="display: flex; gap: 6px; {"overflow-x: auto; margin: 0 -16px; padding: 0 16px;" if mobile else "flex: 1 1 0; align-items: center; gap: 10px;"}">{preg}</div></div>'
-           f'<div{sc} style="display: flex; gap: 6px; {"overflow-x: auto; margin: 0 -16px; padding: 0 16px;" if mobile else "flex-wrap: wrap;"}">{pchips}</div>'
+           f'{pol_tools}'
            + (f'<span style="font-size: 14px; color: {SUB};"><b style="color: {INK}; font-weight: 700;">@@ptotal@@</b>건 중 @@prange@@ · 신청 가능한 정책 먼저</span>'
             f'<sc-if value="@@hasPols@@" hint-placeholder-val="@@true@@"><div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px;"><sc-for list="@@pols@@" as="p" hint-placeholder-count="9">{pcard}</sc-for></div>{pager_html("pp", mobile)}</sc-if>'
             f'<sc-if value="@@pempty@@" hint-placeholder-val="@@false@@">{empty("pclear", "조건에 맞는 정책이 없어요")}</sc-if>' if not mobile else
@@ -156,9 +177,21 @@ def e1_v5(mobile):
             f'<span style="font-size: {13 if mobile else 15}px; line-height: 1.5; color: {SUB};">SeSAC 과정 {len(COURSES_ALL)}개와 청년 일자리 정책 {len(POL_ALL)}건을 한곳에서 찾아요. 마음에 들면 저장해 두세요</span></div>')
     if not mobile:
         head = '<h1 style="margin: 0; font-size: 32px; font-weight: 700; letter-spacing: -0.02em;">교육과정과 청년 정책</h1>'
-        tabs = (f'<nav aria-label="교육과정과 정책" style="display: flex; align-items: flex-end; gap: 4px; border-bottom: 1px solid #E5E8EB;">'
-                f'<button type="button" onClick="@@tabs.edu.go@@" aria-current="@@tabs.edu.cur@@" style="@@tabs.edu.tab@@">SeSAC 과정</button>'
-                f'<button type="button" onClick="@@tabs.pol.go@@" aria-current="@@tabs.pol.cur@@" style="@@tabs.pol.tab@@">청년 정책</button></nav>')
+        search = (f'<label style="width: 300px; display: flex; align-items: center; gap: 8px; height: 46px; padding: 0 14px; border: 1px solid #E5E8EB; border-radius: 12px; background: #FFFFFF; box-sizing: border-box;">'
+                  f'<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="{INK}" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>'
+                  f'<span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0);">검색</span>'
+                  f'<input type="search" value="@@eq@@" onChange="@@setEq@@" placeholder="@@eph@@" style="flex: 1 1 0; min-width: 0; border: none; background: transparent; font-size: 15px; font-family: inherit; color: {INK}; outline: none;"></label>')
+        # 직무 찾기 (20_job_search.py filter_bar)와 같은 필터 줄
+        tabs = (f'<div style="display: flex; flex-direction: column; gap: 14px; margin-top: 4px;">'
+                f'<div style="display: flex; align-items: center; gap: 36px; padding-left: 8px; border-top: 1px solid #E5E8EB; border-bottom: 1px solid #E5E8EB;">'
+                f'<sc-for list="@@etabs@@" as="f" hint-placeholder-count="4"><button type="button" onClick="@@f.go@@" aria-expanded="@@f.cur@@" style="@@f.style@@">@@f.label@@</button></sc-for>'
+                f'<div style="margin-left: auto; padding: 8px 0;">{search}</div></div>'
+                f'<sc-if value="@@ePanel@@" hint-placeholder-val="@@false@@"><div style="display: flex; flex-direction: column; gap: 10px; padding: 16px 20px; border-radius: 14px; background: #FFFFFF;">'
+                f'<span style="font-size: 13px; color: {SUB};">@@etitle@@</span><div style="display: flex; gap: 8px; flex-wrap: wrap;">'
+                f'<sc-for list="@@eopts@@" as="o" hint-placeholder-count="4"><button type="button" onClick="@@o.go@@" aria-pressed="@@o.on@@" style="@@o.style@@">@@o.label@@</button></sc-for></div></div></sc-if>'
+                f'<sc-if value="@@hasE@@" hint-placeholder-val="@@false@@"><div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">'
+                f'<sc-for list="@@esel@@" as="x" hint-placeholder-count="1"><button type="button" onClick="@@x.go@@" aria-label="@@x.label@@ 빼기" style="display: flex; align-items: center; gap: 6px; height: 34px; padding: 0 12px; border: none; border-radius: 999px; background: {BLUE_BG}; color: {INK}; font-size: 13px; font-family: inherit; cursor: pointer;">@@x.label@@<span aria-hidden="true" style="font-size: 15px; color: #4E5968;">×</span></button></sc-for>'
+                f'<button type="button" onClick="@@ereset@@" style="border: none; background: none; padding: 0 6px; font-size: 13px; font-weight: 600; color: #4E5968; cursor: pointer; font-family: inherit;">↺ 초기화</button></div></sc-if></div>')
     body = f'{head}{tabs}{edu}{pol}'
     if mobile:
         return '    ' + body.replace('href="S4-', 'href="m-S4-') + '\n'
