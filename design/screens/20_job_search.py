@@ -46,6 +46,9 @@ MATCH_JS = r'''  hasResumeContent(profile) {
   }
 '''
 
+TAB = 'border: none; background: none; padding: 0 14px 12px; margin-bottom: -1px; font-size: 15px; font-family: inherit; cursor: pointer; white-space: nowrap; border-bottom: 2px solid '
+TAB_ON = TAB + f'{INK}; color: {INK}; font-weight: 700;'
+TAB_OFF = TAB + f'transparent; color: {SUB};'
 LIST_JS = MATCH_JS + f'''  constructor(props) {{ super(props); const jm = (typeof location !== 'undefined' && location.hash.match(/job=(\\w+)/)); this.state = {{ mode: 'new', trendOpen: {TREND_JS}, page: 1, sort: 'rec', ty: 'all', q: '', job: jm ? jm[1] : 'sns', jq: '' }}; }}
   renderVals() {{
     const D = {JOBS_JSON}, profile = {PROFILE_JSON};
@@ -80,7 +83,7 @@ LIST_JS = MATCH_JS + f'''  constructor(props) {{ super(props); const jm = (typeo
     const from = L.length ? (page - 1) * per + 1 : 0, to = Math.min(page * per, L.length);
     const st = (on) => on ? '@@ON@@' : '@@OFF@@';
     const jq = (s.jq || '').trim().toLowerCase().replace(/\\s/g, '');
-    const jobs = Object.keys(D).filter((k) => !jq || D[k].label.toLowerCase().replace(/\\s/g, '').indexOf(jq) >= 0).map((k) => ({{ label: D[k].label, style: k === job ? '{PILL_ON}' : '{PILL_OFF}', go: () => this.setState({{ job: k, page: 1, q: '', ty: 'all', jq: '' }}) }}));
+    const jobs = Object.keys(D).filter((k) => !jq || D[k].label.toLowerCase().replace(/\\s/g, '').indexOf(jq) >= 0).map((k) => ({{ label: D[k].label, style: k === job ? '{PILL_ON}' : '{PILL_OFF}', tab: k === job ? '{TAB_ON}' : '{TAB_OFF}', cur: k === job ? 'page' : 'false', go: () => this.setState({{ job: k, page: 1, q: '', ty: 'all', jq: '' }}) }}));
     const cnt = (t) => POSTS.filter((p) => t === 'all' || p.ty === t).length;
     return {{ unregistered, registered: !unregistered, sortNote, hasSortNote: !!sortNote, jobName: J.label, isSns, notSns: !isSns, showFit: isSns && m === 'new', fitTodo: !isSns && m === 'new', jobs, jq: s.jq, setJq: (e) => this.setState({{ jq: e && e.target ? e.target.value : '' }}), noJob: jobs.length === 0, srcNote: J.src + ' ' + POSTS.length + '건' + (isSns ? ' · 시연은 올리브인터내셔널 공고로 비교해요' : ' · 공고 비교는 SNS 콘텐츠 마케팅으로 시연해요'),
       cntAll: '전체 ' + cnt('all'), cntIntern: '인턴 ' + cnt('인턴'), cntNew: '신입 ' + cnt('신입'),
@@ -150,6 +153,13 @@ def list_card(mobile):
             f'      {list_toolbar(mobile)}<sc-if value="@@hasSortNote@@" hint-placeholder-val="@@true@@"><p role="status" style="margin: 0; font-size: 13px; line-height: 1.5; color: {SUB};">@@sortNote@@</p></sc-if>\n      <div>{list_rows(mobile)}</div>\n'
             f'      <span style="font-size: 12px; color: {MUTE};">출처: @@srcNote@@</span>\n    </section>\n')
 
+def job_fit_card_d():
+    items = ''.join(f'<span style="display: flex; align-items: center; gap: 6px; font-size: 14px; color: #4E5968;"><span style="font-weight: 700; color: {BLUE_D};">{i}</span>{name}</span>' for i, (name, _, _) in enumerate(RANK, 1))
+    return (f'<section aria-label="이 직무가 원하는 역량" style="display: flex; align-items: center; gap: 28px; padding: 20px 28px; {CARD}">'
+            f'<h2 style="flex-shrink: 0; margin: 0; font-size: 15px; font-weight: 700;">많이 찾는 역량</h2><div style="display: flex; gap: 10px 22px; flex-wrap: wrap;">{items}</div>'
+            '<sc-if value="@@unregistered@@" hint-placeholder-val="@@true@@"><span style="flex-shrink: 0; margin-left: auto; padding: 3px 8px; border-radius: 6px; background: #F2F4F6; color: #4E5968; font-size: 12px;">이력서를 등록해주세요</span></sc-if></section>')
+
+
 def job_fit_card(mobile):
     chips = ''.join(f'<span style="padding: 8px 13px; border-radius: 999px; background: {FILL}; color: {SUB}; font-size: 14px;">{name}</span>' for name, _, _ in RANK)
     return (f'<section aria-label="이 직무가 원하는 역량" style="display: flex; flex-direction: column; gap: 14px; padding: {"18px" if mobile else "22px 28px"}; {CARD}">'
@@ -157,17 +167,17 @@ def job_fit_card(mobile):
             '<sc-if value="@@unregistered@@" hint-placeholder-val="@@true@@"><span style="align-self: flex-start; padding: 3px 8px; border-radius: 6px; background: #F2F4F6; color: #4E5968; font-size: 12px;">이력서를 등록해주세요</span></sc-if></section>')
 
 
-s1_body = f'''  <div style="padding: 20px 56px 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;"><span style="font-size: 13px; font-weight: 600; color: {SUB}; margin-right: 4px;">직무</span><sc-for list="@@jobs@@" as="j" hint-placeholder-count="7"><button type="button" onClick="@@j.go@@" style="@@j.style@@">@@j.label@@</button></sc-for>
-    <label style="display: flex; align-items: center; gap: 6px; height: 36px; padding: 0 12px; border-radius: 999px; background: {FILL};"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="{SUB}" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0);">직무 검색</span><input type="search" value="@@jq@@" onChange="@@setJq@@" placeholder="다른 직무 검색" style="width: 120px; border: none; background: transparent; font-size: 14px; font-family: inherit; color: {INK}; outline: none;"></label>
-    <sc-if value="@@noJob@@" hint-placeholder-val="@@false@@"><span style="font-size: 13px; color: {SUB};">"@@jq@@" 직무는 아직 준비 중이에요. 검색어를 지우면 7개 직무가 다시 보여요</span></sc-if></div>
-  <div style="padding: 20px 56px 0; display: flex; justify-content: space-between; align-items: flex-end;">
-    <div style="display: flex; flex-direction: column; gap: 6px;"><h1 style="margin: 0; font-size: 32px; font-weight: 700; letter-spacing: -0.02em;">@@jobName@@</h1><span style="font-size: 15px; color: {SUB};">@@count@@</span></div>
-    <div style="display: flex; align-items: center; gap: 16px;"><sc-if value="@@isSns@@" hint-placeholder-val="@@true@@"><button type="button" onClick="@@openTrend@@" style="border: none; background: none; padding: 0; font-size: 14px; font-weight: 600; color: {BLUE}; cursor: pointer;">이 직무 트렌드 보기 ›</button></sc-if>
-    <div role="tablist" aria-label="경력 구분" style="display: flex; gap: 2px; padding: 4px; border-radius: 12px; background: rgba(0,23,51,0.06);"><button type="button" role="tab" onClick="@@pickNew@@" style="@@newStyle@@">신입, 인턴</button><button type="button" role="tab" onClick="@@pickExp@@" style="@@expStyle@@">경력</button></div></div>
+s1_body = f'''  <div style="padding: 28px 56px 0; display: flex; justify-content: space-between; align-items: flex-end;">
+    <div style="display: flex; flex-direction: column; gap: 6px;"><h1 style="margin: 0; font-size: 32px; font-weight: 700; letter-spacing: -0.02em;">@@jobName@@</h1>
+      <div style="display: flex; align-items: center; gap: 12px;"><span style="font-size: 15px; color: {SUB};">@@count@@</span><sc-if value="@@isSns@@" hint-placeholder-val="@@true@@"><button type="button" onClick="@@openTrend@@" style="border: none; background: none; padding: 0; font-size: 14px; font-weight: 600; color: {BLUE_D}; cursor: pointer; font-family: inherit;">이 직무 트렌드 보기 ›</button></sc-if></div></div>
+    <div role="tablist" aria-label="경력 구분" style="display: flex; gap: 2px; padding: 4px; border-radius: 12px; background: rgba(0,23,51,0.06);"><button type="button" role="tab" onClick="@@pickNew@@" style="@@newStyle@@">신입, 인턴</button><button type="button" role="tab" onClick="@@pickExp@@" style="@@expStyle@@">경력</button></div>
   </div>
+  <nav aria-label="직무" style="margin: 20px 56px 0; display: flex; align-items: flex-end; gap: 4px; border-bottom: 1px solid #E5E8EB;"><sc-for list="@@jobs@@" as="j" hint-placeholder-count="7"><button type="button" onClick="@@j.go@@" aria-current="@@j.cur@@" style="@@j.tab@@">@@j.label@@</button></sc-for>
+    <label style="margin: 0 0 8px auto; display: flex; align-items: center; gap: 6px; height: 34px; padding: 0 12px; border-radius: 10px; background: {FILL};"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="{SUB}" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0);">직무 검색</span><input type="search" value="@@jq@@" onChange="@@setJq@@" placeholder="직무 검색" style="width: 110px; border: none; background: transparent; font-size: 14px; font-family: inherit; color: {INK}; outline: none;"></label></nav>
+  <sc-if value="@@noJob@@" hint-placeholder-val="@@false@@"><p style="margin: 10px 56px 0; font-size: 13px; color: {SUB};">"@@jq@@" 직무는 아직 준비 중이에요. 검색어를 지우면 7개 직무가 다시 보여요</p></sc-if>
   <div style="display: flex; flex-direction: column; gap: 16px; padding: 24px 56px 56px;">
     <sc-if value="@@showFit@@" hint-placeholder-val="@@true@@">
-{job_fit_card(False)}    </sc-if>
+{job_fit_card_d()}    </sc-if>
     <sc-if value="@@fitTodo@@" hint-placeholder-val="@@false@@"><section style="display: flex; align-items: center; gap: 12px; padding: 20px 28px; {CARD}">{AI}<span style="font-size: 15px; line-height: 1.5; color: #4E5968;">이 직무의 역량 분석은 준비 중이에요. 공고 원문은 지금 볼 수 있고, 공고 비교는 <b style="color: {INK};">SNS 콘텐츠 마케팅</b>으로 시연해요</span></section></sc-if>
     <sc-if value="@@isExp@@" hint-placeholder-val="@@false@@">
 {exp_card(False)}    </sc-if>
