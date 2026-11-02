@@ -4,6 +4,7 @@ E1_JS = '''  constructor(props) { super(props); const h = (typeof location !== '
   pageVals() {
     const C = __C__, P = __P__, GC = __GC__, SC = __SC__, TH = __TH__;
     const s = this.state, set = (o) => this.setState(o);
+    const seg = (on) => on ? '__RON__' : '__ROFF__', box = (on) => on ? '__BON__' : '__BOFF__';
     const tabStyle = (on) => on ? '__TON__' : '__TOFF__', pill = (on) => on ? '__PON__' : '__POFF__', srt = (on) => on ? '__SON__' : '__SOFF__';
     const pg = (on) => on ? '__GON__' : '__GOFF__';
     const badge = (st) => 'padding: 3px 9px; border-radius: 999px; background: ' + (SC[st] || SC['종료'])[0] + '; color: ' + (SC[st] || SC['종료'])[1] + '; font-size: 12px; font-weight: 600; white-space: nowrap;';
@@ -13,7 +14,7 @@ E1_JS = '''  constructor(props) { super(props); const h = (typeof location !== '
     const isLive = (c) => c.st === '모집 중' || c.st === '모집 예정';
     const q = s.q.trim().toLowerCase();
     const base = C.filter((c) => (!s.live || isLive(c)) && (!q || (c.n + ' ' + c.cp + ' ' + c.f + ' ' + c.tags.join(' ')).toLowerCase().indexOf(q) >= 0));
-    const groups = ['all', '마케팅', 'AI', '데이터', '기획, PM', '개발', '디자인', '기타'].map((g) => ({ label: (g === 'all' ? '전체' : g) + ' ' + base.filter((c) => g === 'all' || c.g === g).length, style: pill(s.g === g), go: () => set({ g, page: 1 }) }));
+    const groups = ['all', '마케팅', 'AI', '데이터', '기획, PM', '개발', '디자인', '기타'].map((g) => ({ label: (g === 'all' ? '전체' : g) + ' ' + base.filter((c) => g === 'all' || c.g === g).length, name: g === 'all' ? '전체' : g, style: pill(s.g === g), go: () => set({ g, page: 1 }) }));
     let L = base.filter((c) => s.g === 'all' || c.g === s.g);
     const rank = (c) => ({ '모집 중': 0, '모집 예정': 1, '상시': 2, '진행 중': 3, '종료': 4 })[c.st];
     if (s.sort === 'rec') L = L.slice().sort((a, b) => ((b.g === '마케팅') - (a.g === '마케팅')) || (rank(a) - rank(b)) || (b.rv - a.rv));
@@ -32,7 +33,7 @@ E1_JS = '''  constructor(props) { super(props); const h = (typeof location !== '
     // policies
     const pq = s.pq.trim().toLowerCase();
     const pbase = P.filter((p) => (s.pr === 'all' || p.r === s.pr) && (!s.pOpen || p.st === '신청 중' || p.st === '상시') && (!pq || (p.n + ' ' + p.o + ' ' + p.k.join(' ') + ' ' + p.d).toLowerCase().indexOf(pq) >= 0));
-    const pcats = ['all', '취업', '창업', '재직자', '권익보호'].map((c) => ({ label: (c === 'all' ? '전체' : c) + ' ' + pbase.filter((p) => c === 'all' || p.c === c).length, style: pill(s.pc === c), go: () => set({ pc: c, pp: 1 }) }));
+    const pcats = ['all', '취업', '창업', '재직자', '권익보호'].map((c) => ({ label: (c === 'all' ? '전체' : c) + ' ' + pbase.filter((p) => c === 'all' || p.c === c).length, name: c === 'all' ? '전체' : c, style: pill(s.pc === c), go: () => set({ pc: c, pp: 1 }) }));
     const PL = pbase.filter((p) => s.pc === 'all' || p.c === s.pc).slice().sort((a, b) => ({ '신청 중': 0, '상시': 1, '예정': 2, '마감': 3 })[a.st] - ({ '신청 중': 0, '상시': 1, '예정': 2, '마감': 3 })[b.st] || (b.r === '서울') - (a.r === '서울') || b.v - a.v);
     const pper = 10, ppages = Math.max(1, Math.ceil(PL.length / pper)), ppage = Math.min(s.pp, ppages);
     const pols = PL.slice((ppage - 1) * pper, ppage * pper).map((p) => ({ n: p.n, o: p.o, r: p.r, c: p.c, k: p.k, hasK: p.k.length > 0, d: p.d, st: p.st, stStyle: badge(p.st), per: p.per, u: p.u,
@@ -45,6 +46,7 @@ E1_JS = '''  constructor(props) { super(props); const h = (typeof location !== '
       cards, total: L.length, range: L.length ? ((page - 1) * per + 1) + '–' + Math.min(page * per, L.length) : '0', empty: L.length === 0, hasCards: L.length > 0, cp,
       clear: () => set({ q: '', g: 'all', live: false, page: 1 }),
       pq: s.pq, setPq: (e) => set({ pq: e && e.target ? e.target.value : '', pp: 1 }), pcats,
+      pseg: { all: { style: seg(s.pr === 'all'), go: () => set({ pr: 'all', pp: 1 }) }, seoul: { style: seg(s.pr === '서울'), go: () => set({ pr: '서울', pp: 1 }) }, gov: { style: seg(s.pr === '중앙부처'), go: () => set({ pr: '중앙부처', pp: 1 }) } }, popenBox: box(s.pOpen), liveBox: box(s.live),
       preg: { all: { style: pill(s.pr === 'all'), go: () => set({ pr: 'all', pp: 1 }) }, seoul: { style: pill(s.pr === '서울'), go: () => set({ pr: '서울', pp: 1 }) }, gov: { style: pill(s.pr === '중앙부처'), go: () => set({ pr: '중앙부처', pp: 1 }) } },
       popen: { style: pill(s.pOpen), go: () => set({ pOpen: !s.pOpen, pp: 1 }), label: s.pOpen ? '✓ 신청 가능만' : '신청 가능만' },
       pols, ptotal: PL.length, prange: PL.length ? ((ppage - 1) * pper + 1) + '–' + Math.min(ppage * pper, PL.length) : '0', pempty: PL.length === 0, hasPols: PL.length > 0, pp,
@@ -56,7 +58,7 @@ def e1_js(mobile):
     TAB = 'flex-shrink: 0; height: 44px; padding: 0 18px; border: none; border-radius: 12px; font-size: 15px; cursor: pointer; white-space: nowrap;'
     js = (E1_JS.replace('__C__', COURSE_JSON).replace('__P__', POL_JSON).replace('__GC__', json.dumps(GCOL, ensure_ascii=False)).replace('__SC__', json.dumps(STC, ensure_ascii=False))
           .replace('__TH__', json.dumps(THUMBS)).replace('__PER__', '6' if mobile else '9').replace('__DPRE__', 'm-' if mobile else '')
-          .replace('__TABON__', TAB_ON).replace('__TABOFF__', TAB_OFF).replace('__TON__', TAB + f' background: {INK}; color: #FFFFFF; font-weight: 700;').replace('__TOFF__', TAB + ' background: #FFFFFF; color: #4E5968;')
+          .replace('__RON__', seg_style(True)).replace('__ROFF__', seg_style(False)).replace('__BON__', 'display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 5px; font-size: 12px; font-weight: 700; color: #FFFFFF; box-sizing: border-box; background: ' + BLUE + '; border: 1.5px solid ' + BLUE + ';').replace('__BOFF__', 'display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 5px; font-size: 12px; font-weight: 700; color: #FFFFFF; box-sizing: border-box; background: #FFFFFF; border: 1.5px solid #C9CED4;').replace('__TABON__', TAB_ON).replace('__TABOFF__', TAB_OFF).replace('__TON__', TAB + f' background: {INK}; color: #FFFFFF; font-weight: 700;').replace('__TOFF__', TAB + ' background: #FFFFFF; color: #4E5968;')
           .replace('__PON__', PILL_ON).replace('__POFF__', PILL_OFF).replace('__SON__', SORT_ON).replace('__SOFF__', SORT_OFF).replace('__GON__', PG_ON).replace('__GOFF__', PG_OFF))
     return js
 
@@ -100,6 +102,11 @@ def e1_v5(mobile):
     empty = lambda clear, msg: (f'<div style="display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 48px 0; {CARD} color: {SUB}; font-size: 15px;">{msg}'
                                 f'<button type="button" onClick="@@{clear}@@" style="height: 38px; padding: 0 14px; border: none; border-radius: 10px; background: {FILL}; color: {INK}; font-size: 14px; font-weight: 600; cursor: pointer;">조건 지우기</button></div>')
     cols = 1 if mobile else 3
+    chk = lambda box, go, txt: (f'<button type="button" onClick="@@{go}@@" style="flex-shrink: 0; display: flex; align-items: center; gap: 8px; border: none; background: none; padding: 0; font-size: 14px; font-weight: 600; color: {INK}; cursor: pointer; font-family: inherit;">'
+                                f'<span aria-hidden="true" style="@@{box}@@">✓</span>{txt}</button>')
+    if not mobile:  # 데스크톱: 칩에 개수 없음, 토글은 체크박스
+        chips = '<sc-for list="@@groups@@" as="g" hint-placeholder-count="8"><button type="button" onClick="@@g.go@@" style="@@g.style@@">@@g.name@@</button></sc-for>'
+        live = f'<div style="margin-left: auto;">{chk("liveBox", "live.go", "모집 중, 예정만")}</div>'
     edu = (f'<sc-if value="@@isEdu@@" hint-placeholder-val="@@true@@"><div style="display: flex; flex-direction: column; gap: 14px;">'
            f'<div style="display: flex; {"flex-direction: column; align-items: stretch;" if mobile else "align-items: center;"} gap: 10px;">{search_box("q", "setQ", "과정명, 캠퍼스, 해시태그", None if mobile else 320)}{live}</div>'
            f'<div{sc} style="display: flex; gap: 6px; {"overflow-x: auto; margin: 0 -16px; padding: 0 16px;" if mobile else "flex-wrap: wrap;"}">{chips}</div>'
@@ -108,8 +115,15 @@ def e1_v5(mobile):
            f'<sc-if value="@@empty@@" hint-placeholder-val="@@false@@">{empty("clear", "조건에 맞는 과정이 없어요")}</sc-if>'
            f'<span style="font-size: 12px; color: {MUTE};">출처: SeSAC 사이트 전수 조사 (오프라인 197 + 온라인 13개 과정, 2026.10.27 기준). 신청은 SeSAC 사이트에서 해요</span></div></sc-if>')
     pchips = '<sc-for list="@@pcats@@" as="g" hint-placeholder-count="5"><button type="button" onClick="@@g.go@@" style="@@g.style@@">@@g.label@@</button></sc-for>'
+    if not mobile:
+        pchips = '<sc-for list="@@pcats@@" as="g" hint-placeholder-count="5"><button type="button" onClick="@@g.go@@" style="@@g.style@@">@@g.name@@</button></sc-for>'
     preg = ('<button type="button" onClick="@@preg.all.go@@" style="@@preg.all.style@@">전국, 서울</button><button type="button" onClick="@@preg.seoul.go@@" style="@@preg.seoul.style@@">서울시</button>'
             '<button type="button" onClick="@@preg.gov.go@@" style="@@preg.gov.style@@">중앙부처</button><button type="button" onClick="@@popen.go@@" style="@@popen.style@@">@@popen.label@@</button>')
+    if not mobile:
+        preg = ('<div role="group" aria-label="기관" style="display: flex; gap: 2px; padding: 4px; border-radius: 12px; background: rgba(0,23,51,0.06);">'
+                '<button type="button" onClick="@@pseg.all.go@@" style="@@pseg.all.style@@">전체</button><button type="button" onClick="@@pseg.seoul.go@@" style="@@pseg.seoul.style@@">서울시</button>'
+                '<button type="button" onClick="@@pseg.gov.go@@" style="@@pseg.gov.style@@">중앙부처</button></div>'
+                f'<div style="margin-left: auto;">{chk("popenBox", "popen.go", "신청 가능만")}</div>')
     prow = (f'<div style="display: flex; {"flex-direction: column;" if mobile else "align-items: center;"} gap: 12px; padding: 18px 0; border-top: 1px solid {LINE};">'
             f'<div style="flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: 6px;"><div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;"><span style="@@p.stStyle@@">@@p.st@@</span><span style="font-size: 12px; color: {SUB};">@@p.r@@ · @@p.c@@</span></div>'
             f'<span style="font-size: 16px; font-weight: 700; line-height: 1.4;">@@p.n@@</span><span style="font-size: 13px; color: {SUB};">@@p.o@@ · @@p.per@@</span>'
@@ -119,7 +133,7 @@ def e1_v5(mobile):
             f'<sc-if value="@@p.detail@@" hint-placeholder-val="@@false@@"><a href="@@p.dhref@@" style="height: 38px; padding: 0 14px; display: flex; align-items: center; border-radius: 10px; background: {BLUE}; color: #FFFFFF; font-size: 13px; font-weight: 600; text-decoration: none; white-space: nowrap;">자세히 보기</a></sc-if>'
             f'<sc-if value="@@p.noDetail@@" hint-placeholder-val="@@true@@"><a href="@@p.u@@" {EXT} style="height: 38px; padding: 0 14px; display: flex; align-items: center; border-radius: 10px; background: {FILL}; color: {INK}; font-size: 13px; font-weight: 600; text-decoration: none; white-space: nowrap;">자세히 ↗</a></sc-if></div></div>')
     pol = (f'<sc-if value="@@isPol@@" hint-placeholder-val="@@false@@"><div style="display: flex; flex-direction: column; gap: 14px;">'
-           f'<div style="display: flex; {"flex-direction: column; align-items: stretch;" if mobile else "align-items: center;"} gap: 10px;">{search_box("pq", "setPq", "정책 이름, 기관, 키워드", None if mobile else 320)}<div{sc} style="display: flex; gap: 6px; {"overflow-x: auto; margin: 0 -16px; padding: 0 16px;" if mobile else ""}">{preg}</div></div>'
+           f'<div style="display: flex; {"flex-direction: column; align-items: stretch;" if mobile else "align-items: center;"} gap: 10px;">{search_box("pq", "setPq", "정책 이름, 기관, 키워드", None if mobile else 320)}<div{sc} style="display: flex; gap: 6px; {"overflow-x: auto; margin: 0 -16px; padding: 0 16px;" if mobile else "flex: 1 1 0; align-items: center; gap: 10px;"}">{preg}</div></div>'
            f'<div{sc} style="display: flex; gap: 6px; {"overflow-x: auto; margin: 0 -16px; padding: 0 16px;" if mobile else "flex-wrap: wrap;"}">{pchips}</div>'
            f'<section style="display: flex; flex-direction: column; padding: {"4px 18px 16px" if mobile else "8px 28px 20px"}; {CARD}">'
            f'<span style="padding: 12px 0; font-size: 14px; color: {SUB};"><b style="color: {INK}; font-weight: 700;">@@ptotal@@</b>건 중 @@prange@@ · 신청 가능한 정책 먼저</span>'
@@ -129,11 +143,10 @@ def e1_v5(mobile):
     head = (f'<div style="display: flex; flex-direction: column; gap: 6px; {"padding: 8px 4px 4px;" if mobile else ""}"><h1 style="margin: 0; font-size: {26 if mobile else 32}px; font-weight: 700; letter-spacing: -0.02em;">교육과정과 취업 지원</h1>'
             f'<span style="font-size: {13 if mobile else 15}px; line-height: 1.5; color: {SUB};">SeSAC 과정 {len(COURSES_ALL)}개와 청년 일자리 정책 {len(POL_ALL)}건을 한곳에서 찾아요. 마음에 들면 저장해 두세요</span></div>')
     if not mobile:
-        head = (f'<div style="display: flex; flex-direction: column; gap: 6px;"><h1 style="margin: 0; font-size: 32px; font-weight: 700; letter-spacing: -0.02em;">교육과정과 청년 정책</h1>'
-                f'<span style="font-size: 15px; color: {SUB};">SeSAC 과정 {len(COURSES_ALL)}개, 청년 일자리 정책 {len(POL_ALL)}건</span></div>')
+        head = '<h1 style="margin: 0; font-size: 32px; font-weight: 700; letter-spacing: -0.02em;">교육과정과 청년 정책</h1>'
         tabs = (f'<nav aria-label="교육과정과 정책" style="display: flex; align-items: flex-end; gap: 4px; border-bottom: 1px solid #E5E8EB;">'
-                f'<button type="button" onClick="@@tabs.edu.go@@" aria-current="@@tabs.edu.cur@@" style="@@tabs.edu.tab@@">SeSAC 과정 {len(COURSES_ALL)}</button>'
-                f'<button type="button" onClick="@@tabs.pol.go@@" aria-current="@@tabs.pol.cur@@" style="@@tabs.pol.tab@@">청년 정책 {len(POL_ALL)}</button></nav>')
+                f'<button type="button" onClick="@@tabs.edu.go@@" aria-current="@@tabs.edu.cur@@" style="@@tabs.edu.tab@@">SeSAC 과정</button>'
+                f'<button type="button" onClick="@@tabs.pol.go@@" aria-current="@@tabs.pol.cur@@" style="@@tabs.pol.tab@@">청년 정책</button></nav>')
     body = f'{head}{tabs}{edu}{pol}'
     if mobile:
         return '    ' + body.replace('href="S4-', 'href="m-S4-') + '\n'

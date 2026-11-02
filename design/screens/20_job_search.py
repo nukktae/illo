@@ -179,8 +179,7 @@ s1_body = f'''  <div style="padding: 28px 56px 0; display: flex; justify-content
     <sc-if value="@@showFit@@" hint-placeholder-val="@@true@@">
 {job_fit_card_d()}    </sc-if>
     <sc-if value="@@fitTodo@@" hint-placeholder-val="@@false@@"><section style="display: flex; align-items: center; gap: 12px; padding: 20px 28px; {CARD}">{AI}<span style="font-size: 15px; line-height: 1.5; color: #4E5968;">이 직무의 역량 분석은 준비 중이에요. 공고 원문은 지금 볼 수 있고, 공고 비교는 <b style="color: {INK};">SNS 콘텐츠 마케팅</b>으로 시연해요</span></section></sc-if>
-    <sc-if value="@@isExp@@" hint-placeholder-val="@@false@@"><div style="position: relative;">
-{exp_card(False)}<sc-if value="@@isSns@@" hint-placeholder-val="@@true@@"><div style="position: absolute; top: 24px; right: 28px;"><button type="button" onClick="@@openTrend@@" style="flex-shrink: 0; border: none; background: none; padding: 0; font-size: 14px; font-weight: 600; color: {BLUE_D}; cursor: pointer; font-family: inherit; white-space: nowrap;">이 직무 트렌드 보기 ›</button></div></sc-if></div>    </sc-if>
+    <sc-if value="@@isExp@@" hint-placeholder-val="@@false@@"><section aria-label="경력 공고 안내" style="display: flex; align-items: center; gap: 24px; padding: 20px 28px; {CARD}"><h2 style="flex-shrink: 0; margin: 0; font-size: 15px; font-weight: 700;">경력 공고</h2><span style="font-size: 14px; color: #4E5968;">공고를 골라 바로 비교해요. 시연은 맨 위 공고로 진행해요</span><sc-if value="@@isSns@@" hint-placeholder-val="@@true@@"><div style="margin-left: auto;"><button type="button" onClick="@@openTrend@@" style="flex-shrink: 0; border: none; background: none; padding: 0; font-size: 14px; font-weight: 600; color: {BLUE_D}; cursor: pointer; font-family: inherit; white-space: nowrap;">이 직무 트렌드 보기 ›</button></div></sc-if></section></sc-if>
 {list_card(False)}  </div>
 {trend_popup(False, None)}'''
 s1_script = LIST_JS.replace('@@ON@@', seg_style(True)).replace('@@OFF@@', seg_style(False))
