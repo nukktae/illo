@@ -25,8 +25,10 @@ def policies():
         if not central(reg):
             continue
         m = re.findall(r'(\d{8})', (p.get('aplyYmd') or '').strip())
-        st = ('신청 중' if m[0] <= TODAY <= m[-1] else ('예정' if m[0] > TODAY else '마감')) if m else '상시'
-        per = f'{m[0][:4]}.{m[0][4:6]}.{m[0][6:]} ~ {m[-1][4:6]}.{m[-1][6:]}' if m else '상시 신청'
+        # aplyPrdSeCd: 0057001 특정기간, 0057002 상시, 0057003 마감 (온통청년 API 코드 정의서). 마감 코드는 날짜가 없어도 마감
+        closed = p.get('aplyPrdSeCd') == '0057003'
+        st = '마감' if closed else (('신청 중' if m[0] <= TODAY <= m[-1] else ('예정' if m[0] > TODAY else '마감')) if m else '상시')
+        per = f'{m[0][:4]}.{m[0][4:6]}.{m[0][6:]} ~ {m[-1][4:6]}.{m[-1][6:]}' if m else ('신청 마감' if closed else '상시 신청')
         desc = re.sub(r'\s+', ' ', p.get('plcyExplnCn') or '').strip()
         out.append({'id': 'pol-' + p['plcyNo'], 'n': p['plcyNm'].strip(), 'o': (p.get('sprvsnInstCdNm') or p.get('rgtrInstCdNm') or '').strip(),
                     'r': '서울' if reg == '서울특별시' else '중앙부처', 'c': p['mclsfNm'].split(',')[0], 'k': [k for k in (p.get('plcyKywdNm') or '').split(',') if k][:3],
