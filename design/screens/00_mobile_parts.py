@@ -100,7 +100,14 @@ MARKS = {
 }
 
 
+# 로고 이미지가 있는 회사 (design/assets/logo-*.png, 직무 찾기 목록과 같은 이미지)
+MARK_IMG = {'olive': '/_blob/d55bb7e0ea8e688c8f6c3ae2f3515559'}
+
+
 def mark(k, size=44):
+    if k in MARK_IMG:
+        return (f'<img src="{MARK_IMG[k]}" alt="로고" style="width: {size}px; height: {size}px; flex-shrink: 0; border-radius: 12px; '
+                f'border: 1px solid #F2F4F6; object-fit: cover; display: block; box-sizing: border-box;">')
     c, inner = MARKS[k]
     return f'<span role="img" aria-label="로고" style="width: {size}px; height: {size}px; flex-shrink: 0; border-radius: 12px; background: {c}; display: flex; align-items: center; justify-content: center;">{inner}</span>'
 
