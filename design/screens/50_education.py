@@ -8,7 +8,7 @@ E1_JS = '''  constructor(props) { super(props); const h = (typeof location !== '
     const pg = (on) => on ? '__GON__' : '__GOFF__';
     const badge = (st) => 'padding: 3px 9px; border-radius: 999px; background: ' + (SC[st] || SC['종료'])[0] + '; color: ' + (SC[st] || SC['종료'])[1] + '; font-size: 12px; font-weight: 600; white-space: nowrap;';
     const pager = (page, pages, key) => { const nums = []; const lo = Math.max(1, Math.min(page - 2, pages - 4)), hi = Math.min(pages, lo + 4); for (let i = lo; i <= hi; i++) nums.push({ n: i, style: pg(i === page), cur: i === page ? 'page' : 'false', go: () => set({ [key]: i }) }); return { nums, prev: () => set({ [key]: Math.max(1, page - 1) }), next: () => set({ [key]: Math.min(pages, page + 1) }), prevStyle: pg(false) + (page === 1 ? ' opacity: 0.35;' : ''), nextStyle: pg(false) + (page === pages ? ' opacity: 0.35;' : ''), first: pages > 5 && lo > 1, last: pages > 5 && hi < pages, pages, goFirst: () => set({ [key]: 1 }), goLast: () => set({ [key]: pages }) }; };
-    const T = (k) => ({ style: tabStyle(s.tab === k), go: () => set({ tab: k }) });
+    const T = (k) => ({ style: tabStyle(s.tab === k), tab: s.tab === k ? '__TABON__' : '__TABOFF__', cur: s.tab === k ? 'page' : 'false', go: () => set({ tab: k }) });
     // SeSAC courses
     const isLive = (c) => c.st === '모집 중' || c.st === '모집 예정';
     const q = s.q.trim().toLowerCase();
@@ -56,7 +56,7 @@ def e1_js(mobile):
     TAB = 'flex-shrink: 0; height: 44px; padding: 0 18px; border: none; border-radius: 12px; font-size: 15px; cursor: pointer; white-space: nowrap;'
     js = (E1_JS.replace('__C__', COURSE_JSON).replace('__P__', POL_JSON).replace('__GC__', json.dumps(GCOL, ensure_ascii=False)).replace('__SC__', json.dumps(STC, ensure_ascii=False))
           .replace('__TH__', json.dumps(THUMBS)).replace('__PER__', '6' if mobile else '9').replace('__DPRE__', 'm-' if mobile else '')
-          .replace('__TON__', TAB + f' background: {INK}; color: #FFFFFF; font-weight: 700;').replace('__TOFF__', TAB + ' background: #FFFFFF; color: #4E5968;')
+          .replace('__TABON__', TAB_ON).replace('__TABOFF__', TAB_OFF).replace('__TON__', TAB + f' background: {INK}; color: #FFFFFF; font-weight: 700;').replace('__TOFF__', TAB + ' background: #FFFFFF; color: #4E5968;')
           .replace('__PON__', PILL_ON).replace('__POFF__', PILL_OFF).replace('__SON__', SORT_ON).replace('__SOFF__', SORT_OFF).replace('__GON__', PG_ON).replace('__GOFF__', PG_OFF))
     return js
 
@@ -128,10 +128,16 @@ def e1_v5(mobile):
            f'<span style="font-size: 12px; color: {MUTE};">출처: 온통청년 청년정책 API (일자리 분야 중 서울시, 중앙부처 {len(POL_ALL)}건, 2026.11.01 조회). 신청 조건은 각 정책 페이지에서 확인해요</span></div></sc-if>')
     head = (f'<div style="display: flex; flex-direction: column; gap: 6px; {"padding: 8px 4px 4px;" if mobile else ""}"><h1 style="margin: 0; font-size: {26 if mobile else 32}px; font-weight: 700; letter-spacing: -0.02em;">교육과정과 취업 지원</h1>'
             f'<span style="font-size: {13 if mobile else 15}px; line-height: 1.5; color: {SUB};">SeSAC 과정 {len(COURSES_ALL)}개와 청년 일자리 정책 {len(POL_ALL)}건을 한곳에서 찾아요. 마음에 들면 저장해 두세요</span></div>')
+    if not mobile:
+        head = (f'<div style="display: flex; flex-direction: column; gap: 6px;"><h1 style="margin: 0; font-size: 32px; font-weight: 700; letter-spacing: -0.02em;">교육과정과 청년 정책</h1>'
+                f'<span style="font-size: 15px; color: {SUB};">SeSAC 과정 {len(COURSES_ALL)}개, 청년 일자리 정책 {len(POL_ALL)}건</span></div>')
+        tabs = (f'<nav aria-label="교육과정과 정책" style="display: flex; align-items: flex-end; gap: 4px; border-bottom: 1px solid #E5E8EB;">'
+                f'<button type="button" onClick="@@tabs.edu.go@@" aria-current="@@tabs.edu.cur@@" style="@@tabs.edu.tab@@">SeSAC 과정 {len(COURSES_ALL)}</button>'
+                f'<button type="button" onClick="@@tabs.pol.go@@" aria-current="@@tabs.pol.cur@@" style="@@tabs.pol.tab@@">청년 정책 {len(POL_ALL)}</button></nav>')
     body = f'{head}{tabs}{edu}{pol}'
     if mobile:
         return '    ' + body.replace('href="S4-', 'href="m-S4-') + '\n'
-    return f'  <div style="display: flex; flex-direction: column; gap: 20px; padding: 24px 56px 56px;">{body}</div>\n'
+    return f'  <div style="display: flex; flex-direction: column; gap: 20px; padding: 28px 56px 56px;">{body}</div>\n'
 
 
 boards['E1-edu.dc.html'] = ('E1 교육과정 (SeSAC 210, 청년 정책)', dpage('E1-edu.dc.html', '교육과정', 'edu', e1_v5(False), e1_js(False)))

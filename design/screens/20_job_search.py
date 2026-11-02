@@ -46,9 +46,10 @@ MATCH_JS = r'''  hasResumeContent(profile) {
   }
 '''
 
-TAB = 'border: none; background: none; padding: 0 14px 12px; margin-bottom: -1px; font-size: 15px; font-family: inherit; cursor: pointer; white-space: nowrap; border-bottom: 2px solid '
-TAB_ON = TAB + f'{INK}; color: {INK}; font-weight: 700;'
-TAB_OFF = TAB + f'transparent; color: {SUB};'
+# 밑줄 탭: 데스크톱 직무 찾기와 교육과정이 같이 쓴다
+UTAB = 'border: none; background: none; padding: 0 14px 12px; margin-bottom: -1px; font-size: 15px; font-family: inherit; cursor: pointer; white-space: nowrap; border-bottom: 2px solid '
+TAB_ON = UTAB + f'{INK}; color: {INK}; font-weight: 700;'
+TAB_OFF = UTAB + f'transparent; color: {SUB};'
 LIST_JS = MATCH_JS + f'''  constructor(props) {{ super(props); const jm = (typeof location !== 'undefined' && location.hash.match(/job=(\\w+)/)); this.state = {{ mode: 'new', trendOpen: {TREND_JS}, page: 1, sort: 'rec', ty: 'all', q: '', job: jm ? jm[1] : 'sns', jq: '' }}; }}
   renderVals() {{
     const D = {JOBS_JSON}, profile = {PROFILE_JSON};
