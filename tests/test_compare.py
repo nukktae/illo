@@ -86,7 +86,11 @@ class CompareTests(unittest.TestCase):
         for mobile in (False, True):
             result = self.ns['side_panel'](mobile)
             self.assertEqual(result.count('나의 이력서 수정'), 1)
-            self.assertIn('min-height: 44px', result)
+            if mobile:
+                self.assertIn('min-height: 44px', result)
+            else:
+                # 데스크톱은 두 버튼이 같은 크기 (2026.11.02 아노 결정)
+                self.assertEqual(result.count('width: 100%; height: 52px'), 2)
             self.assertLess(result.index('AI로 비교하기'), result.index('나의 이력서 수정'))
             self.assertNotIn('이력서 수정 ›', result)
             self.assertIn(('m-' if mobile else '') + 'S5-resume.dc.html', result)

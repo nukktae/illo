@@ -38,8 +38,8 @@ try {
   assert.deepEqual(data.titles,['담당업무','자격요건','우대사항','전형절차']);assert.equal(data.bodyCount,1);assert.equal(data.bg,'rgb(255, 255, 255)');assert(data.borders.every(n=>n==='1px'));assert.equal(data.overflow,false);
  }
  async function buttons(){
-  const data=await p.evaluate(()=>{const a=[...document.querySelectorAll('a')].find(e=>e.textContent==='나의 이력서 수정');const b=[...document.querySelectorAll('button')].find(e=>e.textContent==='AI로 비교하기');const x=a.getBoundingClientRect(),y=b.getBoundingClientRect();return {sizes:[x.width,y.width,x.height,y.height,x.top-y.bottom],colors:[getComputedStyle(a).backgroundColor,getComputedStyle(b).backgroundColor],small:[...document.querySelectorAll('a')].some(e=>e.textContent==='이력서 수정 ›')};});
-  assert(data.sizes[0]<data.sizes[1]);assert.deepEqual(data.sizes.slice(2),[44,54,8]);assert.deepEqual(data.colors,['rgb(255, 255, 255)','rgb(49, 130, 246)']);assert.equal(data.small,false);
+  const data=await p.evaluate(()=>{const a=[...document.querySelectorAll('a')].find(e=>e.textContent==='나의 이력서 수정');const b=[...document.querySelectorAll('button')].find(e=>e.textContent==='AI로 비교하기');const x=a.getBoundingClientRect(),y=b.getBoundingClientRect();return {innerW:innerWidth,sizes:[x.width,y.width,x.height,y.height,x.top-y.bottom],colors:[getComputedStyle(a).backgroundColor,getComputedStyle(b).backgroundColor],small:[...document.querySelectorAll('a')].some(e=>e.textContent==='이력서 수정 ›')};});
+  const desk=data.innerW>=768;if(desk){assert.equal(data.sizes[0],data.sizes[1]);assert.deepEqual(data.sizes.slice(2),[52,52,8]);assert.deepEqual(data.colors,['rgb(242, 244, 246)','rgb(49, 130, 246)']);}else{assert(data.sizes[0]<data.sizes[1]);assert.deepEqual(data.sizes.slice(2),[44,54,8]);assert.deepEqual(data.colors,['rgb(255, 255, 255)','rgb(49, 130, 246)']);}assert.equal(data.small,false);
   const notice=await p.evaluate(()=>document.querySelector('aside').textContent);assert(notice.includes('시연용 예시 비교 결과')&&notice.includes('실제 AI 분석은 아직 연결되지 않았어요'),'P03-T55');
  }
  for(const mobile of [false,true]){

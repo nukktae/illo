@@ -158,6 +158,16 @@ def score_ring():
             f'<span style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 17px; font-weight: 800; letter-spacing: -0.02em;">2<span style="font-size: 13px; color: {MUTE}; font-weight: 600;">/6</span></span></span>')
 
 
+def cta_pair(pre, mobile):
+    # P03-F14: 데스크톱은 두 버튼을 같은 크기 (전체 너비, 52px)로. 파란색은 AI 비교 하나에만
+    if mobile:
+        return (f'<button type="button" onClick="@@run@@" style="height: 54px; border: none; border-radius: 14px; background: {BLUE}; color: #FFFFFF; font-size: 17px; font-weight: 600; cursor: pointer;">AI로 비교하기</button>'
+                f'<a href="{pre}S5-resume.dc.html" style="align-self: flex-start; box-sizing: border-box; display: flex; align-items: center; justify-content: center; min-height: 44px; max-width: 100%; padding: 0 16px; border: 1px solid #D1D6DB; border-radius: 12px; background: #FFFFFF; color: #191F28; font-size: 14px; font-weight: 600; text-decoration: none;">나의 이력서 수정</a>')
+    btn = 'box-sizing: border-box; width: 100%; height: 52px; display: flex; align-items: center; justify-content: center; border: none; border-radius: 14px; font-size: 16px; font-weight: 600; font-family: inherit; cursor: pointer; text-decoration: none;'
+    return (f'<button type="button" onClick="@@run@@" style="{btn} background: {BLUE}; color: #FFFFFF;">AI로 비교하기</button>'
+            f'<a href="{pre}S5-resume.dc.html" style="{btn} background: #F2F4F6; color: #333D4B;">나의 이력서 수정</a>')
+
+
 def side_panel(mobile):
     example_badge = '<span style="align-self: flex-start; padding: 3px 8px; border-radius: 6px; background: #F2F4F6; color: #4E5968; font-size: 12px; font-weight: 600;">시연 예시</span>'
     example_notice = '<span style="font-size: 12px; line-height: 1.5; color: #4E5968;">시연용 예시 비교 결과<br>실제 AI 분석은 아직 연결되지 않았어요</span>'
@@ -169,8 +179,7 @@ def side_panel(mobile):
     before = (f'<sc-if value="@@notDone@@" hint-placeholder-val="@@true@@"><div style="display: flex; flex-direction: column; gap: 14px;">{example_badge}'
               f'<span style="font-size: 20px; font-weight: 700; line-height: 1.4;">이 공고 문장에<br>내 경험을 맞춰 볼게요</span>{exp}'
               f'<div style="display: flex; flex-direction: column; gap: 8px;">'
-              f'<button type="button" onClick="@@run@@" style="height: 54px; border: none; border-radius: 14px; background: {BLUE}; color: #FFFFFF; font-size: 17px; font-weight: 600; cursor: pointer;">AI로 비교하기</button>'
-              f'<a href="{pre}S5-resume.dc.html" style="align-self: flex-start; box-sizing: border-box; display: flex; align-items: center; justify-content: center; min-height: 44px; max-width: 100%; padding: 0 16px; border: 1px solid #D1D6DB; border-radius: 12px; background: #FFFFFF; color: #191F28; font-size: 14px; font-weight: 600; text-decoration: none;">나의 이력서 수정</a></div>'
+              f'{cta_pair(pre, mobile)}</div>'
               f'{example_notice}</div></sc-if>')
     tile = lambda n, label, bg, fg: f'<div style="display: flex; flex-direction: column; gap: 2px; padding: 12px; border-radius: 14px; background: {bg};"><span style="font-size: 22px; font-weight: 800; color: {fg}; letter-spacing: -0.02em;">{n}</span><span style="font-size: 12px; font-weight: 600; color: {fg};">{label}</span></div>'
     refresh = f'<svg aria-hidden="true" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg>'
