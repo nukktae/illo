@@ -50,7 +50,7 @@ MATCH_JS = r'''  hasResumeContent(profile) {
 UTAB = 'border: none; background: none; padding: 0 14px 12px; margin-bottom: -1px; font-size: 15px; font-family: inherit; cursor: pointer; white-space: nowrap; border-bottom: 2px solid '
 TAB_ON = UTAB + f'{INK}; color: {INK}; font-weight: 700;'
 TAB_OFF = UTAB + f'transparent; color: {SUB};'
-FTAB = f'border: none; border-bottom: 2px solid transparent; background: none; margin-bottom: -1px; padding: 14px 4px 12px; font-size: 15px; font-family: inherit; color: #4E5968; cursor: pointer; white-space: nowrap;'
+FTAB = f'border: none; border-bottom: 2px solid transparent; background: none; margin-bottom: -1px; padding: 18px 4px 16px; font-size: 16px; font-family: inherit; color: #333D4B; cursor: pointer; white-space: nowrap;'
 FCHIP = 'height: 36px; padding: 0 14px; border-radius: 999px; font-size: 14px; font-family: inherit; cursor: pointer; white-space: nowrap;'
 FCHIP_ON = FCHIP + f' border: 1px solid {BLUE}; background: {BLUE_BG}; color: {BLUE_D}; font-weight: 600;'
 FCHIP_OFF = FCHIP + ' border: 1px solid #E5E8EB; background: #FFFFFF; color: #4E5968;'
@@ -97,10 +97,13 @@ LIST_JS = MATCH_JS + f'''  constructor(props) {{ super(props); const jm = (typeo
     // P02-F09 상세 필터 (데스크톱)
     const FG = [['fty', '채용형태', ['인턴', '신입']], ['fsz', '기업 형태', ['대기업', '중견기업', '중소기업', '스타트업', '기타', '정보 없음']], ['fdl', '마감', ['7일 안에 마감', '마감일 있음', '상시 채용']]];
     const toggle = (k, v) => () => {{ const a = s[k].slice(), i = a.indexOf(v); if (i >= 0) a.splice(i, 1); else a.push(v); set({{ [k]: a }}); }};
-    const ftabs = FG.map(([k, label]) => {{ const n = s[k].length, on = s.fo === k; return {{ label: label + (n ? ' ' + n : '') + (on ? ' ▴' : ' ▾'), cur: on ? 'true' : 'false', go: () => this.setState({{ fo: on ? '' : k }}),
-      style: '{FTAB}' + (on ? ' border-bottom-color: {BLUE};' : '') + (n || on ? ' color: {BLUE_D}; font-weight: 700;' : '') }}; }});
+    const jobOn = s.fo === 'job';
+    const jobTab = {{ label: '직무' + (jobOn ? ' ▴' : ' ▾'), cur: jobOn ? 'true' : 'false', go: () => this.setState({{ fo: jobOn ? '' : 'job' }}), style: '{FTAB}' + (jobOn ? ' border-bottom-color: {BLUE}; color: {BLUE_D}; font-weight: 700;' : '') }};
+    const ftabs = [jobTab].concat(FG.map(([k, label]) => {{ const n = s[k].length, on = s.fo === k; return {{ label: label + (n ? ' ' + n : '') + (on ? ' ▴' : ' ▾'), cur: on ? 'true' : 'false', go: () => this.setState({{ fo: on ? '' : k }}),
+      style: '{FTAB}' + (on ? ' border-bottom-color: {BLUE};' : '') + (n || on ? ' color: {BLUE_D}; font-weight: 700;' : '') }}; }}));
     const og = FG.find(([k]) => k === s.fo);
-    const fopts = og ? og[2].map((v) => {{ const on = s[og[0]].indexOf(v) >= 0; return {{ label: v, on: on ? 'true' : 'false', go: toggle(og[0], v), style: on ? '{FCHIP_ON}' : '{FCHIP_OFF}' }}; }}) : [];
+    const jobOpts = Object.keys(D).map((k) => ({{ label: D[k].label, on: k === job ? 'true' : 'false', go: () => this.setState({{ job: k, page: 1, q: '', ty: 'all', fo: '' }}), style: k === job ? '{FCHIP_ON}' : '{FCHIP_OFF}' }}));
+    const fopts = jobOn ? jobOpts : og ? og[2].map((v) => {{ const on = s[og[0]].indexOf(v) >= 0; return {{ label: v, on: on ? 'true' : 'false', go: toggle(og[0], v), style: on ? '{FCHIP_ON}' : '{FCHIP_OFF}' }}; }}) : [];
     const fsel = [];
     FG.forEach(([k, label]) => s[k].forEach((v) => fsel.push({{ label: label + ' > ' + v, go: toggle(k, v) }})));
     return {{ unregistered, registered: !unregistered, sortNote, hasSortNote: !!sortNote, jobName: J.label, isSns, notSns: !isSns, showFit: isSns && m === 'new', fitTodo: !isSns && m === 'new', jobs, jq: s.jq, setJq: (e) => this.setState({{ jq: e && e.target ? e.target.value : '' }}), noJob: jobs.length === 0, srcNote: J.src + ' ' + POSTS.length + '건' + (isSns ? ' · 시연은 올리브인터내셔널 공고로 비교해요' : ' · 공고 비교는 SNS 콘텐츠 마케팅으로 시연해요'),
@@ -112,7 +115,7 @@ LIST_JS = MATCH_JS + f'''  constructor(props) {{ super(props); const jm = (typeo
       prevStyle: '{PG_OFF}' + (page === 1 ? ' opacity: 0.35;' : ''), nextStyle: '{PG_OFF}' + (page === pages ? ' opacity: 0.35;' : ''),
       ty: {{ all: pill('ty', 'all'), intern: pill('ty', '인턴'), newbie: pill('ty', '신입') }},
       sort: {{ rec: sortb('rec'), new: sortb('new'), close: sortb('close') }},
-      ftabs, fopts, fPanel: !!og, fPanelTitle: og ? og[1] : '', fsel, hasF: fsel.length > 0, resetF: () => set({{ fty: [], fsz: [], fdl: [] }}),
+      ftabs, fopts, fPanel: jobOn || !!og, fPanelTitle: jobOn ? '직무' : og ? og[1] : '', fsel, hasF: fsel.length > 0, resetF: () => set({{ fty: [], fsz: [], fdl: [] }}),
       q: s.q, setQ: (e) => set({{ q: e && e.target ? e.target.value : '' }}), clearQ: () => set({{ q: '', fty: [], fsz: [], fdl: [] }}), hasQ: !!q }};
   }}'''
 
@@ -132,16 +135,31 @@ def list_toolbar(mobile):
     if mobile:
         return (f'{search}<div class="illo-scroll" style="display: flex; gap: 6px; overflow-x: auto; margin: 0 -18px; padding: 0 18px;">{pills}</div>'
                 f'<div style="display: flex; justify-content: space-between; align-items: center;"><span style="font-size: 13px; color: {SUB};">@@total@@건</span><div style="display: flex; gap: 8px; align-items: center;">{sorts.replace("font-size: 14px", "font-size: 13px")}</div></div>')
-    fbar = (f'<div style="display: flex; align-items: center; gap: 28px; border-bottom: 1px solid #E5E8EB;">'
+    return list_sortrow(search)
+
+
+def filter_bar():
+    search = (f'<label style="width: 300px; display: flex; align-items: center; gap: 8px; height: 46px; padding: 0 14px; border: 1px solid #E5E8EB; border-radius: 12px; background: #FFFFFF; box-sizing: border-box;">'
+              f'<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="{INK}" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>'
+              f'<span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0);">공고명, 기업 검색</span>'
+              f'<input type="search" value="@@q@@" onChange="@@setQ@@" placeholder="공고명, 기업 검색" style="flex: 1 1 0; min-width: 0; border: none; background: transparent; font-size: 15px; font-family: inherit; color: {INK}; outline: none;"></label>')
+    fbar = (f'<div style="display: flex; align-items: center; gap: 36px; padding-left: 8px; border-top: 1px solid #E5E8EB; border-bottom: 1px solid #E5E8EB;">'
             f'<sc-for list="@@ftabs@@" as="f" hint-placeholder-count="3"><button type="button" onClick="@@f.go@@" aria-expanded="@@f.cur@@" style="@@f.style@@">@@f.label@@</button></sc-for>'
             f'<div style="margin-left: auto; padding: 8px 0;">{search}</div></div>'
-            f'<sc-if value="@@fPanel@@" hint-placeholder-val="@@false@@"><div style="display: flex; flex-direction: column; gap: 10px; padding: 16px 20px; border-radius: 14px; background: #F9FAFB;">'
+            f'<sc-if value="@@fPanel@@" hint-placeholder-val="@@false@@"><div style="display: flex; flex-direction: column; gap: 10px; padding: 16px 20px; border-radius: 14px; background: #FFFFFF;">'
             f'<span style="font-size: 13px; color: {SUB};">@@fPanelTitle@@</span><div style="display: flex; gap: 8px; flex-wrap: wrap;">'
             f'<sc-for list="@@fopts@@" as="o" hint-placeholder-count="3"><button type="button" onClick="@@o.go@@" aria-pressed="@@o.on@@" style="@@o.style@@">@@o.label@@</button></sc-for></div></div></sc-if>'
             f'<sc-if value="@@hasF@@" hint-placeholder-val="@@false@@"><div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">'
             f'<sc-for list="@@fsel@@" as="x" hint-placeholder-count="1"><button type="button" onClick="@@x.go@@" aria-label="@@x.label@@ 빼기" style="display: flex; align-items: center; gap: 6px; height: 34px; padding: 0 12px; border: none; border-radius: 999px; background: {BLUE_BG}; color: {INK}; font-size: 13px; font-family: inherit; cursor: pointer;">@@x.label@@<span aria-hidden="true" style="font-size: 15px; color: #4E5968;">×</span></button></sc-for>'
             f'<button type="button" onClick="@@resetF@@" style="border: none; background: none; padding: 0 6px; font-size: 13px; font-weight: 600; color: #4E5968; cursor: pointer; font-family: inherit;">↺ 초기화</button></div></sc-if>')
-    return (fbar +
+    return fbar
+
+
+def list_sortrow(search):
+    sorts = (f'<button type="button" onClick="@@sort.rec.go@@" style="@@sort.rec.style@@">추천순</button><span aria-hidden="true" style="color: #D1D6DB;">·</span>'
+             f'<button type="button" onClick="@@sort.new.go@@" style="@@sort.new.style@@">최신순</button><span aria-hidden="true" style="color: #D1D6DB;">·</span>'
+             f'<button type="button" onClick="@@sort.close.go@@" style="@@sort.close.style@@">마감 임박순</button>')
+    return (
             f'<div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 4px;"><span style="font-size: 14px; color: {SUB};"><b style="color: {INK}; font-weight: 700;">@@total@@</b>건 중 @@range@@</span><div style="display: flex; gap: 10px; align-items: center;">{sorts}</div></div>')
 
 
@@ -208,9 +226,7 @@ s1_body = f'''  <div style="padding: 28px 56px 0; display: flex; justify-content
     <h1 style="margin: 0; font-size: 32px; font-weight: 700; letter-spacing: -0.02em;">@@jobName@@</h1>
     <div role="tablist" aria-label="경력 구분" style="display: flex; gap: 2px; padding: 4px; border-radius: 12px; background: rgba(0,23,51,0.06);"><button type="button" role="tab" onClick="@@pickNew@@" style="@@newStyle@@">신입, 인턴</button><button type="button" role="tab" onClick="@@pickExp@@" style="@@expStyle@@">경력</button></div>
   </div>
-  <nav aria-label="직무" style="margin: 20px 56px 0; display: flex; align-items: flex-end; gap: 4px; border-bottom: 1px solid #E5E8EB;"><sc-for list="@@jobs@@" as="j" hint-placeholder-count="7"><button type="button" onClick="@@j.go@@" aria-current="@@j.cur@@" style="@@j.tab@@">@@j.label@@</button></sc-for>
-    <label style="margin: 0 0 8px auto; display: flex; align-items: center; gap: 6px; height: 34px; padding: 0 12px; border-radius: 10px; background: {FILL};"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="{SUB}" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0);">직무 검색</span><input type="search" value="@@jq@@" onChange="@@setJq@@" placeholder="직무 검색" style="width: 110px; border: none; background: transparent; font-size: 14px; font-family: inherit; color: {INK}; outline: none;"></label></nav>
-  <sc-if value="@@noJob@@" hint-placeholder-val="@@false@@"><p style="margin: 10px 56px 0; font-size: 13px; color: {SUB};">"@@jq@@" 직무는 아직 준비 중이에요. 검색어를 지우면 7개 직무가 다시 보여요</p></sc-if>
+  <div style="margin: 24px 56px 0; display: flex; flex-direction: column; gap: 14px;">{filter_bar()}</div>
   <div style="display: flex; flex-direction: column; gap: 16px; padding: 24px 56px 56px;">
     <sc-if value="@@showFit@@" hint-placeholder-val="@@true@@">
 {job_fit_card_d()}    </sc-if>
