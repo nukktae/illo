@@ -10,6 +10,11 @@ ASSETS = {
     '/_blob/967096ee53e44801f4e34a94c058eadc': (os.path.join(REPO, 'design/assets/sesac-1421.png'), 'assets/sesac-1421.png'),
     '/_blob/8431548dc6d24b077041f20d09190c12': (os.path.join(REPO, 'design/assets/sesac-1235.jpg'), 'assets/sesac-1235.jpg'),
     '/_blob/70b2d2f6c328b6f5ee29ac16d9bb4509': (os.path.join(REPO, 'design/assets/avatar-haneul.jpg'), 'assets/avatar-haneul.jpg'),
+    '/_blob/61db9921e026af1c40c1407f866018d8': (os.path.join(REPO, 'design/assets/pol-wing.jpg'), 'assets/pol-wing.jpg'),
+    '/_blob/c2dbb8dd0f747dc2fecc62ed45422aed': (os.path.join(REPO, 'design/assets/pol-jobcamp.jpg'), 'assets/pol-jobcamp.jpg'),
+    '/_blob/2903327b271a5f5367228d0fbc308a83': (os.path.join(REPO, 'design/assets/pol-sesac.jpg'), 'assets/pol-sesac.jpg'),
+    '/_blob/7260be2b13adc600fd41dc50e54baf09': (os.path.join(REPO, 'design/assets/pol-yc-camp.jpg'), 'assets/pol-yc-camp.jpg'),
+    '/_blob/a63c4957a0dce8ee767691f6f6c7fd7f': (os.path.join(REPO, 'design/assets/pol-yc-challenge.jpg'), 'assets/pol-yc-challenge.jpg'),
 }
 
 
