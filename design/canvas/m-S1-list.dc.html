@@ -125,12 +125,13 @@ class Component extends DCLogic {
     const noJobData = DESK && fj.length > 0 && dKeys.length === 0;
     const deskTitle = !fj.length ? '전체 직무' : fj.length === 1 ? (dKeys.length === 1 && JSUB[dKeys[0]].indexOf(fj[0]) >= 0 ? D[dKeys[0]].label : fj[0].split('>')[1]) : fj[0].split('>')[1] + ' 외 ' + (fj.length - 1);
     const BG = ["#2E7D4F", "#3182F6", "#F04452", "#6B4EE6", "#FF8A00", "#191F28", "#0FA3B1", "#C2185B", "#4E5968", "#8D6E63"];
-    const s = this.state, m = s.mode, set = (o) => this.setState(Object.assign({ page: 1 }, o));
+    const s = this.state, m = DESK ? (s.fty.length && s.fty.every((t) => t === '경력') ? 'exp' : 'new') : s.mode, set = (o) => this.setState(Object.assign({ page: 1 }, o));
     const now = Date.now(), day = 86400000;
     const dleft = (d) => d ? Math.ceil((new Date(d + 'T23:59:59+09:00').getTime() - now) / day) : null;
     const q = (s.q || '').trim().toLowerCase();
     const dlTag = (p) => { const n = dleft(p.d); return n === null ? '상시 채용' : n >= 0 && n <= 7 ? '7일 안에 마감' : '마감일 있음'; };
-    const fOk = (p) => (!s.fty.length || s.fty.indexOf(p.ty) >= 0) && (!s.fsz.length || s.fsz.indexOf(p.s || '정보 없음') >= 0)
+    const tys = s.fty.filter((t) => t !== '경력');
+    const fOk = (p) => (!tys.length || tys.indexOf(p.ty) >= 0) && (!s.fsz.length || s.fsz.indexOf(p.s || '정보 없음') >= 0)
       && (!s.fdl.length || s.fdl.indexOf(dlTag(p)) >= 0 || (s.fdl.indexOf('마감일 있음') >= 0 && dlTag(p) === '7일 안에 마감'));
     let L = POSTS.filter(p => (s.ty === 'all' || p.ty === s.ty) && fOk(p) && (!q || (p.c + ' ' + p.t).toLowerCase().indexOf(q) >= 0));
     const open = (p) => { const n = dleft(p.d); return n !== null && n >= 0 ? n : 9999; };
@@ -161,7 +162,7 @@ class Component extends DCLogic {
     const jobs = Object.keys(D).filter((k) => !jq || D[k].label.toLowerCase().replace(/\s/g, '').indexOf(jq) >= 0).map((k) => ({ label: D[k].label, style: k === job ? 'flex-shrink: 0; height: 36px; padding: 0 14px; border-radius: 999px; font-size: 14px; cursor: pointer; white-space: nowrap; border: 1px solid #191F28; background: #191F28; color: #FFFFFF; font-weight: 600;' : 'flex-shrink: 0; height: 36px; padding: 0 14px; border-radius: 999px; font-size: 14px; cursor: pointer; white-space: nowrap; border: 1px solid #E5E8EB; background: #FFFFFF; color: #4E5968;', tab: k === job ? 'border: none; background: none; padding: 0 14px 12px; margin-bottom: -1px; font-size: 15px; font-family: inherit; cursor: pointer; white-space: nowrap; border-bottom: 2px solid #191F28; color: #191F28; font-weight: 700;' : 'border: none; background: none; padding: 0 14px 12px; margin-bottom: -1px; font-size: 15px; font-family: inherit; cursor: pointer; white-space: nowrap; border-bottom: 2px solid transparent; color: #6B7684;', cur: k === job ? 'page' : 'false', go: () => this.setState({ job: k, page: 1, q: '', ty: 'all', jq: '' }) }));
     const cnt = (t) => POSTS.filter((p) => t === 'all' || p.ty === t).length;
     // P02-F09 상세 필터 (데스크톱)
-    const FG = [['fty', '채용형태', ['인턴', '신입']], ['fsz', '기업 형태', ['대기업', '중견기업', '중소기업', '스타트업', '기타', '정보 없음']], ['fdl', '마감', ['7일 안에 마감', '마감일 있음', '상시 채용']]];
+    const FG = [['fty', '채용형태', ['신입', '인턴', '경력']], ['fsz', '기업 형태', ['대기업', '중견기업', '중소기업', '스타트업', '기타', '정보 없음']], ['fdl', '마감', ['7일 안에 마감', '마감일 있음', '상시 채용']]];
     const toggle = (k, v) => () => { const a = s[k].slice(), i = a.indexOf(v); if (i >= 0) a.splice(i, 1); else a.push(v); set({ [k]: a }); };
     const jobOn = s.fo === 'job';
     const jobTab = { label: '직무' + (fj.length ? ' ' + fj.length : '') + (jobOn ? ' ▴' : ' ▾'), cur: jobOn ? 'true' : 'false', go: () => this.setState({ fo: jobOn ? '' : 'job' }), style: 'border: none; border-bottom: 2px solid transparent; background: none; margin-bottom: -1px; padding: 18px 4px 16px; font-size: 16px; font-family: inherit; color: #333D4B; cursor: pointer; white-space: nowrap;' + (jobOn ? ' border-bottom-color: #3182F6;' : '') + (jobOn || fj.length ? ' color: #1B64DA; font-weight: 700;' : '') };

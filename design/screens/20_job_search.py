@@ -78,12 +78,13 @@ LIST_JS = MATCH_JS + f'''  constructor(props) {{ super(props); const jm = (typeo
     const D = {JOBS_JSON}, profile = {PROFILE_JSON};
     const job = D[this.state.job] ? this.state.job : 'sns', J = D[job], POSTS = J.posts, isSns = job === 'sns';
     const BG = {json.dumps(LOGO_BG)};
-    const s = this.state, m = s.mode, set = (o) => this.setState(Object.assign({{ page: 1 }}, o));
+    const s = this.state, m = DESK ? (s.fty.length && s.fty.every((t) => t === '경력') ? 'exp' : 'new') : s.mode, set = (o) => this.setState(Object.assign({{ page: 1 }}, o));
     const now = Date.now(), day = 86400000;
     const dleft = (d) => d ? Math.ceil((new Date(d + 'T23:59:59+09:00').getTime() - now) / day) : null;
     const q = (s.q || '').trim().toLowerCase();
     const dlTag = (p) => {{ const n = dleft(p.d); return n === null ? '상시 채용' : n >= 0 && n <= 7 ? '7일 안에 마감' : '마감일 있음'; }};
-    const fOk = (p) => (!s.fty.length || s.fty.indexOf(p.ty) >= 0) && (!s.fsz.length || s.fsz.indexOf(p.s || '정보 없음') >= 0)
+    const tys = s.fty.filter((t) => t !== '경력');
+    const fOk = (p) => (!tys.length || tys.indexOf(p.ty) >= 0) && (!s.fsz.length || s.fsz.indexOf(p.s || '정보 없음') >= 0)
       && (!s.fdl.length || s.fdl.indexOf(dlTag(p)) >= 0 || (s.fdl.indexOf('마감일 있음') >= 0 && dlTag(p) === '7일 안에 마감'));
     let L = POSTS.filter(p => (s.ty === 'all' || p.ty === s.ty) && fOk(p) && (!q || (p.c + ' ' + p.t).toLowerCase().indexOf(q) >= 0));
     const open = (p) => {{ const n = dleft(p.d); return n !== null && n >= 0 ? n : 9999; }};
@@ -114,7 +115,7 @@ LIST_JS = MATCH_JS + f'''  constructor(props) {{ super(props); const jm = (typeo
     const jobs = Object.keys(D).filter((k) => !jq || D[k].label.toLowerCase().replace(/\\s/g, '').indexOf(jq) >= 0).map((k) => ({{ label: D[k].label, style: k === job ? '{PILL_ON}' : '{PILL_OFF}', tab: k === job ? '{TAB_ON}' : '{TAB_OFF}', cur: k === job ? 'page' : 'false', go: () => this.setState({{ job: k, page: 1, q: '', ty: 'all', jq: '' }}) }}));
     const cnt = (t) => POSTS.filter((p) => t === 'all' || p.ty === t).length;
     // P02-F09 상세 필터 (데스크톱)
-    const FG = [['fty', '채용형태', ['인턴', '신입']], ['fsz', '기업 형태', ['대기업', '중견기업', '중소기업', '스타트업', '기타', '정보 없음']], ['fdl', '마감', ['7일 안에 마감', '마감일 있음', '상시 채용']]];
+    const FG = [['fty', '채용형태', ['신입', '인턴', '경력']], ['fsz', '기업 형태', ['대기업', '중견기업', '중소기업', '스타트업', '기타', '정보 없음']], ['fdl', '마감', ['7일 안에 마감', '마감일 있음', '상시 채용']]];
     const toggle = (k, v) => () => {{ const a = s[k].slice(), i = a.indexOf(v); if (i >= 0) a.splice(i, 1); else a.push(v); set({{ [k]: a }}); }};
     const jobOn = s.fo === 'job';
     const jobTab = {{ label: '직무' + (jobOn ? ' ▴' : ' ▾'), cur: jobOn ? 'true' : 'false', go: () => this.setState({{ fo: jobOn ? '' : 'job' }}), style: '{FTAB}' + (jobOn ? ' border-bottom-color: {BLUE}; color: {BLUE_D}; font-weight: 700;' : '') }};
@@ -254,7 +255,6 @@ def job_fit_card(mobile):
 
 s1_body = f'''  <div style="padding: 28px 56px 0; display: flex; justify-content: space-between; align-items: center;">
     <h1 style="margin: 0; font-size: 32px; font-weight: 700; letter-spacing: -0.02em;">@@jobName@@</h1>
-    <div role="tablist" aria-label="경력 구분" style="display: flex; gap: 2px; padding: 4px; border-radius: 12px; background: rgba(0,23,51,0.06);"><button type="button" role="tab" onClick="@@pickNew@@" style="@@newStyle@@">신입, 인턴</button><button type="button" role="tab" onClick="@@pickExp@@" style="@@expStyle@@">경력</button></div>
   </div>
   <div style="margin: 24px 56px 0; display: flex; flex-direction: column; gap: 14px;">{filter_bar()}</div>
   <div style="display: flex; flex-direction: column; gap: 16px; padding: 24px 56px 56px;">
