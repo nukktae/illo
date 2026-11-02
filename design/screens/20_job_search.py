@@ -146,6 +146,16 @@ def filter_bar():
     fbar = (f'<div style="display: flex; align-items: center; gap: 36px; padding-left: 8px; border-top: 1px solid #E5E8EB; border-bottom: 1px solid #E5E8EB;">'
             f'<sc-for list="@@ftabs@@" as="f" hint-placeholder-count="3"><button type="button" onClick="@@f.go@@" aria-expanded="@@f.cur@@" style="@@f.style@@">@@f.label@@</button></sc-for>'
             f'<div style="margin-left: auto; padding: 8px 0;">{search}</div></div>'
+            f'<sc-if value="@@jobPanel@@" hint-placeholder-val="@@false@@"><div style="display: flex; flex-direction: column; gap: 18px; padding: 20px 22px; border-radius: 14px; background: #FFFFFF;">'
+            f'<sc-if value="@@showAi@@" hint-placeholder-val="@@true@@"><div style="display: flex; flex-direction: column; gap: 10px;"><div style="display: flex; align-items: center; gap: 8px;"><span style="font-size: 13px; color: {SUB};">AI 추천 직무</span>{AI}'
+            f'<span style="font-size: 12px; color: {MUTE};">내 이력서와 저장한 공고로 골랐어요 · 시연 예시</span>'
+            f'<button type="button" onClick="@@aiAll@@" style="margin-left: auto; border: none; background: none; padding: 0; font-size: 13px; font-weight: 600; color: {BLUE_D}; cursor: pointer; font-family: inherit;">모두 추가</button></div>'
+            f'<div style="display: flex; gap: 8px; flex-wrap: wrap;"><sc-for list="@@aiJobs@@" as="a" hint-placeholder-count="3"><button type="button" onClick="@@a.go@@" aria-pressed="@@a.on@@" style="@@a.style@@">@@a.label@@<span style="margin-left: 6px; font-size: 12px; font-weight: 400; opacity: 0.75;">@@a.why@@</span></button></sc-for></div></div></sc-if>'
+            f'<sc-if value="@@aiLogin@@" hint-placeholder-val="@@false@@"><span style="font-size: 13px; color: {SUB};">{AI} 로그인하면 이력서로 맞는 직무를 AI가 골라 줘요</span></sc-if>'
+            f'<div style="display: flex; flex-direction: column; gap: 10px;"><span style="font-size: 13px; color: {SUB};">직무 대분류</span><div style="display: flex; gap: 8px; flex-wrap: wrap;">'
+            f'<sc-for list="@@cats@@" as="c" hint-placeholder-count="14"><button type="button" onClick="@@c.go@@" aria-current="@@c.cur@@" style="@@c.style@@">@@c.label@@</button></sc-for></div></div>'
+            f'<div style="display: flex; flex-direction: column; gap: 10px; padding: 16px 20px; border-radius: 12px; background: #F6F7F9;"><span style="font-size: 13px; color: {SUB};">@@fcatName@@ 상세</span><div style="display: flex; gap: 8px; flex-wrap: wrap;">'
+            f'<sc-for list="@@subs@@" as="u" hint-placeholder-count="9"><button type="button" onClick="@@u.go@@" aria-pressed="@@u.on@@" style="@@u.style@@">@@u.label@@</button></sc-for></div></div></div></sc-if>'
             f'<sc-if value="@@fPanel@@" hint-placeholder-val="@@false@@"><div style="display: flex; flex-direction: column; gap: 10px; padding: 16px 20px; border-radius: 14px; background: #FFFFFF;">'
             f'<span style="font-size: 13px; color: {SUB};">@@fPanelTitle@@</span><div style="display: flex; gap: 8px; flex-wrap: wrap;">'
             f'<sc-for list="@@fopts@@" as="o" hint-placeholder-count="3"><button type="button" onClick="@@o.go@@" aria-pressed="@@o.on@@" style="@@o.style@@">@@o.label@@</button></sc-for></div></div></sc-if>'
@@ -191,7 +201,7 @@ def list_rows(mobile):
                f'<span style="display: flex; flex-direction: column; align-items: center; gap: 2px;"><span style="@@r.closeStyle@@">@@r.closeTxt@@</span><sc-if value="@@r.hasDue@@" hint-placeholder-val="@@false@@"><span style="font-size: 12px; font-weight: 700; color: {RED};">@@r.due@@</span></sc-if></span>'
                f'<span style="display: flex; justify-content: flex-end; gap: 8px;">{save_btn("r.sv", 38)}{act}</span></div>')
     empty = (f'<sc-if value="@@empty@@" hint-placeholder-val="@@false@@"><div style="display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 48px 0; border-top: 1px solid {LINE}; color: {SUB}; font-size: 15px;">'
-             f'검색 결과가 없어요<button type="button" onClick="@@clearQ@@" style="height: 38px; padding: 0 14px; border: none; border-radius: 10px; background: {FILL}; color: {INK}; font-size: 14px; font-weight: 600; cursor: pointer;">검색어 지우기</button></div></sc-if>')
+             f'@@emptyMsg@@<button type="button" onClick="@@clearQ@@" style="height: 38px; padding: 0 14px; border: none; border-radius: 10px; background: {FILL}; color: {INK}; font-size: 14px; font-weight: 600; cursor: pointer;">검색어 지우기</button></div></sc-if>')
     pager = (f'<sc-if value="@@hasRows@@" hint-placeholder-val="@@true@@"><nav aria-label="페이지" style="display: flex; justify-content: center; align-items: center; gap: 4px; padding: {"14px 0 6px" if mobile else "20px 0 8px"}; border-top: 1px solid {LINE};">'
              f'<button type="button" onClick="@@prev@@" aria-label="이전 페이지" style="@@prevStyle@@">‹</button>'
              f'<sc-for list="@@nums@@" as="p" hint-placeholder-count="5"><button type="button" onClick="@@p.go@@" aria-current="@@p.cur@@" style="@@p.style@@">@@p.n@@</button></sc-for>'
@@ -234,7 +244,64 @@ s1_body = f'''  <div style="padding: 28px 56px 0; display: flex; justify-content
     <sc-if value="@@isExp@@" hint-placeholder-val="@@false@@"><section aria-label="경력 공고 안내" style="display: flex; align-items: center; gap: 24px; padding: 20px 28px; {CARD}"><h2 style="flex-shrink: 0; margin: 0; font-size: 15px; font-weight: 700;">경력 공고</h2><span style="font-size: 14px; color: #4E5968;">공고를 골라 바로 비교해요. 시연은 맨 위 공고로 진행해요</span><sc-if value="@@isSns@@" hint-placeholder-val="@@true@@"><div style="margin-left: auto;"><button type="button" onClick="@@openTrend@@" style="flex-shrink: 0; border: none; background: none; padding: 0; font-size: 14px; font-weight: 600; color: {BLUE_D}; cursor: pointer; font-family: inherit; white-space: nowrap;">이 직무 트렌드 보기 ›</button></div></sc-if></section></sc-if>
 {list_card(False)}  </div>
 {trend_popup(False, None)}'''
-s1_script = LIST_JS.replace('@@ON@@', seg_style(True)).replace('@@OFF@@', seg_style(False))
+
+# 직무 분류 (P02 PRD v1.7). 앞 6개는 링커리어 화면 그대로, 뒤 8개는 팀 안
+JOB_TAX = {
+    '기획/경영': ['경영기획/전략', '사업기획/신규사업', '서비스기획/운영', '인사/채용/노무', '총무/법무/비서', '재무/IR', '경영분석/컨설팅', '사무/문서관리'],
+    '마케팅/광고': ['마케팅기획/전략', '브랜드마케팅', '디지털/퍼포먼스마케팅', 'SNS/콘텐츠마케팅', '광고기획/AE', 'PR/홍보', '시장조사/리서치', '전시/컨벤션'],
+    'IT/개발': ['프론트엔드개발', '백엔드/서버개발', 'iOS/Android앱개발', '시스템/ERP개발', 'DevOps/클라우드/보안', '데이터분석', 'AI/ML엔지니어', 'IT기획/PM/PO', 'QA/기술지원', '게임개발/기획'],
+    '디자인': ['UI/UX디자인', '그래픽/시각디자인', '영상/모션그래픽', '제품/산업디자인', '패션/의류디자인', '공간/인테리어디자인', '편집/출판디자인', '캐릭터/일러스트/3D'],
+    '영업/CS': ['B2B영업', '기술영업', '해외영업', '영업관리/기획', '판매/매장관리', '고객상담/CS', '텔레마케팅(TM)'],
+    '생산/제조': ['생산/공정관리', '품질관리(QC/QA)', '환경/안전관리', '생산직/조립/가공', '자재/재고관리', '설비/기계유지보수'],
+    '연구/R&D': ['기초연구', '응용연구/개발', '전기/전자연구', '기계/소재연구', '화학/화장품연구', '바이오/제약연구'],
+    '금융': ['은행', '증권/투자', '보험', '회계/세무', '자산운용', '금융영업'],
+    '미디어/콘텐츠': ['PD/연출/방송제작', '영상촬영/편집', '기자/에디터', '작가/시나리오', '아나운서/MC', '콘텐츠기획/MD'],
+    '물류/유통': ['물류관리', '구매/조달', 'MD/상품기획', '유통/판매기획', '무역/수출입', '배송/운송'],
+    '건설': ['건축설계', '토목/구조', '시공/현장관리', '설비/전기', '부동산/개발'],
+    '의료/바이오': ['의사/간호', '약사', '임상/의료연구', '의료기기', '바이오/제약'],
+    '교육': ['교육기획/운영', '강사/교사', '교재/콘텐츠개발', '학습관리/상담'],
+    '기타': ['공공/행정', '사회복지', '스포츠/레저', '기타'],
+}
+# 공고를 모은 7개 직무가 어느 상세 직무에 속하는지
+JOB_SUB = {'sns': ['마케팅/광고>SNS/콘텐츠마케팅'], 'pm': ['기획/경영>서비스기획/운영', 'IT/개발>IT기획/PM/PO'], 'data': ['IT/개발>데이터분석'],
+           'uiux': ['디자인>UI/UX디자인'], 'web': ['IT/개발>프론트엔드개발', 'IT/개발>백엔드/서버개발'], 'ai': ['IT/개발>AI/ML엔지니어'], 'cloud': ['IT/개발>DevOps/클라우드/보안']}
+# AI 추천 직무 (시연: 김하늘 이력서로 미리 정한 값)
+AI_JOBS = [['마케팅/광고>SNS/콘텐츠마케팅', '인스타그램 운영 1년'], ['마케팅/광고>브랜드마케팅', '카드뉴스 기획'], ['마케팅/광고>PR/홍보', '학생회 홍보부']]
+FCHIP_CUR = 'height: 36px; padding: 0 14px; border-radius: 999px; font-size: 14px; font-family: inherit; cursor: pointer; white-space: nowrap; border: 1px solid #3182F6; background: #FFFFFF; color: #1B64DA; font-weight: 600;'
+
+JOBSEL = """    const DESK = false, TAX = __TAX__, JSUB = __JSUB__;
+    const fj = this.state.fjob || [];
+    const selKeys = (sel) => Object.keys(D).filter((k) => (JSUB[k] || []).length && sel.some((x) => { const c = x.split('>')[0], sub = x.split('>')[1]; return sub === '전체' ? JSUB[k].some((y) => y.split('>')[0] === c) : JSUB[k].indexOf(x) >= 0; }));
+    const dKeys = fj.length ? selKeys(fj) : Object.keys(D);
+    const job = DESK ? (dKeys[0] || 'sns') : (D[this.state.job] ? this.state.job : 'sns'), J = D[job];
+    const POSTS = DESK ? [].concat(...dKeys.map((k) => D[k].posts)) : J.posts;
+    const isSns = DESK ? (dKeys.length === 1 && dKeys[0] === 'sns') : job === 'sns';
+    const noJobData = DESK && fj.length > 0 && dKeys.length === 0;
+    const deskTitle = !fj.length ? '전체 직무' : fj.length === 1 ? (dKeys.length === 1 && JSUB[dKeys[0]].indexOf(fj[0]) >= 0 ? D[dKeys[0]].label : fj[0].split('>')[1]) : fj[0].split('>')[1] + ' 외 ' + (fj.length - 1);"""
+JOBPANEL = """    const jt = (key) => () => this.setJobs(fj.indexOf(key) >= 0 ? fj.filter((y) => y !== key) : fj.concat([key]));
+    const cats = Object.keys(TAX).map((c) => { const has = fj.some((x) => x.split('>')[0] === c), cur = (s.fcat || '마케팅/광고') === c; return { label: c, cur: cur ? 'true' : 'false', go: () => this.setState({ fcat: c }), style: has ? '__FON__' : cur ? '__FCUR__' : '__FOFF__' }; });
+    const fcatName = s.fcat || '마케팅/광고';
+    const subs = ['전체'].concat(TAX[fcatName] || []).map((sub) => { const key = fcatName + '>' + sub, on = fj.indexOf(key) >= 0; return { label: sub, on: on ? 'true' : 'false', go: jt(key), style: on ? '__FON__' : '__FOFF__' }; });
+    const me = this.illoGet ? this.illoGet('illo-user', null) : null, AIJ = __AIJ__;
+    const aiJobs = AIJ.map((a) => ({ label: a[0].split('>')[1], why: a[1], on: fj.indexOf(a[0]) >= 0 ? 'true' : 'false', go: jt(a[0]), style: fj.indexOf(a[0]) >= 0 ? '__FON__' : '__FOFF__' }));"""
+
+LIST_JS = (LIST_JS
+    .replace("    const job = D[this.state.job] ? this.state.job : 'sns', J = D[job], POSTS = J.posts, isSns = job === 'sns';", JOBSEL)
+    .replace("    const fsel = [];", JOBPANEL + "\n    const fsel = [];\n    if (DESK) fj.forEach((x) => fsel.push({ label: x.replace('>', ' > '), go: () => this.setJobs(fj.filter((y) => y !== x)) }));")
+    .replace("    const jobTab = { label: '직무' + (jobOn ? ' ▴' : ' ▾'),", "    const jobTab = { label: '직무' + (fj.length ? ' ' + fj.length : '') + (jobOn ? ' ▴' : ' ▾'),")
+    .replace("style: '" + FTAB + "' + (jobOn ? ' border-bottom-color: " + BLUE + "; color: " + BLUE_D + "; font-weight: 700;' : '') };",
+             "style: '" + FTAB + "' + (jobOn ? ' border-bottom-color: " + BLUE + ";' : '') + (jobOn || fj.length ? ' color: " + BLUE_D + "; font-weight: 700;' : '') };")
+    .replace("fPanel: jobOn || !!og, fPanelTitle: jobOn ? '직무' : og ? og[1] : '',",
+             "fPanel: !!og, fPanelTitle: og ? og[1] : '', jobPanel: jobOn && DESK, cats, subs, fcatName, aiJobs, showAi: !!me, aiLogin: !me, aiAll: () => this.setJobs(fj.concat(AIJ.map((a) => a[0]).filter((k) => fj.indexOf(k) < 0))), emptyMsg: noJobData ? '고른 직무의 공고는 아직 모으지 않았어요. 지금은 7개 직무의 공고만 있어요' : '검색 결과가 없어요',")
+    .replace("resetF: () => set({ fty: [], fsz: [], fdl: [] }),", "resetF: () => { this.setJobs([]); set({ fty: [], fsz: [], fdl: [] }); },")
+    .replace("jobName: J.label,", "jobName: DESK ? deskTitle : J.label,")
+    .replace("fo: '', fty: [], fsz: [], fdl: [] }; }",
+             "fo: '', fty: [], fsz: [], fdl: [], fcat: '마케팅/광고', fjob: (() => { const JS = __JSUB__; if (jm && JS[jm[1]]) return JS[jm[1]].slice(0, 1); try { const v = JSON.parse(window.localStorage.getItem('illo-job-filter')); if (Array.isArray(v)) return v; } catch (e) {} return ['마케팅/광고>SNS/콘텐츠마케팅']; })() }; }\n"
+             "  setJobs(a) { try { window.localStorage.setItem('illo-job-filter', JSON.stringify(a)); } catch (e) {} this.setState({ fjob: a, page: 1 }); }")
+    .replace('__FON__', FCHIP_ON).replace('__FOFF__', FCHIP_OFF).replace('__FCUR__', FCHIP_CUR)
+    .replace('__TAX__', json.dumps(JOB_TAX, ensure_ascii=False)).replace('__JSUB__', json.dumps(JOB_SUB, ensure_ascii=False)).replace('__AIJ__', json.dumps(AI_JOBS, ensure_ascii=False)))
+assert all(t in LIST_JS for t in ('setJobs(a)', 'deskTitle', 'jobPanel', 'emptyMsg')), 'job filter hooks missing'
+s1_script = LIST_JS.replace('const DESK = false,', 'const DESK = true,').replace('@@ON@@', seg_style(True)).replace('@@OFF@@', seg_style(False))
 boards['S1-list.dc.html'] = ('S1 직무 찾기 (신입, 인턴은 적합도 / 경력은 공고)', dpage('S1-list.dc.html', '직무 찾기', 'find', s1_body, s1_script))
 
 # --- mobile ---
