@@ -40,6 +40,7 @@ PRD 고치기  >  PRD 리뷰 (팀원 1명)  >  Spec 쓰기  >  코드 생성과 
 - **main에 직접 push하지 않아요.** 항상 브랜치를 만들고 PR을 올려요. main에 병합되면 바로 실제 사이트에 배포돼요.
 - **브랜치 이름**: 기능 ID를 앞에. `p03-f02-ai-compare`, `p05-f02-resume-form`, 문서만 고치면 `docs-p02-prd`.
 - **커밋 메시지**: 한국어로, 무엇을 왜 바꿨는지. 기능 ID를 앞에.
+- **AI 표시 없음**: 커밋, PR, 브랜치 이름에 `Co-Authored-By: Claude`, `Generated with Claude Code` 같은 AI 표시를 넣지 않아요. `.claude/settings.json`이 자동으로 막아 줘요. AI가 넣었으면 지우고 올려요.
   ```
   P03-F02 공고 문장별 근거 찾기 API 추가
 
