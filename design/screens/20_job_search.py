@@ -192,7 +192,7 @@ def list_sortrow(search):
             f'<div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 4px;"><span style="font-size: 14px; color: {SUB};"><b style="color: {INK}; font-weight: 700;">@@total@@</b>건 중 @@range@@</span><div style="display: flex; gap: 10px; align-items: center;">{sorts}</div></div>')
 
 
-GRID = '180px minmax(0, 1fr) 64px 80px 116px 64px 150px'
+GRID = '190px minmax(0, 1fr) 64px 80px 84px 64px 150px'
 
 
 def list_rows(mobile):
@@ -217,7 +217,7 @@ def list_rows(mobile):
                f'<span style="display: flex; gap: 4px; flex-wrap: wrap;">{demo_tag}{ov}</span></span>'
                f'<span style="font-size: 14px; color: {INK}; text-align: center;">@@r.ty@@</span>'
                f'<span style="font-size: 14px; color: #4E5968; text-align: center;">@@r.size@@</span>'
-               f'<span style="display: flex; align-items: baseline; justify-content: center; gap: 6px; white-space: nowrap;"><span style="@@r.closeStyle@@">@@r.closeTxt@@</span><sc-if value="@@r.hasDue@@" hint-placeholder-val="@@false@@"><span style="@@r.dueStyle@@">@@r.due@@</span></sc-if></span>'
+               f'<span style="display: flex; align-items: baseline; justify-content: center; gap: 6px; white-space: nowrap;"><span style="@@r.closeStyle@@">@@r.closeTxt@@</span></span>'
                f'<span style="font-size: 14px; color: #4E5968; text-align: center;">@@r.views@@</span>'
                f'<span style="display: flex; justify-content: flex-end; gap: 8px;">{save_btn("r.sv", 38)}{act}</span></div>')
     empty = (f'<sc-if value="@@empty@@" hint-placeholder-val="@@false@@"><div style="display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 48px 0; border-top: 1px solid {LINE}; color: {SUB}; font-size: 15px;">'
