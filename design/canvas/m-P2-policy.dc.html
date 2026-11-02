@@ -47,10 +47,12 @@ class Component extends DCLogic {
     return { saved: on, unsaved: !on, label: on ? '저장 해제' : '저장', toggle: () => { const s = this.illoSaved(); this.illoSet('illo-saved', on ? s.filter((x) => x.id !== item.id) : [item].concat(s)); } };
   }
   illoVals() {
-    const u = this.illoGet('illo-user', null), n = this.illoSaved().length;
+    const u = this.illoGet('illo-user', null), n = this.illoSaved().length, gate = '';
+    if (gate && !u) { try { window.location.replace('L1-login.dc.html?next=' + gate); } catch (e) {} }
     return { loggedIn: !!u, loggedOut: !u, userName: u ? u.name : '', userInit: u ? u.name.slice(0, 1) : '', profileName: u ? u.name : '예시 프로필',
       savedCount: n, hasSaved: n > 0,
-      loginAs: () => { let name = '김하늘'; try { const el = document.getElementById('su-name'); if (el && el.value.trim()) name = el.value.trim(); window.localStorage.setItem('illo-user', JSON.stringify({ name })); } catch (e) {} },
+      loginAs: (e) => { let name = '김하늘'; try { const el = document.getElementById('su-name'); if (el && el.value.trim()) name = el.value.trim(); window.localStorage.setItem('illo-user', JSON.stringify({ name })); } catch (e) {}
+        try { const nx = (window.location.search.match(/[?&]next=([\w.-]+\.html)$/) || [])[1]; if (nx) { if (e && e.preventDefault) e.preventDefault(); window.location.href = nx; } } catch (e2) {} },
       logout: () => this.illoSet('illo-user', null) };
   }
   svVals() { return { sv: { pd: this.sv({"id": "pol-20261018005400213991", "kind": "정책", "t": "2026 서울형 청년인턴 직무캠프", "s": "서울특별시 미래청년기획관 청년정책담당관 · 신청 중", "u": "https://youth.seoul.go.kr/content.do?key=2310100012", "h": "P2-policy.dc.html"}) } }; }

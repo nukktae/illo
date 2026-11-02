@@ -53,10 +53,12 @@ class Component extends DCLogic {
     return { saved: on, unsaved: !on, label: on ? '저장 해제' : '저장', toggle: () => { const s = this.illoSaved(); this.illoSet('illo-saved', on ? s.filter((x) => x.id !== item.id) : [item].concat(s)); } };
   }
   illoVals() {
-    const u = this.illoGet('illo-user', null), n = this.illoSaved().length;
+    const u = this.illoGet('illo-user', null), n = this.illoSaved().length, gate = '';
+    if (gate && !u) { try { window.location.replace('L1-login.html?next=' + gate); } catch (e) {} }
     return { loggedIn: !!u, loggedOut: !u, userName: u ? u.name : '', userInit: u ? u.name.slice(0, 1) : '', profileName: u ? u.name : '예시 프로필',
       savedCount: n, hasSaved: n > 0,
-      loginAs: () => { let name = '김하늘'; try { const el = document.getElementById('su-name'); if (el && el.value.trim()) name = el.value.trim(); window.localStorage.setItem('illo-user', JSON.stringify({ name })); } catch (e) {} },
+      loginAs: (e) => { let name = '김하늘'; try { const el = document.getElementById('su-name'); if (el && el.value.trim()) name = el.value.trim(); window.localStorage.setItem('illo-user', JSON.stringify({ name })); } catch (e) {}
+        try { const nx = (window.location.search.match(/[?&]next=([\w.-]+\.html)$/) || [])[1]; if (nx) { if (e && e.preventDefault) e.preventDefault(); window.location.href = nx; } } catch (e2) {} },
       logout: () => this.illoSet('illo-user', null) };
   }
   renderVals() { return Object.assign({}, this.illoVals(), this.pageVals()); }

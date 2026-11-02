@@ -54,23 +54,25 @@ ILLO_METHODS = '''  illoGet(k, d) { try { const v = window.localStorage.getItem(
     return { saved: on, unsaved: !on, label: on ? '저장 해제' : '저장', toggle: () => { const s = this.illoSaved(); this.illoSet('illo-saved', on ? s.filter((x) => x.id !== item.id) : [item].concat(s)); } };
   }
   illoVals() {
-    const u = this.illoGet('illo-user', null), n = this.illoSaved().length;
+    const u = this.illoGet('illo-user', null), n = this.illoSaved().length, gate = '__GATE__';
+    if (gate && !u) { try { window.location.replace('L1-login.dc.html?next=' + gate); } catch (e) {} }
     return { loggedIn: !!u, loggedOut: !u, userName: u ? u.name : '', userInit: u ? u.name.slice(0, 1) : '', profileName: u ? u.name : '예시 프로필',
       savedCount: n, hasSaved: n > 0,
-      loginAs: () => { let name = '김하늘'; try { const el = document.getElementById('su-name'); if (el && el.value.trim()) name = el.value.trim(); window.localStorage.setItem('illo-user', JSON.stringify({ name })); } catch (e) {} },
+      loginAs: (e) => { let name = '김하늘'; try { const el = document.getElementById('su-name'); if (el && el.value.trim()) name = el.value.trim(); window.localStorage.setItem('illo-user', JSON.stringify({ name })); } catch (e) {}
+        try { const nx = (window.location.search.match(/[?&]next=([\w.-]+\.html)$/) || [])[1]; if (nx) { if (e && e.preventDefault) e.preventDefault(); window.location.href = nx; } } catch (e2) {} },
       logout: () => this.illoSet('illo-user', null) };
   }
 '''.replace('__SEED__', json.dumps(SEED, ensure_ascii=False))
 
 
-def inject(script, saves=()):
+def inject(script, saves=(), gate=''):
     """Wrap a page script: page values + login/saved values + static save buttons."""
     script = script.replace('renderVals()', 'pageVals()', 1)
     sv = ''
     if saves:
         sv = ('  svVals() { return { sv: { ' + ', '.join(f"{k}: this.sv({json.dumps(SAVE_ITEMS[k], ensure_ascii=False)})" for k in saves) + ' } }; }\n')
     merge = '  renderVals() { return Object.assign({}, this.illoVals(), ' + ('this.svVals(), ' if saves else '') + 'this.pageVals()); }\n'
-    return ILLO_METHODS + sv + merge + script
+    return ILLO_METHODS.replace('__GATE__', gate) + sv + merge + script
 
 
 def save_btn(p, size=36, bg=None):
@@ -122,7 +124,7 @@ def dheader(active):
             '  </header>\n')
 
 def dpage(name, title, active, body, script='  renderVals() { return {}; }', default_h=1200, saves=()):
-    script = inject(script, saves)
+    script = inject(script, saves, name if name.startswith('S5-') else '')
     h = HEIGHTS.get(name, default_h)
     return holes('<!doctype html>\n<html lang="ko">\n<head>\n<meta charset="utf-8">\n'
                  f'<title>{title}</title>\n<script src="./support.js"></script>\n</head>\n<body>\n<x-dc>\n<helmet>\n'
