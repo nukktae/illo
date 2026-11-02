@@ -253,7 +253,7 @@ GCOL = {'마케팅': ('#FFF4E5', '#C26A00'), 'AI': ('#F0EBFF', '#6B4EE6'), '데�
         '개발': ('#EEF1F5', '#4E5968'), '디자인': ('#FFEEF3', '#D6336C'), '기타': ('#F2F4F6', '#6B7684')}
 STC = {'모집 중': (BLUE_BG, BLUE_D), '모집 예정': (OR_BG, OR), '상시': ('#E6F7F1', '#0E8A63'), '진행 중': (FILL, SUB), '종료': (FILL, MUTE),
        '신청 중': (BLUE_BG, BLUE_D), '예정': (OR_BG, OR), '마감': (FILL, MUTE)}
-THUMBS = {'edu-1421': THUMB1, 'edu-1235': THUMB2}
+THUMBS = {'edu-1421': THUMB1, 'edu-1235': THUMB2, 'edu-1233': '/_blob/da3e1859d4a5fb5d959f9a68a85e87a4', 'edu-1202': '/_blob/3353abd4717e44ab69d847de14e0e40c', 'edu-1419': '/_blob/2b1701dbd5336858481fae2422be0183', 'edu-1182': '/_blob/87f89c5a192c25ef010b457ee17e7c45'}  # 4개는 아노 제공 포스터 (2026.11.02)
 # 청년 정책 카드 이미지 (아노 제공 포스터, 2026.11.02)
 PTHUMBS = {'pol-20261018005400213993': '/_blob/61db9921e026af1c40c1407f866018d8', 'pol-20261018005400213991': '/_blob/c2dbb8dd0f747dc2fecc62ed45422aed', 'pol-20261018005400213990': '/_blob/2903327b271a5f5367228d0fbc308a83', 'pol-20261018005400213983': '/_blob/7260be2b13adc600fd41dc50e54baf09', 'pol-20261018005400213984': '/_blob/a63c4957a0dce8ee767691f6f6c7fd7f', 'pol-20260317005400112169': '/_blob/3f861b175e3d523ff52cf3b172a934bc'}
 N_LIVE = sum(1 for c in COURSES_ALL if c['st'] in ('모집 중', '모집 예정', '상시'))
