@@ -50,7 +50,9 @@ class Component extends DCLogic {
       savedCount: n, hasSaved: n > 0,
       loginAs: (e) => { let name = '김하늘'; try { const el = document.getElementById('su-name'); if (el && el.value.trim()) name = el.value.trim(); window.localStorage.setItem('illo-user', JSON.stringify({ name })); } catch (e) {}
         try { const nx = (window.location.search.match(/[?&]next=([\w.-]+\.html)$/) || [])[1]; if (nx) { if (e && e.preventDefault) e.preventDefault(); window.location.href = nx; } } catch (e2) {} },
-      logout: () => this.illoSet('illo-user', null) };
+      logout: () => this.illoSet('illo-user', null),
+      menuOpen: !!(this.state || {}).illoMenu, toggleMenu: () => this.setState({ illoMenu: !(this.state || {}).illoMenu }), closeMenu: () => this.setState({ illoMenu: false }),
+      logoutHome: () => { try { window.localStorage.removeItem('illo-user'); } catch (e) {} try { window.location.href = 'Main.dc.html'; } catch (e) {} } };
   }
   renderVals() { return Object.assign({}, this.illoVals(), this.pageVals()); }
   constructor(props) { super(props); const h = (typeof location !== 'undefined' && location.hash) || ''; this.state = { tab: h === '#policy' ? 'pol' : 'edu', q: '', g: 'all', live: false, sort: 'rec', page: 1, pq: '', pc: 'all', pr: 'all', pOpen: true, pp: 1 }; }

@@ -58,7 +58,9 @@ class Component extends DCLogic {
       savedCount: n, hasSaved: n > 0,
       loginAs: (e) => { let name = '김하늘'; try { const el = document.getElementById('su-name'); if (el && el.value.trim()) name = el.value.trim(); window.localStorage.setItem('illo-user', JSON.stringify({ name })); } catch (e) {}
         try { const nx = (window.location.search.match(/[?&]next=([\w.-]+\.html)$/) || [])[1]; if (nx) { if (e && e.preventDefault) e.preventDefault(); window.location.href = nx; } } catch (e2) {} },
-      logout: () => this.illoSet('illo-user', null) };
+      logout: () => this.illoSet('illo-user', null),
+      menuOpen: !!(this.state || {}).illoMenu, toggleMenu: () => this.setState({ illoMenu: !(this.state || {}).illoMenu }), closeMenu: () => this.setState({ illoMenu: false }),
+      logoutHome: () => { try { window.localStorage.removeItem('illo-user'); } catch (e) {} try { window.location.href = 'index.html'; } catch (e) {} } };
   }
   svVals() { return { sv: { e1421: this.sv({"id": "edu-1421", "kind": "교육", "t": "(강북5기) AI 활용 SNS 마케터 양성 과정", "s": "SeSAC 강북 · 모집 중 · 11.08 마감", "u": "https://sesac.seoul.kr/sesac/course/offline/courseDetail.do?crsSn=1421", "h": "C2-course.html"}) } }; }
   renderVals() { return Object.assign({}, this.illoVals(), this.svVals(), this.pageVals()); }

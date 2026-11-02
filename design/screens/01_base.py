@@ -62,7 +62,9 @@ ILLO_METHODS = '''  illoGet(k, d) { try { const v = window.localStorage.getItem(
       savedCount: n, hasSaved: n > 0,
       loginAs: (e) => { let name = '김하늘'; try { const el = document.getElementById('su-name'); if (el && el.value.trim()) name = el.value.trim(); window.localStorage.setItem('illo-user', JSON.stringify({ name })); } catch (e) {}
         try { const nx = (window.location.search.match(/[?&]next=([\w.-]+\.html)$/) || [])[1]; if (nx) { if (e && e.preventDefault) e.preventDefault(); window.location.href = nx; } } catch (e2) {} },
-      logout: () => this.illoSet('illo-user', null) };
+      logout: () => this.illoSet('illo-user', null),
+      menuOpen: !!(this.state || {}).illoMenu, toggleMenu: () => this.setState({ illoMenu: !(this.state || {}).illoMenu }), closeMenu: () => this.setState({ illoMenu: false }),
+      logoutHome: () => { try { window.localStorage.removeItem('illo-user'); } catch (e) {} try { window.location.href = 'Main.dc.html'; } catch (e) {} } };
   }
 '''.replace('__SEED__', json.dumps(SEED, ensure_ascii=False))
 
@@ -95,7 +97,17 @@ def auth_desktop():
             f'<a href="L2-signup.dc.html" style="height: 40px; padding: 0 18px; display: flex; align-items: center; border-radius: 999px; background: {INK}; color: #FFFFFF; font-size: 14px; font-weight: 600; text-decoration: none;">회원가입</a></sc-if>'
             f'<sc-if value="@@loggedIn@@" hint-placeholder-val="@@false@@"><a href="S5-saved.dc.html" aria-label="저장함 @@savedCount@@개" style="position: relative; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 50%; color: {INK};"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round">{BOOK}</svg>'
             f'<sc-if value="@@hasSaved@@" hint-placeholder-val="@@true@@"><span style="position: absolute; top: 3px; right: 1px; min-width: 18px; height: 18px; padding: 0 5px; box-sizing: border-box; border-radius: 999px; background: {BLUE}; color: #FFFFFF; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center;">@@savedCount@@</span></sc-if></a>'
-            f'<a href="S5-path.dc.html" style="display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 14px 0 4px; border-radius: 999px; background: #FFFFFF; color: {INK}; font-size: 14px; font-weight: 600; text-decoration: none;">{AVATAR_IMG(32)}@@userName@@님</a></sc-if></div>')
+            f'<div style="position: relative;"><button type="button" onClick="@@toggleMenu@@" aria-haspopup="menu" aria-expanded="@@menuOpen@@" style="display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 12px 0 4px; border: none; border-radius: 999px; background: #FFFFFF; color: {INK}; font-size: 14px; font-weight: 600; font-family: inherit; cursor: pointer;">{AVATAR_IMG(32)}@@userName@@님<svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="{SUB}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>'
+            f'<sc-if value="@@menuOpen@@" hint-placeholder-val="@@false@@"><div onClick="@@closeMenu@@" style="position: fixed; inset: 0; z-index: 40;"></div>'
+            f'<div role="menu" style="position: absolute; right: 0; top: 48px; z-index: 41; width: 240px; padding: 8px; border-radius: 16px; background: #FFFFFF; box-shadow: 0 12px 32px rgba(0, 0, 0, 0.10), 0 0 0 1px rgba(0, 0, 0, 0.05);">'
+            f'<div style="display: flex; align-items: center; gap: 10px; padding: 10px 10px 12px;">{AVATAR_IMG(40)}<span style="display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 15px; font-weight: 700; color: {INK};">@@userName@@</span><span style="font-size: 12px; color: {MUTE};">시연용 계정</span></span></div>'
+            f'<div style="height: 1px; margin: 0 6px 6px; background: {LINE};"></div>'
+            f'<a href="S5-path.dc.html" role="menuitem" style="display: flex; align-items: center; height: 42px; padding: 0 14px; border-radius: 10px; color: {INK}; font-size: 14px; text-decoration: none;">마이페이지</a>'
+            f'<a href="S5-resume.dc.html" role="menuitem" style="display: flex; align-items: center; height: 42px; padding: 0 14px; border-radius: 10px; color: {INK}; font-size: 14px; text-decoration: none;">이력서 등록, 수정</a>'
+            f'<a href="S5-saved.dc.html" role="menuitem" style="display: flex; align-items: center; height: 42px; padding: 0 14px; border-radius: 10px; color: {INK}; font-size: 14px; text-decoration: none;">저장함 @@savedCount@@</a>'
+            f'<div style="height: 1px; margin: 6px; background: {LINE};"></div>'
+            f'<button type="button" role="menuitem" onClick="@@logoutHome@@" style="width: 100%; display: flex; align-items: center; height: 42px; padding: 0 14px; border: none; border-radius: 10px; background: none; color: {RED}; font-size: 14px; font-family: inherit; text-align: left; cursor: pointer;">로그아웃</button>'
+            f'</div></sc-if></div></sc-if></div>')
 
 
 def auth_mobile():
