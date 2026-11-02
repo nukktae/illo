@@ -73,7 +73,7 @@ def kw_section(pre, mobile):
 H1 = '공고 문장마다,<br>내 경험을 비교해요'
 SUBLINE = '비어 있는 부분은 SeSAC 과정과 청년 정책으로 채워요'
 SLOGAN = '청년의 경험으로, 다음 청년의 기회를'
-CTA = '시연 공고로 비교해 보기'
+CTA = '내 경험과 비교해 보기'
 
 main_body = f'''  <div style="margin: 24px 56px 0;">{resume_strip('', False)}</div>
   <section style="margin: 16px 56px 0; display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); {CARD} overflow: hidden;">
