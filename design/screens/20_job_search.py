@@ -6,7 +6,7 @@ POSTS = []
 for p in _P:
     demo = p['company'] == '올리브인터내셔널'
     POSTS.append({'id': post_id(p['url'], len(POSTS)), 'c': p['company'], 't': p['title'], 'ty': p['type'], 'd': p['close'], 'u': p['url'], 's': p['size'] if p['size'] not in ('', '기타') else '',
-                  'ov': len(p['ov']), 'cr': p['created'], 'demo': demo})
+                  'ov': len(set(p['ov'])), 'presetOverlapSkillIds': p['ov'], 'cr': p['created'], 'demo': demo})
 POSTS_JSON = json.dumps(POSTS, ensure_ascii=False)
 _OTHER = json.load(open(os.path.join(DATA, 'jobs_other.json'), encoding='utf-8'))
 JOB_KEYS = [('sns', 'SNS 콘텐츠 마케팅')] + [(k, v['label']) for k, v in _OTHER.items()]
@@ -17,9 +17,38 @@ N_ALL = len(POSTS)
 N_TY = {k: sum(1 for p in POSTS if p['ty'] == k) for k in ('인턴', '신입')}
 LOGO_BG = ['#2E7D4F', '#3182F6', '#F04452', '#6B4EE6', '#FF8A00', '#191F28', '#0FA3B1', '#C2185B', '#4E5968', '#8D6E63']
 
-LIST_JS = f'''  constructor(props) {{ super(props); const jm = (typeof location !== 'undefined' && location.hash.match(/job=(\\w+)/)); this.state = {{ mode: 'new', trendOpen: {TREND_JS}, page: 1, sort: 'rec', ty: 'all', q: '', job: jm ? jm[1] : 'sns', jq: '' }}; }}
+PROFILE_JSON = json.dumps({'resumeContent': EXP_LINES, 'resumeSkillIds': [name for name, _ in HAVE], 'seedId': 'preset-resume-v1'}, ensure_ascii=False)
+MATCH_JS = r'''  hasResumeContent(profile) {
+    return Array.isArray(profile.resumeContent) && profile.resumeContent.some(value => typeof value === 'string' && value.trim().length > 0);
+  }
+  matchState(post, profile) {
+    if (!this.hasResumeContent(profile)) return { status: 'unregistered', count: null };
+    const valid = (ids) => Array.isArray(ids) && ids.every(id => typeof id === 'string' && id.trim().length > 0);
+    const required = post.postingSkillIds === undefined && profile.seedId === 'preset-resume-v1' ? post.presetOverlapSkillIds : post.postingSkillIds;
+    if (!valid(profile.resumeSkillIds) || !valid(required)) return { status: 'pending', count: null };
+    const mine = new Set(profile.resumeSkillIds);
+    const count = [...new Set(required)].filter(id => mine.has(id)).length;
+    return { status: 'analyzed', count };
+  }
+  rankPosts(posts, profile, sort) {
+    const date = p => Number.isFinite(p.cr) && p.cr > 0 ? p.cr : 0;
+    return posts.map((post, index) => ({ ...post, match: this.matchState(post, profile), index }))
+      .sort((a, b) => {
+        const demoFirst = Number(b.demo === true) - Number(a.demo === true);
+        if (sort === 'rec' && demoFirst) return demoFirst;
+        if (sort === 'rec' && this.hasResumeContent(profile)) {
+          const ready = Number(b.match.status === 'analyzed') - Number(a.match.status === 'analyzed');
+          if (ready) return ready;
+          if (a.match.status === 'analyzed' && a.match.count !== b.match.count) return b.match.count - a.match.count;
+        }
+        return date(b) - date(a) || a.index - b.index;
+      });
+  }
+'''
+
+LIST_JS = MATCH_JS + f'''  constructor(props) {{ super(props); const jm = (typeof location !== 'undefined' && location.hash.match(/job=(\\w+)/)); this.state = {{ mode: 'new', trendOpen: {TREND_JS}, page: 1, sort: 'rec', ty: 'all', q: '', job: jm ? jm[1] : 'sns', jq: '' }}; }}
   renderVals() {{
-    const D = {JOBS_JSON};
+    const D = {JOBS_JSON}, profile = {PROFILE_JSON};
     const job = D[this.state.job] ? this.state.job : 'sns', J = D[job], POSTS = J.posts, isSns = job === 'sns';
     const BG = {json.dumps(LOGO_BG)};
     const s = this.state, m = s.mode, set = (o) => this.setState(Object.assign({{ page: 1 }}, o));
@@ -28,15 +57,18 @@ LIST_JS = f'''  constructor(props) {{ super(props); const jm = (typeof location 
     const q = (s.q || '').trim().toLowerCase();
     let L = POSTS.filter(p => (s.ty === 'all' || p.ty === s.ty) && (!q || (p.c + ' ' + p.t).toLowerCase().indexOf(q) >= 0));
     const open = (p) => {{ const n = dleft(p.d); return n !== null && n >= 0 ? n : 9999; }};
-    if (s.sort === 'rec') L = L.slice().sort((a, b) => (b.demo - a.demo) || (b.ov - a.ov));
-    if (s.sort === 'new') L = L.slice().sort((a, b) => (b.cr - a.cr));
+    L = this.rankPosts(L, profile, s.sort);
+    const unregistered = !this.hasResumeContent(profile);
+    const allPending = L.length > 0 && L.every(p => p.match.status === 'pending');
+    const sortNote = s.sort !== 'rec' ? '' : unregistered ? '이력서를 등록하면 겹치는 역량 순으로 볼 수 있어요. 현재는 최신순이에요' : allPending ? '역량 분석 준비 중이에요. 현재는 최신순이에요' : '';
     if (s.sort === 'close') L = L.slice().sort((a, b) => open(a) - open(b));
     const per = 10, pages = Math.max(1, Math.ceil(L.length / per)), page = Math.min(s.page, pages);
     const rows = L.slice((page - 1) * per, page * per).map((p) => {{
       const n = dleft(p.d), code = [...p.c].reduce((a, ch) => a + ch.charCodeAt(0), 0);
       const tags = [p.ty].concat(p.s ? [p.s] : []);
       return {{ c: p.c, t: p.t, tags, init: p.c.replace(/[()㈜\\s]/g, '').slice(0, 1), logo: 'width: 40px; height: 40px; flex-shrink: 0; border-radius: 12px; background: ' + BG[code % BG.length] + '; color: #FFFFFF; font-size: 16px; font-weight: 700; display: flex; align-items: center; justify-content: center;',
-        hasOv: p.ov > 0, ov: '내 경험과 겹치는 역량 ' + p.ov, demo: p.demo, notDemo: !p.demo, url: p.u || '#',
+        ov: p.match.status === 'unregistered' ? '이력서를 등록해주세요' : p.match.status === 'pending' ? '역량 분석 준비 중' : '내 경험과 겹치는 역량 ' + p.match.count,
+        ovStyle: 'padding: 3px 8px; border-radius: 6px; font-size: 12px; ' + (p.match.status === 'analyzed' ? 'background: {BLUE_BG}; color: {BLUE_D};' : 'background: #F2F4F6; color: #4E5968;'), demo: p.demo, notDemo: !p.demo, url: p.u || '#',
         sv: this.sv({{ id: p.id, kind: '공고', t: p.t, s: p.c + ' · ' + p.ty, u: p.u, h: p.demo ? 'S3-compare.dc.html' : '' }}),
         due: n !== null && n >= 0 ? (n === 0 ? 'D-DAY' : 'D-' + n) : '', hasDue: n !== null && n >= 0, noDue: !(n !== null && n >= 0) }};
     }});
@@ -50,7 +82,7 @@ LIST_JS = f'''  constructor(props) {{ super(props); const jm = (typeof location 
     const jq = (s.jq || '').trim().toLowerCase().replace(/\\s/g, '');
     const jobs = Object.keys(D).filter((k) => !jq || D[k].label.toLowerCase().replace(/\\s/g, '').indexOf(jq) >= 0).map((k) => ({{ label: D[k].label, style: k === job ? '{PILL_ON}' : '{PILL_OFF}', go: () => this.setState({{ job: k, page: 1, q: '', ty: 'all', jq: '' }}) }}));
     const cnt = (t) => POSTS.filter((p) => t === 'all' || p.ty === t).length;
-    return {{ jobName: J.label, isSns, notSns: !isSns, showFit: isSns && m === 'new', fitTodo: !isSns && m === 'new', jobs, jq: s.jq, setJq: (e) => this.setState({{ jq: e && e.target ? e.target.value : '' }}), noJob: jobs.length === 0, srcNote: J.src + ' ' + POSTS.length + '건' + (isSns ? ' · 시연은 올리브인터내셔널 공고로 비교해요' : ' · 공고 비교는 SNS 콘텐츠 마케팅으로 시연해요'),
+    return {{ unregistered, registered: !unregistered, sortNote, hasSortNote: !!sortNote, jobName: J.label, isSns, notSns: !isSns, showFit: isSns && m === 'new', fitTodo: !isSns && m === 'new', jobs, jq: s.jq, setJq: (e) => this.setState({{ jq: e && e.target ? e.target.value : '' }}), noJob: jobs.length === 0, srcNote: J.src + ' ' + POSTS.length + '건' + (isSns ? ' · 시연은 올리브인터내셔널 공고로 비교해요' : ' · 공고 비교는 SNS 콘텐츠 마케팅으로 시연해요'),
       cntAll: '전체 ' + cnt('all'), cntIntern: '인턴 ' + cnt('인턴'), cntNew: '신입 ' + cnt('신입'),
       count: m === 'new' ? '신입, 인턴 공고 ' + POSTS.length + '건' : (isSns ? '경력 공고 22건 · 2026.10 수집' : '경력 공고는 준비 중'), isNew: m === 'new', isExp: m === 'exp', newStyle: st(m === 'new'), expStyle: st(m === 'exp'), pickNew: () => this.setState({{ mode: 'new' }}), pickExp: () => this.setState({{ mode: 'exp' }}),
       {TREND_VALS},
@@ -85,7 +117,7 @@ def list_toolbar(mobile):
 def list_rows(mobile):
     pre = 'm-' if mobile else ''
     tagchips = f'<sc-for list="@@r.tags@@" as="g" hint-placeholder-count="2"><span style="padding: 3px 8px; border-radius: 6px; background: {FILL}; font-size: 12px; color: {SUB};">@@g@@</span></sc-for>'
-    ov = f'<sc-if value="@@r.hasOv@@" hint-placeholder-val="@@true@@"><span style="padding: 3px 8px; border-radius: 6px; background: {BLUE_BG}; font-size: 12px; color: {BLUE_D};">@@r.ov@@</span></sc-if>'
+    ov = '<span style="@@r.ovStyle@@">@@r.ov@@</span>'
     demo_tag = f'<sc-if value="@@r.demo@@" hint-placeholder-val="@@false@@"><span style="padding: 3px 8px; border-radius: 6px; background: #F0EBFF; font-size: 12px; color: #6B4EE6; font-weight: 600;">시연 공고</span></sc-if>'
     due = (f'<sc-if value="@@r.hasDue@@" hint-placeholder-val="@@false@@"><span style="font-size: 13px; font-weight: 700; color: {RED};">@@r.due@@</span></sc-if>'
            f'<sc-if value="@@r.noDue@@" hint-placeholder-val="@@true@@"><span style="font-size: 12px; color: {MUTE};">상시, 채용 시 마감</span></sc-if>')
@@ -115,8 +147,15 @@ def list_card(mobile):
     pad = '18px 18px 8px' if mobile else '24px 28px 12px'
     return (f'    <section aria-labelledby="{"m-" if mobile else ""}list" style="display: flex; flex-direction: column; gap: {12 if mobile else 14}px; padding: {pad}; {CARD}">\n'
             f'      <h2 id="{"m-" if mobile else ""}list" style="margin: 0; font-size: {17 if mobile else 18}px; font-weight: 700;">공고를 골라 비교해 보세요</h2>\n'
-            f'      {list_toolbar(mobile)}\n      <div>{list_rows(mobile)}</div>\n'
+            f'      {list_toolbar(mobile)}<sc-if value="@@hasSortNote@@" hint-placeholder-val="@@true@@"><p role="status" style="margin: 0; font-size: 13px; line-height: 1.5; color: {SUB};">@@sortNote@@</p></sc-if>\n      <div>{list_rows(mobile)}</div>\n'
             f'      <span style="font-size: 12px; color: {MUTE};">출처: @@srcNote@@</span>\n    </section>\n')
+
+def job_fit_card(mobile):
+    chips = ''.join(f'<span style="padding: 8px 13px; border-radius: 999px; background: {FILL}; color: {SUB}; font-size: 14px;">{name}</span>' for name, _, _ in RANK)
+    return (f'<section aria-label="이 직무가 원하는 역량" style="display: flex; flex-direction: column; gap: 14px; padding: {"18px" if mobile else "22px 28px"}; {CARD}">'
+            f'<h2 style="margin: 0; font-size: 16px;">이 직무 공고가 많이 찾는 역량</h2><div style="display: flex; gap: 6px; flex-wrap: wrap;">{chips}</div>'
+            '<sc-if value="@@unregistered@@" hint-placeholder-val="@@true@@"><span style="align-self: flex-start; padding: 3px 8px; border-radius: 6px; background: #F2F4F6; color: #4E5968; font-size: 12px;">이력서를 등록해주세요</span></sc-if></section>')
+
 
 s1_body = f'''  <div style="padding: 20px 56px 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;"><span style="font-size: 13px; font-weight: 600; color: {SUB}; margin-right: 4px;">직무</span><sc-for list="@@jobs@@" as="j" hint-placeholder-count="7"><button type="button" onClick="@@j.go@@" style="@@j.style@@">@@j.label@@</button></sc-for>
     <label style="display: flex; align-items: center; gap: 6px; height: 36px; padding: 0 12px; border-radius: 999px; background: {FILL};"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="{SUB}" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0);">직무 검색</span><input type="search" value="@@jq@@" onChange="@@setJq@@" placeholder="다른 직무 검색" style="width: 120px; border: none; background: transparent; font-size: 14px; font-family: inherit; color: {INK}; outline: none;"></label>
@@ -128,7 +167,7 @@ s1_body = f'''  <div style="padding: 20px 56px 0; display: flex; align-items: ce
   </div>
   <div style="display: flex; flex-direction: column; gap: 16px; padding: 24px 56px 56px;">
     <sc-if value="@@showFit@@" hint-placeholder-val="@@true@@">
-{fit_card(False)}    </sc-if>
+{job_fit_card(False)}    </sc-if>
     <sc-if value="@@fitTodo@@" hint-placeholder-val="@@false@@"><section style="display: flex; align-items: center; gap: 12px; padding: 20px 28px; {CARD}">{AI}<span style="font-size: 15px; line-height: 1.5; color: #4E5968;">이 직무의 역량 분석은 준비 중이에요. 공고 원문은 지금 볼 수 있고, 공고 비교는 <b style="color: {INK};">SNS 콘텐츠 마케팅</b>으로 시연해요</span></section></sc-if>
     <sc-if value="@@isExp@@" hint-placeholder-val="@@false@@">
 {exp_card(False)}    </sc-if>
@@ -138,12 +177,16 @@ s1_script = LIST_JS.replace('@@ON@@', seg_style(True)).replace('@@OFF@@', seg_st
 boards['S1-list.dc.html'] = ('S1 직무 찾기 (신입, 인턴은 적합도 / 경력은 공고)', dpage('S1-list.dc.html', '직무 찾기', 'find', s1_body, s1_script))
 
 # --- mobile ---
-m_s1 = f'''    <div style="display: flex; justify-content: space-between; align-items: flex-end; padding: 8px 4px 4px;"><div style="display: flex; flex-direction: column; gap: 4px;"><h1 style="margin: 0; font-size: 26px; font-weight: 700; letter-spacing: -0.02em;">SNS 콘텐츠 마케팅</h1><span style="font-size: 13px; color: {SUB};">@@count@@</span></div><button type="button" onClick="@@openTrend@@" style="flex-shrink: 0; border: none; background: none; padding: 0 0 2px; font-size: 13px; font-weight: 600; color: {BLUE}; cursor: pointer;">트렌드 ›</button></div>
+m_jobs = f'''<div class="illo-scroll" style="display: flex; gap: 6px; overflow-x: auto; padding: 4px 0;"><sc-for list="@@jobs@@" as="j" hint-placeholder-count="7"><button type="button" onClick="@@j.go@@" style="@@j.style@@">@@j.label@@</button></sc-for></div>
+<label style="display: flex; gap: 8px; align-items: center; font-size: 13px;">직무 검색<input type="search" aria-label="직무 검색" value="@@jq@@" onChange="@@setJq@@" placeholder="다른 직무 검색" style="flex: 1; min-width: 0; height: 36px; border: none; border-radius: 12px; padding: 0 12px; background: {FILL}; font: inherit;"></label>
+<sc-if value="@@noJob@@" hint-placeholder-val="@@false@@"><span style="font-size: 13px; color: {SUB};">"@@jq@@" 직무는 아직 준비 중이에요. 검색어를 지우면 7개 직무가 다시 보여요</span></sc-if>'''
+m_s1 = f'''
+    <div style="display: flex; gap: 8px; justify-content: space-between; align-items: flex-end; padding: 8px 4px 4px;"><div style="min-width: 0; display: flex; flex-direction: column; gap: 4px;"><h1 style="margin: 0; font-size: 26px; font-weight: 700; letter-spacing: -0.02em;">@@jobName@@</h1><span style="font-size: 13px; color: {SUB};">@@count@@</span></div><sc-if value="@@isSns@@" hint-placeholder-val="@@true@@"><button type="button" onClick="@@openTrend@@" style="flex-shrink: 0; border: none; background: none; padding: 0 0 2px; font-size: 13px; font-weight: 600; color: {BLUE}; cursor: pointer;">트렌드 ›</button></sc-if></div>
+    {m_jobs}
     <div role="tablist" aria-label="경력 구분" style="display: flex; gap: 2px; padding: 4px; border-radius: 12px; background: rgba(0,23,51,0.06);"><button type="button" role="tab" onClick="@@pickNew@@" style="@@newStyle@@">신입, 인턴</button><button type="button" role="tab" onClick="@@pickExp@@" style="@@expStyle@@">경력</button></div>
-    <sc-if value="@@isNew@@" hint-placeholder-val="@@true@@">
-{fit_card(True)}    </sc-if>
-    <sc-if value="@@isExp@@" hint-placeholder-val="@@false@@">
-{exp_card(True)}    </sc-if>
+    <sc-if value="@@showFit@@" hint-placeholder-val="@@true@@">{job_fit_card(True)}</sc-if>
+    <sc-if value="@@fitTodo@@" hint-placeholder-val="@@false@@"><section style="padding: 18px; {CARD} font-size: 14px; line-height: 1.5;">이 직무의 역량 분석은 준비 중이에요. 공고 원문은 지금 볼 수 있고, 공고 비교는 SNS 콘텐츠 마케팅으로 시연해요</section></sc-if>
+    <sc-if value="@@isExp@@" hint-placeholder-val="@@false@@">{exp_card(True)}</sc-if>
 {list_card(True)}{trend_popup(True, None)}'''
 m_s1_script = LIST_JS.replace('@@ON@@', seg_style(True, True)).replace('@@OFF@@', seg_style(False, True))
 boards['m-S1-list.dc.html'] = ('M1 직무 찾기 (모바일)', mpage('m-S1-list.dc.html', 'M1 직무 찾기 (모바일)', topbar_logo(auth_mobile()), m_s1, 'find', m_s1_script))

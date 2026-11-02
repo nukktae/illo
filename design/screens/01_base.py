@@ -150,14 +150,14 @@ def trend_rows(rows, button=False, pad='0 14px', h=48):
     return out
 
 
-def trend_popup(mobile, cta_href):
+def trend_popup(mobile, cta_href, close_label="공고 목록으로 돌아가기"):
     facts = ''.join(f'<div style="display: flex; flex-direction: column; gap: 2px; padding: 12px 14px; border-radius: 12px; background: {FILL};"><span style="font-size: 11px; color: {SUB};">{k}</span><span style="font-size: 16px; font-weight: 700;">{v}</span></div>'
                     for k, v in [('자격증을 적은 공고', '3% · 3건'), ('외국어를 적은 공고', '14% · 15건'), ('개인 채널 운영 경험', '15% · 16건')])
     wrap = ('align-items: flex-end;' if mobile else 'align-items: center;')
     box = ('width: 100%; max-height: 88vh; border-radius: 24px 24px 0 0; padding: 22px 20px 28px;' if mobile else 'width: 560px; max-height: 88vh; border-radius: 24px; padding: 28px;')
     cta = (f'<a href="{cta_href}" style="height: 52px; display: flex; align-items: center; justify-content: center; border-radius: 14px; background: {BLUE}; color: #FFFFFF; font-size: 16px; font-weight: 600; text-decoration: none;">이 직무 공고 보기</a>'
            if cta_href else
-           f'<button type="button" onClick="@@closeTrend@@" style="height: 52px; border: none; border-radius: 14px; background: {BLUE}; color: #FFFFFF; font-size: 16px; font-weight: 600; cursor: pointer;">공고 목록으로 돌아가기</button>')
+           f'<button type="button" onClick="@@closeTrend@@" style="height: 52px; border: none; border-radius: 14px; background: {BLUE}; color: #FFFFFF; font-size: 16px; font-weight: 600; cursor: pointer;">{close_label}</button>')
     return f'''  <sc-if value="@@trendOpen@@" hint-placeholder-val="@@false@@">
   <div role="dialog" aria-modal="true" aria-label="실시간 공고 키워드 전체 순위" style="position: fixed; inset: 0; z-index: 50; display: flex; justify-content: center; {wrap} background: rgba(0,23,51,0.38);">
     <div style="{box} box-sizing: border-box; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; background: #FFFFFF;">
