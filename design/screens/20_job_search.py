@@ -7,6 +7,13 @@ for p in _P:
     demo = p['company'] == '올리브인터내셔널'
     POSTS.append({'id': post_id(p['url'], len(POSTS)), 'c': p['company'], 't': p['title'], 'ty': p['type'], 'd': p['close'], 'u': p['url'], 's': p['size'] if p['size'] not in ('', '기타') else '',
                   'ov': len(set(p['ov'])), 'presetOverlapSkillIds': p['ov'], 'cr': p['created'], 'demo': demo})
+# 회사 로고 (아노 제공 이미지에서 잘라 냄, design/assets/logo-*.png). 없는 회사는 첫 글자
+LOGOS = [('올리브인터내셔널', None, 'd55bb7e0ea8e688c8f6c3ae2f3515559'), ('카카오', None, 'e1e6c601728778273841a8308cc0b7df'), ('클래스101', None, '1801b663d968a47c82d6f4456feebf05'), ('트립비토즈', None, 'e87c804c93a65a6a60510230407ef8bd'), ('뷰에누보', None, '7847030e62073a1e1de9e174e11a11a8'),
+         ('앳홈', None, 'd4d2d0bfac8d1a4f475013e7c6b579ac'), ('기업명 비공개', '뷰티 콘텐츠 마케터(전환형', '961013624ee02d6d64f63007fc2705bf'), ('기업명 비공개', '뷰티 색동서울', '514ec4644b47e250236e6cbeeee6a0bb'), ('퍼포즈드', None, '2ed7d28a95c601ad1d55664bc55d55c6'), ('패스트뷰', None, '694ea27b38f150b3051b8f71451558b2')]
+for p in POSTS:
+    for co, tit, h in LOGOS:
+        if p['c'] == co and (tit is None or tit in p['t']):
+            p['logo'] = '/_blob/' + h
 POSTS_JSON = json.dumps(POSTS, ensure_ascii=False)
 _OTHER = json.load(open(os.path.join(DATA, 'jobs_other.json'), encoding='utf-8'))
 JOB_KEYS = [('sns', 'SNS 콘텐츠 마케팅')] + [(k, v['label']) for k, v in _OTHER.items()]
@@ -78,7 +85,7 @@ LIST_JS = MATCH_JS + f'''  constructor(props) {{ super(props); const jm = (typeo
       const n = dleft(p.d), code = [...p.c].reduce((a, ch) => a + ch.charCodeAt(0), 0);
       const tags = [p.ty].concat(p.s ? [p.s] : []);
       const md = p.d ? p.d.slice(5).replace('-', '.') : '';
-      return {{ c: p.c, t: p.t, tags, ty: p.ty, size: p.s || '정보 없음', closeTxt: p.d ? '~ ' + md : '상시 채용', closeStyle: 'font-size: 14px; color: ' + (n !== null && n < 0 ? '{MUTE}' : '{INK}') + ';', init: p.c.replace(/[()㈜\\s]/g, '').slice(0, 1), logo: 'width: 40px; height: 40px; flex-shrink: 0; border-radius: 12px; background: ' + BG[code % BG.length] + '; color: #FFFFFF; font-size: 16px; font-weight: 700; display: flex; align-items: center; justify-content: center;',
+      return {{ logoImg: p.logo || '', hasLogo: !!p.logo, noLogo: !p.logo, c: p.c, t: p.t, tags, ty: p.ty, size: p.s || '정보 없음', closeTxt: p.d ? '~ ' + md : '상시 채용', closeStyle: 'font-size: 14px; color: ' + (n !== null && n < 0 ? '{MUTE}' : '{INK}') + ';', init: p.c.replace(/[()㈜\\s]/g, '').slice(0, 1), logo: 'width: 40px; height: 40px; flex-shrink: 0; border-radius: 12px; background: ' + BG[code % BG.length] + '; color: #FFFFFF; font-size: 16px; font-weight: 700; display: flex; align-items: center; justify-content: center;',
         ov: p.match.status === 'unregistered' ? '이력서를 등록해주세요' : p.match.status === 'pending' ? '역량 분석 준비 중' : '내 경험과 겹치는 역량 ' + p.match.count,
         ovStyle: 'padding: 3px 8px; border-radius: 6px; font-size: 12px; ' + (p.match.status === 'analyzed' ? 'background: {BLUE_BG}; color: {BLUE_D};' : 'background: #F2F4F6; color: #4E5968;'), demo: p.demo, notDemo: !p.demo, url: p.u || '#',
         sv: this.sv({{ id: p.id, kind: '공고', t: p.t, s: p.c + ' · ' + p.ty, u: p.u, h: p.demo ? 'S3-compare.dc.html' : '' }}),
@@ -193,7 +200,7 @@ def list_rows(mobile):
     else:
         # 데스크톱: 채용 사이트처럼 열 (기업명, 공고명, 채용형태, 기업 형태, 마감일). 필터 (P02-F09)와 같은 항목
         row = (f'<div style="display: grid; grid-template-columns: {GRID}; align-items: center; gap: 16px; padding: 16px 0; border-top: 1px solid {LINE};">'
-               f'<span style="display: flex; align-items: center; gap: 12px; min-width: 0;"><span aria-hidden="true" style="@@r.logo@@">@@r.init@@</span><span style="font-size: 14px; color: #4E5968; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">@@r.c@@</span></span>'
+               f'<span style="display: flex; align-items: center; gap: 12px; min-width: 0;"><sc-if value="@@r.hasLogo@@" hint-placeholder-val="@@false@@"><img src="@@r.logoImg@@" alt="" style="width: 40px; height: 40px; flex-shrink: 0; border-radius: 12px; border: 1px solid #F2F4F6; object-fit: cover; display: block; box-sizing: border-box;"></sc-if><sc-if value="@@r.noLogo@@" hint-placeholder-val="@@true@@"><span aria-hidden="true" style="@@r.logo@@">@@r.init@@</span></sc-if><span style="font-size: 14px; color: #4E5968; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">@@r.c@@</span></span>'
                f'<span style="min-width: 0; display: flex; flex-direction: column; gap: 6px;"><span style="font-size: 16px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">@@r.t@@</span>'
                f'<span style="display: flex; gap: 4px; flex-wrap: wrap;">{demo_tag}{ov}</span></span>'
                f'<span style="font-size: 14px; color: {INK}; text-align: center;">@@r.ty@@</span>'

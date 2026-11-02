@@ -16,6 +16,16 @@ ASSETS = {
     '/_blob/7260be2b13adc600fd41dc50e54baf09': (os.path.join(REPO, 'design/assets/pol-yc-camp.jpg'), 'assets/pol-yc-camp.jpg'),
     '/_blob/a63c4957a0dce8ee767691f6f6c7fd7f': (os.path.join(REPO, 'design/assets/pol-yc-challenge.jpg'), 'assets/pol-yc-challenge.jpg'),
     '/_blob/3f861b175e3d523ff52cf3b172a934bc': (os.path.join(REPO, 'design/assets/pol-heritage.jpg'), 'assets/pol-heritage.jpg'),
+    '/_blob/d55bb7e0ea8e688c8f6c3ae2f3515559': (os.path.join(REPO, 'design/assets/logo-olive.png'), 'assets/logo-olive.png'),
+    '/_blob/e1e6c601728778273841a8308cc0b7df': (os.path.join(REPO, 'design/assets/logo-kakao.png'), 'assets/logo-kakao.png'),
+    '/_blob/1801b663d968a47c82d6f4456feebf05': (os.path.join(REPO, 'design/assets/logo-class101.png'), 'assets/logo-class101.png'),
+    '/_blob/e87c804c93a65a6a60510230407ef8bd': (os.path.join(REPO, 'design/assets/logo-tripbtoz.png'), 'assets/logo-tripbtoz.png'),
+    '/_blob/7847030e62073a1e1de9e174e11a11a8': (os.path.join(REPO, 'design/assets/logo-vueno.png'), 'assets/logo-vueno.png'),
+    '/_blob/d4d2d0bfac8d1a4f475013e7c6b579ac': (os.path.join(REPO, 'design/assets/logo-athome.png'), 'assets/logo-athome.png'),
+    '/_blob/961013624ee02d6d64f63007fc2705bf': (os.path.join(REPO, 'design/assets/logo-anon-flower.png'), 'assets/logo-anon-flower.png'),
+    '/_blob/514ec4644b47e250236e6cbeeee6a0bb': (os.path.join(REPO, 'design/assets/logo-anon-leaf.png'), 'assets/logo-anon-leaf.png'),
+    '/_blob/2ed7d28a95c601ad1d55664bc55d55c6': (os.path.join(REPO, 'design/assets/logo-performed.png'), 'assets/logo-performed.png'),
+    '/_blob/694ea27b38f150b3051b8f71451558b2': (os.path.join(REPO, 'design/assets/logo-fastview.png'), 'assets/logo-fastview.png'),
 }
 
 
