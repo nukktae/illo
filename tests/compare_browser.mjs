@@ -18,6 +18,7 @@ try {
   await p.goto(`${pathToFileURL(resolve(dir,name)).href}?view=${mobile?'mobile':'desktop'}${hash}`);
   await omowright.repinViewport(p,{width,height:900});
   await p.snapshot();
+  await p.evaluate(()=>document.fonts.ready.then(()=>true));
   assert.equal(await p.evaluate(()=>innerWidth),width);
  }
  async function click(label,role='button',partial=false){
@@ -29,9 +30,13 @@ try {
  async function state(){return p.evaluate(()=>({url:location.href,article:document.querySelector('article').innerHTML,aside:document.querySelector('aside').innerHTML}));}
  async function highlights(done){
   const styles=await p.evaluate(()=>[...document.querySelectorAll('article li > span > span')].map(e=>{const c=getComputedStyle(e);return {bg:c.backgroundColor,color:c.color,decoration:c.textDecorationLine,radius:c.borderRadius,weight:c.fontWeight,clone:c.boxDecorationBreak,border:c.borderTopColor,borderWidth:c.borderTopWidth};}));
-  const missing=styles.filter(s=>s.bg==='rgb(213, 220, 229)');
-  if(done){assert(missing.length>0);for(const s of missing){assert.equal(s.color,'rgb(51, 61, 75)');assert.equal(s.decoration,'none');assert.equal(s.radius,'4px');assert.equal(s.weight,'600');assert.equal(s.clone,'clone');assert.equal(s.border,'rgb(107, 118, 132)');assert.equal(s.borderWidth,'1px');}}
-  else assert.equal(missing.length,0);
+  // P03-T56/T58: validate all three states and absence before/reset.
+  const expected=[['rgb(232, 243, 255)','rgb(27, 100, 218)','rgb(27, 100, 218)'],['rgb(255, 246, 229)','rgb(194, 106, 0)','rgb(194, 106, 0)'],['rgb(213, 220, 229)','rgb(51, 61, 75)','rgb(107, 118, 132)']];
+  for(const [bg,color,border] of expected){
+   const found=styles.filter(s=>s.bg===bg);
+   if(done){assert(found.length>0,`P03-T56 missing ${bg}`);for(const s of found){assert.equal(s.color,color);assert.equal(s.decoration,'none');assert.equal(s.radius,'4px');assert.equal(s.weight,'600');assert.equal(s.clone,'clone');assert.equal(s.border,border);assert.equal(s.borderWidth,'1px');}}
+   else assert.equal(found.length,0,'P03-T58 reset has no highlight');
+  }
  }
  async function cards(){
   const data=await p.evaluate(()=>{const a=document.querySelector('article');const body=a.querySelector('[aria-label="공고 본문"]');const sections=[...body.querySelectorAll('section')];return {titles:sections.map(e=>e.querySelector('h3').textContent),bodyCount:a.querySelectorAll('[aria-label="공고 본문"]').length,bg:getComputedStyle(body).backgroundColor,borders:sections.slice(1).map(e=>getComputedStyle(e).borderTopWidth),overflow:document.documentElement.scrollWidth>innerWidth};});
@@ -46,18 +51,21 @@ try {
   const pre=mobile?'m-':'';
   await go(`${pre}S3-compare.html`,mobile);await cards();await buttons();await highlights(false);
   writeFileSync(`${output}/${pre}before-comparison.png`,await p.screenshot({fullPage:true}));
-  await click('나의 이력서 수정','link');assert((await p.evaluate(()=>location.pathname)).endsWith(`${pre}S5-resume.html`));
+  await click('나의 이력서 수정','link');
+  // Current main gates desktop resume only; mobile still opens its prototype directly.
+  if(mobile){await p.waitForURL(/m-S5-resume\.html/);assert((await p.evaluate(()=>location.pathname)).endsWith('m-S5-resume.html'));}
+  else {await p.waitForURL(/L1-login\.html/);assert((await p.evaluate(()=>location.pathname)).endsWith('/L1-login.html'));assert.equal(await p.evaluate(()=>new URLSearchParams(location.search).get('next')),'S5-resume.html');}
   await go(`${pre}S3-compare.html`,mobile);await click('AI로 비교하기');await cards();await highlights(true);
   const before=await state();
-  for(const close of ['닫기','공고 비교로 돌아가기','닫기']){
+  for(const close of ['닫기','공고 비교로 돌아가기','Escape']){
    await click('트렌드 보기 ›');assert.equal(await p.evaluate(()=>document.querySelectorAll('[role=dialog]').length),1);
    assert((await p.evaluate(()=>document.querySelector('[role=dialog]').textContent)).includes('출처:'));
-   await click(close);assert.deepEqual(await state(),before);await highlights(true);
+   if(close==='Escape') await p.keyboard.press('Escape');else await click(close);assert.deepEqual(await state(),before);await highlights(true);
   }
   writeFileSync(`${output}/${pre}result.png`,await p.screenshot({fullPage:true}));
   await click('다시 비교');await cards();await buttons();await highlights(false);
   await go(`${pre}S3-compare.html`,mobile,'#result');await cards();await highlights(true);const direct=await state();await click('트렌드 보기 ›');await click('닫기');assert.deepEqual(await state(),direct);
-  await click('프로젝트 ›','link');assert((await p.evaluate(()=>location.pathname)).endsWith(`${pre}S4-activity.html`));
+  await click('프로젝트 ›','link');await p.waitForURL(/S4-activity\.html/);assert((await p.evaluate(()=>location.pathname)).endsWith(`${pre}S4-activity.html`));
   await go(`${pre}S1-list.html`,mobile,'#trend');
   const listPopup=await p.evaluate(()=>document.querySelector('[role=dialog]').textContent);
   await click('닫기');assert.equal(await p.evaluate(()=>document.querySelectorAll('[role=dialog]').length),0);
@@ -67,15 +75,23 @@ try {
   await go(mobile?'m-Main.html':'index.html',mobile,'#trend');await click('이 직무 공고 보기','link');assert((await p.evaluate(()=>location.pathname)).endsWith(`${pre}S1-list.html`));
   await go(`${pre}P1-trend.html`,mobile);await click('공고 목록으로 돌아가기');assert((await p.evaluate(()=>location.pathname)).endsWith(`${pre}S1-list.html`));
   await go(`${pre}S3-compare.html`,mobile,'#result');await click('트렌드 보기 ›');const comparePopup=await p.evaluate(()=>document.querySelector('[role=dialog]').textContent);assert.equal(comparePopup.replace('공고 비교로 돌아가기','공고 목록으로 돌아가기'),listPopup);
-  passed.push(`${mobile?'mobile':'desktop'}: P03-T01~T13,T15,T17~T21,T26,T28,T32~T34,T55 (T19 complete state only)`);console.log(passed.at(-1));
+  passed.push(`${mobile?'mobile':'desktop'}: P03-T01~T13,T15,T17~T21,T26,T28,T32~T34,T55,T56,T58,T59 (T19 complete state only)`);console.log(passed.at(-1));
  }
  await go('m-S3-compare.html',true,'',320);await cards();await buttons();await highlights(false);await click('AI로 비교하기');await cards();await highlights(true);writeFileSync(`${output}/mobile-320.png`,await p.screenshot({fullPage:true}));passed.push('P03-T11,T25,T33~T35,T55: 320px');
- if(process.env.QA_FIXTURES){for(const kind of ['empty','long']){
-  await go('m-S3-compare.html',true,'#result',320,resolve(process.env.QA_FIXTURES,kind));await cards();
+ if(process.env.QA_FIXTURES){for(const kind of ['empty','long']){for(const width of [1440,390,320]){
+  await go(`${width===1440?'':'m-'}S3-compare.html`,width!==1440,'#result',width,resolve(process.env.QA_FIXTURES,kind));await cards();
   if(kind==='empty') assert.equal(await p.evaluate(()=>[...document.querySelectorAll('article section')].filter(e=>e.textContent.includes('공고에 기재된 내용이 없어요')).length),4);
-  else {await highlights(true);assert.equal(await p.evaluate(()=>[...document.querySelectorAll('article section')].some(e=>e.scrollWidth>e.clientWidth)),false);await click('다시 비교');await buttons();}
-  writeFileSync(`${output}/${kind}-320.png`,await p.screenshot({fullPage:true}));passed.push(`${kind} fixture ${kind==='empty'?'P03-T24':'P03-T14,T25,T35'} at 320px`);
- }}
+  else {
+   await highlights(true);
+   const bounds=await p.evaluate(()=>({width:innerWidth,overflow:[...document.querySelectorAll('article section')].filter(e=>e.scrollWidth>e.clientWidth).map(e=>({title:e.getAttribute('aria-label'),scroll:e.scrollWidth,client:e.clientWidth}))}));
+   assert.equal(bounds.width,width);assert.deepEqual(bounds.overflow,[],'P03-T57 fixed viewport overflow');
+   writeFileSync(`${output}/long-${width}-result.png`,await p.screenshot({fullPage:true}));
+   // Full-page captures temporarily resize the viewport; restore before more assertions.
+   await omowright.repinViewport(p,{width,height:900});await p.snapshot();
+   await click('다시 비교');await buttons();await highlights(false);
+  }
+  writeFileSync(`${output}/${kind}-${width}.png`,await p.screenshot({fullPage:true}));passed.push(`${kind} fixture ${kind==='empty'?'P03-T24':'P03-T14,T25,T35'} at ${width}px; P03-T57/T59`);
+ }}}
  writeFileSync(`${output}/results.json`,JSON.stringify({passed,blocked:['T16','T19 processing','T22','T23','T27','T30'],notRun:['T29','T31']},null,2));
  console.log('PASS',passed);
 } finally {await browser.close();rmSync(profile,{recursive:true,force:true});}

@@ -49,6 +49,20 @@ class CompareTests(unittest.TestCase):
         self.assertIn('border: 1px solid #6B7684', style)
         self.assertEqual(self.ns['MK']['no'][2], '#EEF0F3')
 
+    def test_P03_T56_T57_matched_and_partial_boxes(self):
+        for key, bg, color in (('ok', '#E8F3FF', '#1B64DA'), ('part', '#FFF6E5', '#C26A00')):
+            with self.subTest(state=key):
+                style = self.ns['HL'][key]
+                for rule in (f'background: {bg}', f'color: {color}',
+                             f'border: 1px solid {color}', 'border-radius: 4px',
+                             'padding: 1px 2px', 'font-weight: 600',
+                             'text-decoration: none', '-webkit-box-decoration-break: clone',
+                             'box-decoration-break: clone'):
+                    self.assertIn(rule, style)
+                self.assertNotIn('nowrap', style)
+                self.assertNotIn('inline-block', style)
+                self.assertNotIn('border:', self.ns['mk_badge'](key))
+
     def test_P03_T32_white_body(self):
         for mobile in (False, True):
             result = self.ns['posting_card'](mobile)
