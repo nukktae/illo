@@ -1,6 +1,6 @@
 """화면에 들어가는 데이터를 research/ 원본에서 다시 만든다. 결과는 design/data/*.json.
 
-  policies.json    research/youth-policy/jobs_policies.json 중 서울시와 중앙부처 (fetch_policies.py 먼저)
+  policies.json    research/youth-policy/all_policies.json 중 서울시와 중앙부처, 전 분야 (fetch_policies.py --all 먼저)
   courses.json     research/sesac/courses.csv 210개
   posts2026.json   SNS 콘텐츠 마케팅 2026 신입, 인턴 공고 (sns_trend.py 분류 사용)
   jobs_other.json  다른 6개 직무 공고 (~/Documents/job-board-anu/daegieop/jobs.json, 팀원 PC에만 있음)
@@ -16,8 +16,13 @@ OUT = os.path.join(REPO, 'design/data')
 TODAY = datetime.date.today().strftime('%Y%m%d')
 
 
+# 온통청년 대분류는 옛 이름과 새 이름이 섞여 있어 화면용 5개로 합친다
+LCLS = {'일자리': '일자리', '교육･직업훈련': '교육', '교육': '교육', '금융･복지･문화': '금융·복지', '복지문화': '금융·복지',
+        '주거': '주거', '참여･기반': '참여', '참여권리': '참여'}
+
+
 def policies():
-    P = json.load(open(os.path.join(REPO, 'research/youth-policy/jobs_policies.json'), encoding='utf-8'))
+    P = json.load(open(os.path.join(REPO, 'research/youth-policy/all_policies.json'), encoding='utf-8'))
     central = lambda n: n == '서울특별시' or (re.search(r'(부|처|청)$', n) and not re.search(r'(시청|도청|군청|구청)$', n))
     out = []
     for p in P:
@@ -31,7 +36,7 @@ def policies():
         per = f'{m[0][:4]}.{m[0][4:6]}.{m[0][6:]} ~ {m[-1][4:6]}.{m[-1][6:]}' if m else ('신청 마감' if closed else '상시 신청')
         desc = re.sub(r'\s+', ' ', p.get('plcyExplnCn') or '').strip()
         out.append({'id': 'pol-' + p['plcyNo'], 'n': p['plcyNm'].strip(), 'o': (p.get('sprvsnInstCdNm') or p.get('rgtrInstCdNm') or '').strip(),
-                    'r': '서울' if reg == '서울특별시' else '중앙부처', 'c': p['mclsfNm'].split(',')[0], 'k': [k for k in (p.get('plcyKywdNm') or '').split(',') if k][:3],
+                    'r': '서울' if reg == '서울특별시' else '중앙부처', 'lc': LCLS.get((p.get('lclsfNm') or '').split(',')[0].strip(), '참여'), 'c': (p.get('mclsfNm') or '').split(',')[0].strip(), 'k': [k for k in (p.get('plcyKywdNm') or '').split(',') if k][:3],
                     'd': desc[:90] + ('…' if len(desc) > 90 else ''), 'st': st, 'per': per, 'end': m[-1] if m else '',
                     'u': 'https://www.youthcenter.go.kr/youthPolicy/ythPlcyTotalSearch/ythPlcyDetail/' + p['plcyNo'], 'v': int(p.get('inqCnt') or 0)})
     return out

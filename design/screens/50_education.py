@@ -1,8 +1,8 @@
-"""P04 교육과정: SeSAC 과정 210개, 청년 정책 213건, 정책 상세 1건."""
+"""P04 교육과정: SeSAC 과정 210개, 청년 정책 515건 (전 분야, P04-F20), 정책 상세 1건."""
 
 E1_JS = '''  constructor(props) { super(props); const h = (typeof location !== 'undefined' && location.hash) || ''; this.state = { tab: h === '#policy' ? 'pol' : 'edu', q: '', g: 'all', live: false, sort: 'rec', page: 1, pq: '', pc: 'all', pr: 'all', pOpen: true, pp: 1 }; }
   pageVals() {
-    const C = __C__, P = __P__, GC = __GC__, SC = __SC__, TH = __TH__, PT = __PTH__, PCOL = __PCOL__;
+    const C = __C__, P = __P__, GC = __GC__, SC = __SC__, TH = __TH__, PT = __PTH__, PCOL = __PCOL__, PLC = Object.keys(PCOL);
     const s = this.state, set = (o) => this.setState(o);
     const seg = (on) => on ? '__RON__' : '__ROFF__', box = (on) => on ? '__BON__' : '__BOFF__';
     const tabStyle = (on) => on ? '__TON__' : '__TOFF__', pill = (on) => on ? '__PON__' : '__POFF__', srt = (on) => on ? '__SON__' : '__SOFF__';
@@ -33,10 +33,10 @@ E1_JS = '''  constructor(props) { super(props); const h = (typeof location !== '
     // policies
     const pq = s.pq.trim().toLowerCase();
     const pbase = P.filter((p) => (s.pr === 'all' || p.r === s.pr) && (!s.pOpen || p.st === '신청 중' || p.st === '상시') && (!pq || (p.n + ' ' + p.o + ' ' + p.k.join(' ') + ' ' + p.d).toLowerCase().indexOf(pq) >= 0));
-    const pcats = ['all', '취업', '창업', '재직자', '권익보호'].map((c) => ({ label: (c === 'all' ? '전체' : c) + ' ' + pbase.filter((p) => c === 'all' || p.c === c).length, name: c === 'all' ? '전체' : c, style: pill(s.pc === c), go: () => set({ pc: c, pp: 1 }) }));
-    const PL = pbase.filter((p) => s.pc === 'all' || p.c === s.pc).slice().sort((a, b) => ({ '신청 중': 0, '상시': 1, '예정': 2, '마감': 3 })[a.st] - ({ '신청 중': 0, '상시': 1, '예정': 2, '마감': 3 })[b.st] || (b.r === '서울') - (a.r === '서울') || b.v - a.v);
+    const pcats = ['all'].concat(PLC).map((c) => ({ label: (c === 'all' ? '전체' : c) + ' ' + pbase.filter((p) => c === 'all' || p.lc === c).length, name: c === 'all' ? '전체' : c, style: pill(s.pc === c), go: () => set({ pc: c, pp: 1 }) }));
+    const PL = pbase.filter((p) => s.pc === 'all' || p.lc === s.pc).slice().sort((a, b) => ({ '신청 중': 0, '상시': 1, '예정': 2, '마감': 3 })[a.st] - ({ '신청 중': 0, '상시': 1, '예정': 2, '마감': 3 })[b.st] || (b.r === '서울') - (a.r === '서울') || b.v - a.v);
     const pper = __PPER__, ppages = Math.max(1, Math.ceil(PL.length / pper)), ppage = Math.min(s.pp, ppages);
-    const pols = PL.slice((ppage - 1) * pper, ppage * pper).map((p) => ({ thumb: PT[p.id] || '', hasThumb: !!PT[p.id], noThumb: !PT[p.id], band: 'background: ' + (PCOL[p.c] || PCOL['취업'])[0] + '; color: ' + (PCOL[p.c] || PCOL['취업'])[1] + ';', n: p.n, o: p.o, r: p.r, c: p.c, k: p.k, hasK: p.k.length > 0, d: p.d, st: p.st, stStyle: badge(p.st), per: p.per, u: p.u,
+    const pols = PL.slice((ppage - 1) * pper, ppage * pper).map((p) => ({ thumb: PT[p.id] || '', hasThumb: !!PT[p.id], noThumb: !PT[p.id], band: 'background: ' + (PCOL[p.lc] || PCOL['일자리'])[0] + '; color: ' + (PCOL[p.lc] || PCOL['일자리'])[1] + ';', n: p.n, o: p.o, r: p.r, c: p.c, k: p.k, hasK: p.k.length > 0, d: p.d, st: p.st, stStyle: badge(p.st), per: p.per, u: p.u,
       detail: p.id === 'pol-20261018005400213991', noDetail: p.id !== 'pol-20261018005400213991', dhref: '__DPRE__P2-policy.dc.html',
       sv: this.sv({ id: p.id, kind: '정책', t: p.n, s: p.o + ' · ' + p.st, u: p.u, h: p.id === 'pol-20261018005400213991' ? 'P2-policy.dc.html' : '' }) }));
     const pp = pager(ppage, ppages, 'pp');
@@ -52,7 +52,7 @@ E1_JS = '''  constructor(props) { super(props); const h = (typeof location !== '
     if (FOP === 'g' && isE) { etitle = '분야'; eopts = ['마케팅', 'AI', '데이터', '기획, PM', '개발', '디자인', '기타'].map((g) => ch(g, s.g === g, () => set({ g: s.g === g ? 'all' : g, page: 1 }))); }
     if (FOP === 'st' && isE) { etitle = '모집 상태'; eopts = [ch('모집 중, 예정만', s.live, () => set({ live: !s.live, page: 1 }))]; }
     if (FOP === 'org' && !isE) { etitle = '기관'; eopts = [ch('서울시', s.pr === '서울', () => set({ pr: s.pr === '서울' ? 'all' : '서울', pp: 1 })), ch('중앙부처', s.pr === '중앙부처', () => set({ pr: s.pr === '중앙부처' ? 'all' : '중앙부처', pp: 1 }))]; }
-    if (FOP === 'pc' && !isE) { etitle = '분야'; eopts = ['취업', '창업', '재직자', '권익보호'].map((c) => ch(c, s.pc === c, () => set({ pc: s.pc === c ? 'all' : c, pp: 1 }))); }
+    if (FOP === 'pc' && !isE) { etitle = '분야'; eopts = PLC.map((c) => ch(c, s.pc === c, () => set({ pc: s.pc === c ? 'all' : c, pp: 1 }))); }
     if (FOP === 'ps' && !isE) { etitle = '신청 상태'; eopts = [ch('신청 가능만', s.pOpen, () => set({ pOpen: !s.pOpen, pp: 1 }))]; }
     const esel = [];
     if (isE) { if (s.g !== 'all') esel.push({ label: '분야 > ' + s.g, go: () => set({ g: 'all', page: 1 }) }); if (s.live) esel.push({ label: '모집 상태 > 모집 중, 예정만', go: () => set({ live: false, page: 1 }) }); }
@@ -76,7 +76,7 @@ E1_JS = '''  constructor(props) { super(props); const h = (typeof location !== '
 def e1_js(mobile):
     TAB = 'flex-shrink: 0; height: 44px; padding: 0 18px; border: none; border-radius: 12px; font-size: 15px; cursor: pointer; white-space: nowrap;'
     js = (E1_JS.replace('__C__', COURSE_JSON).replace('__P__', POL_JSON).replace('__GC__', json.dumps(GCOL, ensure_ascii=False)).replace('__SC__', json.dumps(STC, ensure_ascii=False))
-          .replace('__TH__', json.dumps(THUMBS)).replace('__PTH__', json.dumps(PTHUMBS)).replace('__PPER__', '10' if mobile else '9').replace('__PCOL__', json.dumps({'취업': (BLUE_BG, BLUE_D), '창업': ('#E6F7F1', '#0E8A63'), '재직자': ('#FFF4E5', '#C26A00'), '권익보호': ('#F0EBFF', '#6B4EE6')})).replace('__PER__', '6' if mobile else '9').replace('__DPRE__', 'm-' if mobile else '')
+          .replace('__TH__', json.dumps(THUMBS)).replace('__PTH__', json.dumps(PTHUMBS)).replace('__PPER__', '10' if mobile else '9').replace('__PCOL__', json.dumps({'일자리': (BLUE_BG, BLUE_D), '교육': ('#E6F7F1', '#0E8A63'), '금융·복지': ('#FFF4E5', '#C26A00'), '주거': ('#FDEEF4', '#B4245D'), '참여': ('#F2F4F6', '#4E5968')}, ensure_ascii=False)).replace('__PER__', '6' if mobile else '9').replace('__DPRE__', 'm-' if mobile else '')
           .replace('__RON__', seg_style(True)).replace('__ROFF__', seg_style(False)).replace('__BON__', 'display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 5px; font-size: 12px; font-weight: 700; color: #FFFFFF; box-sizing: border-box; background: ' + BLUE + '; border: 1.5px solid ' + BLUE + ';').replace('__BOFF__', 'display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 5px; font-size: 12px; font-weight: 700; color: #FFFFFF; box-sizing: border-box; background: #FFFFFF; border: 1.5px solid #C9CED4;').replace('__FTAB__', FTAB).replace('__FON__', FCHIP_ON).replace('__FOFF__', FCHIP_OFF).replace('__TABON__', TAB_ON).replace('__TABOFF__', TAB_OFF).replace('__TON__', TAB + f' background: {INK}; color: #FFFFFF; font-weight: 700;').replace('__TOFF__', TAB + ' background: #FFFFFF; color: #4E5968;')
           .replace('__PON__', PILL_ON).replace('__POFF__', PILL_OFF).replace('__SON__', SORT_ON).replace('__SOFF__', SORT_OFF).replace('__GON__', PG_ON).replace('__GOFF__', PG_OFF))
     return js
@@ -165,9 +165,9 @@ def e1_v5(mobile):
             f'<span style="padding: 12px 0; font-size: 14px; color: {SUB};"><b style="color: {INK}; font-weight: 700;">@@ptotal@@</b>건 중 @@prange@@ · 신청 가능한 정책 먼저</span>'
             f'<sc-if value="@@hasPols@@" hint-placeholder-val="@@true@@"><sc-for list="@@pols@@" as="p" hint-placeholder-count="10">{prow}</sc-for>{pager_html("pp", mobile)}</sc-if>'
             f'<sc-if value="@@pempty@@" hint-placeholder-val="@@false@@"><div style="display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 40px 0; color: {SUB}; font-size: 15px;">조건에 맞는 정책이 없어요<button type="button" onClick="@@pclear@@" style="height: 38px; padding: 0 14px; border: none; border-radius: 10px; background: {FILL}; color: {INK}; font-size: 14px; font-weight: 600; cursor: pointer;">조건 지우기</button></div></sc-if></section>')
-           + f'<span style="font-size: 12px; color: {MUTE};">출처: 온통청년 청년정책 API (일자리 분야 중 서울시, 중앙부처 {len(POL_ALL)}건, 2026.11.01 조회). 신청 조건은 각 정책 페이지에서 확인해요</span></div></sc-if>')
+           + f'<span style="font-size: 12px; color: {MUTE};">출처: 온통청년 청년정책 API (전국 3,861건 중 서울시, 중앙부처 {len(POL_ALL)}건 · 일자리, 교육, 금융·복지, 주거, 참여, 2026.11.04 조회). 신청 조건은 각 정책 페이지에서 확인해요</span></div></sc-if>')
     head = (f'<div style="display: flex; flex-direction: column; gap: 6px; {"padding: 8px 4px 4px;" if mobile else ""}"><h1 style="margin: 0; font-size: {26 if mobile else 32}px; font-weight: 700; letter-spacing: -0.02em;">교육과정과 취업 지원</h1>'
-            f'<span style="font-size: {13 if mobile else 15}px; line-height: 1.5; color: {SUB};">SeSAC 과정 {len(COURSES_ALL)}개와 청년 일자리 정책 {len(POL_ALL)}건을 한곳에서 찾아요. 마음에 들면 저장해 두세요</span></div>')
+            f'<span style="font-size: {13 if mobile else 15}px; line-height: 1.5; color: {SUB};">SeSAC 과정 {len(COURSES_ALL)}개와 청년 정책 {len(POL_ALL)}건을 한곳에서 찾아요. 마음에 들면 저장해 두세요</span></div>')
     if not mobile:
         head = '<h1 style="margin: 0; font-size: 32px; font-weight: 700; letter-spacing: -0.02em;">교육과정과 청년 정책</h1>'
         search = (f'<label style="width: 300px; display: flex; align-items: center; gap: 8px; height: 46px; padding: 0 14px; border: 1px solid #E5E8EB; border-radius: 12px; background: #FFFFFF; box-sizing: border-box;">'
