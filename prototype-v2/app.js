@@ -226,7 +226,7 @@ function route() {
   else if (a === 'me' && !authed()) { navKey = 'me'; mount(`<div class="page"><div class="empty card" style="margin-top:40px">마이페이지는 로그인한 뒤 볼 수 있어요<button type="button" class="btn btn-dark" data-act="login">로그인</button></div></div>`); }
   else if (a === 'me') { navKey = 'me'; renderMe(b || 'profile'); }
   else if (a === 'trend') { navKey = 'trend'; renderTrend(); }
-  else if (a === 'tasks') { navKey = 'tasks'; renderTasks(); }
+  else if (a === 'tasks') { navKey = 'saved'; renderTasks(); }
   else if (a === 'apply') { navKey = 'apply'; if (b) renderApply(b); else renderApplyList(); }
   else renderHome();
   $$('[data-nav]').forEach((el) => { if (el.dataset.nav === navKey) el.setAttribute('aria-current', 'page'); else el.removeAttribute('aria-current'); });
@@ -930,7 +930,7 @@ function renderTrend() {
 }
 
 /* ---------- tasks (할 일): AI suggestions saved as a checklist ---------- */
-const tasks = () => store.get('tasks', []);
+const tasks = () => { const T = store.get('tasks', []); const seen = new Set(); const out = T.filter((t) => { const k = (t.done ? 'd:' : 'o:') + t.t; if (seen.has(k)) return false; seen.add(k); return true; }); if (out.length !== T.length) store.set('tasks', out); return out; };
 const saveTasks = (t) => { store.set('tasks', t); if ($('#todo')) renderSide(); };
 const addDays = (n) => { const d = now(); d.setDate(d.getDate() + n); return ymd(d); };
 const PLANS = {
@@ -949,6 +949,7 @@ function addPlan(ctx, body, kind, instant) {
     const mine = tasks().filter((t) => t.key === key); const saved = mine.length > 0;
     const rows = saved ? mine.map((t) => [t.t, t.due, t.tag, t.done, t.id]) : P.items.map(([t, d, tag], i) => [t, d, tag, pick[i], i]);
     const n = pick.filter(Boolean).length; const left = mine.filter((t) => !t.done).length;
+    if (saved) { box.innerHTML = `<div class="plan-h" style="align-items:center">${glass('cal', 32)}<div class="head-l" style="flex:1"><b style="font-size:14px;font-weight:600">할 일 ${mine.length}개를 추가했어요</b><span class="sub">${esc(P.title)} · 할 일에서 체크할 수 있어요</span></div><a class="btn btn-line sm" href="#/tasks">할 일 보기</a></div>`; return; }
     box.innerHTML = `<div class="plan-h">${glass('cal', 32)}<div class="head-l" style="flex:1"><b style="font-size:14px;font-weight:600">${esc(P.title)}</b><span class="sub">${saved ? (left ? `할 일 ${mine.length}개 중 ${mine.length - left}개 끝냈어요 · 눌러서 체크해요` : '모두 끝냈어요 · 결과를 알려 주면 다시 판정해요') : '저장할 단계를 고르세요 · 저장하면 마감 전에 알려 드려요'}</span></div></div>
       <ul class="plan-l">${rows.map(([t, d, tag, on, id]) => `<li><button type="button" class="cb${on ? ' on' : ''}${saved ? ' done-mode' : ''}" data-pi="${id}" role="checkbox" aria-checked="${!!on}" aria-label="${esc(t)}">${on ? ic('check') : ''}</button><span style="flex:1${saved && on ? ';color:var(--faint);text-decoration:line-through' : ''}">${tag ? `<span class="sub">${tag} · </span>` : ''}${esc(t)}</span><span class="sub">${saved ? (on ? '완료' : (dday(d) <= 0 ? '오늘' : 'D-' + dday(d))) : (d === 1 ? '내일' : `${d}일 안에`)}</span></li>`).join('')}</ul>
       <div style="display:flex;gap:6px">${saved ? `<a class="btn btn-line" href="#/tasks">할 일 보기</a>` : `<button type="button" class="btn btn-dark" data-save-plan ${n ? '' : 'disabled'}>${ic('check')}할 일 ${n}개 추가</button><button type="button" class="btn btn-ghost" data-skip-plan>괜찮아요</button>`}</div>`;
@@ -965,41 +966,90 @@ function addPlan(ctx, body, kind, instant) {
     if (e.target.closest('[data-skip-plan]')) { box.classList.add('dim'); box.innerHTML = '<span class="sub">저장하지 않았어요 · 필요하면 다시 물어봐 주세요</span>'; return; }
     if (!e.target.closest('[data-save-plan]')) return;
     const T = tasks(); const at = Date.now(); let n = 0;
-    P.items.forEach(([t, d, tag], i) => { if (!pick[i]) return; n++; T.push({ id: 't' + at.toString(36) + i, key, t, tag: tag || '', due: addDays(d), done: false, plan: P.title, chat: ctx.c.id, chatTitle: ctx.c.title }); });
+    P.items.forEach(([t, d, tag], i) => { if (!pick[i] || T.some((x) => !x.done && x.t === t)) return; n++; T.push({ id: 't' + at.toString(36) + i, key, t, tag: tag || '', due: addDays(d), done: false, plan: P.title, chat: ctx.c.id, chatTitle: ctx.c.title }); });
     saveTasks(T); draw(); remember(`"${P.title}" 할 일 ${n}개를 저장했어요`);
     toast(`할 일 ${n}개를 저장했어요`, { label: '보기', run: () => go('#/tasks') });
   };
 }
-function renderTasks() {
-  let tab = 'open';
-  mount(`<div class="page" style="max-width:980px"><div class="page-head"><div class="head-l"><h1>할 일</h1><span class="sub" data-tsub></span></div></div>
-    <form class="card mem-ask" data-tadd><span class="cb"></span><input data-tin placeholder="할 일을 직접 추가하세요 · 예: 포트폴리오 PDF 만들기" aria-label="할 일 추가"><button type="submit" class="btn btn-dark">추가</button></form>
-    <div class="tabs" role="tablist" data-ttabs></div><div data-tlist style="display:flex;flex-direction:column;gap:14px"></div></div>`);
+/* ---------- 할 일과 저장: one page — month calendar, day agenda, tasks, saved items ---------- */
+function savedDue(id, v) {
+  if (id.startsWith('post-')) { const p = DATA.posts.find((x) => postKey(x) === id); return p && p.close ? [p.close, '공고 마감'] : null; }
+  if (id.startsWith('edu-')) { const c = DATA.courses.find((x) => x.id === id); return c && c.recEnd ? [c.recEnd.replace(/\./g, '-'), '모집 마감'] : null; }
+  if (id.startsWith('pol-')) { const q = DATA.policies.find((x) => x.id === id); if (!q) return null; if (q.end && q.st !== '상시') return [q.end.slice(0, 4) + '-' + q.end.slice(4, 6) + '-' + q.end.slice(6, 8), '신청 마감']; return null; }
+  return null;
+}
+const KCOL = { 할일: 'var(--ink)', 공고: '#3182F6', 교육: '#22A05B', 정책: '#E8A33D' };
+function renderTasks(focus) {
+  let tab = 'open', stab = '전체';
+  const T0 = now(); let ym = [T0.getFullYear(), T0.getMonth()]; let sel = ymd(T0);
+  mount(`<div class="page plan-page"><div class="page-head"><div class="head-l"><h1>할 일과 저장</h1><span class="sub" data-tsub></span></div></div>
+    <div class="pp-top"><section class="card cal" data-cal></section><aside class="card agenda" data-agenda></aside></div>
+    <div class="pp-bot"><section class="card pp-col" id="pp-tasks"><div class="sec-h" style="padding:18px 20px 0"><h2>할 일</h2><span class="tabs sm" role="tablist" data-ttabs></span></div>
+        <form class="pp-add" data-tadd><span class="cb"></span><input data-tin placeholder="할 일 직접 추가 · 예: 포트폴리오 PDF 만들기" aria-label="할 일 추가"><button type="submit" class="btn btn-dark sm">추가</button></form><div data-tlist></div></section>
+      <section class="card pp-col" id="pp-saved"><div class="sec-h" style="padding:18px 20px 0"><h2>저장함</h2><span class="tabs sm" role="tablist" data-stabs></span></div><div data-slist></div></section></div></div>`);
   const root = $('.pane', view); const today = ymd(now());
-  const draw = () => {
+  const events = () => {
+    const E = {};
+    const add = (d, e) => { (E[d] = E[d] || []).push(e); };
+    tasks().filter((t) => t.due).forEach((t) => add(t.due, { k: '할일', t: t.t, done: t.done, id: t.id, href: t.chat ? '#/chat/' + t.chat : '' }));
+    Object.entries(saved()).forEach(([id, v]) => { const d = savedDue(id, v); if (d) add(d[0], { k: v.kind, t: v.t, sub: d[1], href: v.href, sid: id }); });
+    return E;
+  };
+  const evRow = (e) => `<div class="ag-i${e.done ? ' done' : ''}"><span class="ag-dot" style="background:${KCOL[e.k]}"></span><span class="ag-t"><b>${esc(e.t)}</b><small>${e.k === '할일' ? (e.done ? '할 일 · 완료' : '할 일') : esc(e.k + ' · ' + e.sub)}</small></span>${e.href ? `<a class="sub" href="${esc(e.href)}">열기</a>` : ''}</div>`;
+  const drawCal = () => {
+    const E = events(); const [y, m] = ym; const first = new Date(y, m, 1); const start = new Date(y, m, 1 - first.getDay());
+    const cells = Array.from({ length: 42 }, (_, i) => { const d = new Date(start); d.setDate(start.getDate() + i); return d; });
+    const used = cells.slice(35).some((d) => d.getMonth() === m) ? 42 : 35;
+    $('[data-cal]', root).innerHTML = `<div class="cal-h"><b>${y}년 ${m + 1}월</b><span class="cal-legend">${Object.entries(KCOL).map(([k, c]) => `<span><i style="background:${c}"></i>${k === '할일' ? '할 일' : k}</span>`).join('')}</span><span class="cal-nav"><button type="button" class="icon-btn" data-mv="-1" aria-label="이전 달">‹</button><button type="button" class="btn btn-ghost sm" data-mv="0">오늘</button><button type="button" class="icon-btn" data-mv="1" aria-label="다음 달">›</button></span></div>
+      <div class="cal-g">${['일', '월', '화', '수', '목', '금', '토'].map((w) => `<span class="cal-w">${w}</span>`).join('')}${cells.slice(0, used).map((d) => { const k = ymd(new Date(d.getTime() - d.getTimezoneOffset() * 6e4)); const ev = E[k] || []; const out = d.getMonth() !== m;
+        return `<button type="button" class="cal-d${out ? ' out' : ''}${k === today ? ' today' : ''}${k === sel ? ' sel' : ''}" data-day="${k}" aria-label="${d.getMonth() + 1}월 ${d.getDate()}일 일정 ${ev.length}개"><span class="n">${d.getDate()}</span>${ev.slice(0, 2).map((e) => `<span class="cal-e${e.done ? ' done' : ''}" style="--c:${KCOL[e.k]}">${esc(e.t)}</span>`).join('')}${ev.length > 2 ? `<span class="cal-more">+${ev.length - 2}</span>` : ''}</button>`; }).join('')}</div>`;
+  };
+  const drawAgenda = () => {
+    const E = events(); const ev = E[sel] || []; const d = new Date(sel + 'T00:00:00');
+    const up = Object.entries(E).filter(([k]) => k > sel).sort(([a], [b]) => a.localeCompare(b)).flatMap(([k, xs]) => xs.filter((x) => !x.done).map((x) => [k, x])).slice(0, 4);
+    $('[data-agenda]', root).innerHTML = `<div class="head-l"><span class="sub" style="font-size:12px">${sel === today ? '오늘' : (dday(sel) > 0 ? 'D-' + dday(sel) : '지난 날')}</span><b style="font-size:20px;font-weight:600;letter-spacing:-.02em">${d.getMonth() + 1}월 ${d.getDate()}일 ${'일월화수목금토'[d.getDay()]}요일</b></div>
+      ${ev.length ? `<div class="ag-l">${ev.map(evRow).join('')}</div>` : '<p class="sub" style="margin:0;font-size:13px">이날은 일정이 없어요</p>'}
+      ${up.length ? `<span class="sub" style="font-size:12px;margin-top:6px">다가오는 일정</span><div class="ag-l">${up.map(([k, e]) => evRow({ ...e, sub: (e.sub ? e.sub + ' · ' : '') + k.slice(5).replace('-', '/') })).join('')}</div>` : ''}`;
+  };
+  const drawTasks = () => {
     const T = tasks(); const open = T.filter((t) => !t.done); const done = T.filter((t) => t.done);
-    $('[data-tsub]', root).textContent = `진행 중 ${open.length}개 · 완료 ${done.length}개 · AI가 제안한 것과 직접 추가한 것`;
     $('[data-ttabs]', root).innerHTML = `<button type="button" role="tab" aria-selected="${tab === 'open'}" data-tt="open">진행 중 ${open.length}</button><button type="button" role="tab" aria-selected="${tab === 'done'}" data-tt="done">완료 ${done.length}</button>`;
-    const L = tab === 'open' ? open : done;
-    if (!L.length) { $('[data-tlist]', root).innerHTML = `<div class="empty card">${tab === 'open' ? '할 일이 없어요<span class="sub" style="font-size:13px">대화에서 AI가 제안한 단계를 "할 일에 추가"하면 여기 모여요</span><a class="btn btn-line" href="#/">대화 시작하기</a>' : '아직 완료한 일이 없어요'}</div>`; return; }
-    const bucket = (t) => t.done ? '완료' : t.due < today ? '기한 지남' : t.due === today ? '오늘' : dday(t.due) <= 7 ? '이번 주' : '나중에';
-    const order = ['기한 지남', '오늘', '이번 주', '나중에', '완료'];
-    const groups = order.map((b) => [b, L.filter((t) => bucket(t) === b).sort((a, b2) => a.due.localeCompare(b2.due))]).filter(([, x]) => x.length);
-    $('[data-tlist]', root).innerHTML = groups.map(([b, xs]) => `<section class="card" style="padding:6px 0"><div class="sec-h" style="padding:12px 20px 6px"><h2 style="font-size:13px${b === '기한 지남' ? ';color:var(--no-t)' : ''}">${b}</h2><span class="sub">${xs.length}</span></div>${xs.map((t) => `<div class="task${t.done ? ' done' : ''}" data-tid="${t.id}"><button type="button" class="cb${t.done ? ' on' : ''}" data-check aria-label="${t.done ? '완료 취소' : '완료'}">${ic('check')}</button><span class="tt">${t.tag ? `<span class="sub">${esc(t.tag)} · </span>` : ''}${esc(t.t)}</span>${t.chat ? `<a class="chip" href="#/chat/${t.chat}" title="이 할 일이 나온 대화">${esc(t.plan || t.chatTitle)}</a>` : '<span class="chip">직접 추가</span>'}<span class="due${!t.done && t.due < today ? ' t-no' : ''}">${t.done ? '완료' : t.due === today ? '오늘' : t.due < today ? '지남' : 'D-' + dday(t.due)}</span><button type="button" class="icon-btn" data-tdel aria-label="삭제">${ic('x')}</button></div>`).join('')}</section>`).join('');
+    const L = (tab === 'open' ? open : done).sort((a, b) => (a.due || '9').localeCompare(b.due || '9'));
+    $('[data-tlist]', root).innerHTML = L.length ? L.map((t) => `<div class="task${t.done ? ' done' : ''}" data-tid="${t.id}"><button type="button" class="cb${t.done ? ' on' : ''}" data-check aria-label="${t.done ? '완료 취소' : '완료'}">${ic('check')}</button><span class="tt">${esc(t.t)}${t.plan ? `<small class="sub" style="display:block;font-size:12px">${esc(t.plan)}</small>` : ''}</span><span class="due${!t.done && t.due < today ? ' t-no' : ''}">${t.done ? '완료' : t.due === today ? '오늘' : t.due < today ? '지남' : 'D-' + dday(t.due)}</span><button type="button" class="icon-btn" data-tdel aria-label="삭제">${ic('x')}</button></div>`).join('')
+      : `<div class="pp-empty">${tab === 'open' ? '할 일이 없어요 · 대화에서 AI가 제안한 단계를 추가하면 여기 모여요' : '아직 완료한 일이 없어요'}</div>`;
+  };
+  const drawSaved = () => {
+    const items = Object.entries(saved());
+    $('[data-stabs]', root).innerHTML = ['전체', '공고', '교육', '정책'].map((k) => `<button type="button" role="tab" aria-selected="${stab === k}" data-st="${k}">${k} ${items.filter(([, v]) => k === '전체' || v.kind === k).length}</button>`).join('');
+    const L = items.filter(([, v]) => stab === '전체' || v.kind === stab).map(([id, v]) => [id, v, savedDue(id, v)]).sort((a, b) => (a[2] ? a[2][0] : '9').localeCompare(b[2] ? b[2][0] : '9'));
+    $('[data-slist]', root).innerHTML = L.length ? L.map(([id, v, d]) => { const n = d ? dday(d[0]) : null;
+      return `<div class="sv-i">${v.img ? `<img src="assets/${esc(v.img)}" alt="">` : companyLogo(v.t, '', 40, '8px')}<a class="sv-t" href="${esc(v.href)}"><small><i style="background:${KCOL[v.kind]}"></i>${esc(v.kind)}</small><b>${esc(v.t)}</b></a><span class="due${n !== null && n >= 0 && n <= 3 ? ' t-no' : ''}">${d ? (n < 0 ? '마감' : 'D-' + n) : '상시'}</span>${saveBtn(id)}</div>`; }).join('')
+      : `<div class="pp-empty">아직 저장한 ${stab === '전체' ? '항목' : stab}이 없어요</div>`;
+    syncSaveBtns();
+  };
+  const drawAll = () => {
+    const T = tasks(); const s = Object.keys(saved()).length;
+    $('[data-tsub]', root).textContent = `할 일 ${T.filter((t) => !t.done).length}개 · 저장 ${s}개 · 마감일은 달력에 자동으로 올라가요`;
+    drawCal(); drawAgenda(); drawTasks(); drawSaved();
   };
   root.addEventListener('click', (e) => {
-    const tt = e.target.closest('[data-tt]'); if (tt) { tab = tt.dataset.tt; draw(); return; }
-    const row = e.target.closest('[data-tid]'); if (!row) return; const T = tasks(); const k = T.findIndex((t) => t.id === row.dataset.tid); const t = T[k];
-    if (e.target.closest('[data-check]')) {
+    const T_ = e.target;
+    const mv = T_.closest('[data-mv]'); if (mv) { const v = Number(mv.dataset.mv); if (!v) { const n = now(); ym = [n.getFullYear(), n.getMonth()]; sel = today; } else { const d = new Date(ym[0], ym[1] + v, 1); ym = [d.getFullYear(), d.getMonth()]; } drawCal(); drawAgenda(); return; }
+    const dy = T_.closest('[data-day]'); if (dy) { sel = dy.dataset.day; const d = new Date(sel + 'T00:00:00'); if (d.getMonth() !== ym[1]) ym = [d.getFullYear(), d.getMonth()]; drawCal(); drawAgenda(); return; }
+    const tt = T_.closest('[data-tt]'); if (tt) { tab = tt.dataset.tt; drawTasks(); return; }
+    const st = T_.closest('[data-st]'); if (st) { stab = st.dataset.st; drawSaved(); return; }
+    const sv = T_.closest('[data-save]'); if (sv && sv.closest('#pp-saved')) { const id = sv.dataset.save; toggleSave(id, saved()[id], sv); setTimeout(drawAll, 10); return; }
+    const row = T_.closest('[data-tid]'); if (!row) return; const T = tasks(); const k = T.findIndex((t) => t.id === row.dataset.tid); const t = T[k];
+    if (T_.closest('[data-check]')) {
       t.done = !t.done; saveTasks(T); row.classList.toggle('done', t.done); row.querySelector('.cb').classList.toggle('on', t.done);
-      if (t.done) { const rest = T.filter((x) => x.key && x.key === t.key && !x.done).length; remember(`할 일 완료 · ${t.t}`);
-        toast(rest ? `잘했어요 · "${t.plan}" ${rest}개 남았어요` : (t.key ? `"${t.plan}"을 모두 끝냈어요 · 결과를 대화에 알려 주면 다시 판정해요` : '완료했어요'), t.key && !rest ? { label: '대화로', run: () => go('#/chat/' + t.chat) } : null); }
-      setTimeout(draw, 420); return;
+      if (t.done) { remember(`할 일 완료 · ${t.t}`); toast('완료했어요'); }
+      setTimeout(drawAll, 420); return;
     }
-    if (e.target.closest('[data-tdel]')) { T.splice(k, 1); saveTasks(T); draw(); toast('할 일을 지웠어요', { label: '되돌리기', run: () => { const T2 = tasks(); T2.splice(k, 0, t); saveTasks(T2); draw(); } }); }
+    if (T_.closest('[data-tdel]')) { T.splice(k, 1); saveTasks(T); drawAll(); toast('할 일을 지웠어요', { label: '되돌리기', run: () => { const T2 = tasks(); T2.splice(k, 0, t); saveTasks(T2); drawAll(); } }); }
   });
-  root.addEventListener('submit', (e) => { if (!e.target.matches('[data-tadd]')) return; e.preventDefault(); const inp = $('[data-tin]', root); const v = inp.value.trim(); if (!v) return; const T = tasks(); T.unshift({ id: 't' + Date.now().toString(36), t: v, due: addDays(7), done: false }); saveTasks(T); inp.value = ''; tab = 'open'; draw(); toast('할 일을 추가했어요'); });
-  draw();
+  root.addEventListener('submit', (e) => { if (!e.target.matches('[data-tadd]')) return; e.preventDefault(); const inp = $('[data-tin]', root); const v = inp.value.trim(); if (!v) return; const T = tasks(); const due = sel >= today ? sel : addDays(7); T.unshift({ id: 't' + Date.now().toString(36), t: v, due, done: false }); saveTasks(T); inp.value = ''; tab = 'open'; drawAll(); toast(`${due.slice(5).replace('-', '/')} 할 일로 추가했어요`); });
+  drawAll();
+  if (focus === 'saved') setTimeout(() => $('#pp-saved', root)?.scrollIntoView({ block: 'start', behavior: REDUCE ? 'auto' : 'smooth' }), 60);
 }
 
 /* ---------- applications (지원서): one tailored résumé copy + 자소서 per posting; the base résumé is never rewritten ---------- */
@@ -1391,25 +1441,7 @@ function renderEdu(tab, qs) {
 }
 
 /* ---------- saved ---------- */
-function renderSaved() {
-  let tab = '전체';
-  mount(`<div class="page"><div class="page-head"><div class="head-l"><h1>저장함</h1><span class="sub" data-sub></span></div></div><div class="tabs" role="tablist" data-tabs></div><div data-list></div></div>`);
-  const root = $('.pane', view);
-  const draw = () => {
-    const s = saved(); const items = Object.entries(s);
-    $('[data-sub]', root).textContent = `저장한 공고, 과정, 정책 ${items.length}개 · 이 기기 브라우저에만 저장돼요`;
-    $('[data-tabs]', root).innerHTML = ['전체', '공고', '교육', '정책'].map((k) => `<button type="button" role="tab" aria-selected="${tab === k}" data-tab="${k}">${k} ${items.filter(([, v]) => k === '전체' || v.kind === k).length}</button>`).join('');
-    const L = items.filter(([, v]) => tab === '전체' || v.kind === tab);
-    $('[data-list]', root).innerHTML = L.length ? `<div class="cards4" style="grid-template-columns:repeat(auto-fill,minmax(320px,1fr))">${L.map(([id, v], i) => `<article class="card mini" style="animation-delay:${i * 40}ms">${v.img ? `<img src="assets/${esc(v.img)}" alt="" style="width:56px;height:56px">` : companyLogo(v.kind === '공고' ? v.s.split(' · ')[0] : v.t, '', 56, '8px')}<a class="tx" href="${esc(v.href)}" style="text-decoration:none"><span>${esc(v.kind)}</span><b style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(v.t)}</b><small>${esc(v.s)}</small></a>${saveBtn(id)}</article>`).join('')}</div>`
-      : `<div class="empty card">아직 저장한 ${tab === '전체' ? '항목' : tab}이 없어요<a class="btn btn-line" href="${tab === '정책' ? '#/edu/policy' : tab === '공고' ? '#/jobs' : '#/edu'}">${tab === '공고' ? '공고 보러 가기' : '둘러보기'}</a></div>`;
-    syncSaveBtns();
-  };
-  root.addEventListener('click', (e) => {
-    const t = e.target.closest('[data-tab]'); if (t) { tab = t.dataset.tab; draw(); return; }
-    const sv = e.target.closest('[data-save]'); if (sv) { const id = sv.dataset.save; toggleSave(id, saved()[id], sv); setTimeout(draw, 10); }
-  });
-  draw();
-}
+function renderSaved() { renderTasks('saved'); }
 
 /* ---------- my page ---------- */
 function renderMe(tab) {
