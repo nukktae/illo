@@ -325,13 +325,42 @@ boards['m-S5-resume.dc.html'] = ('M5b 이력서 등록 (모바일)', mpage('m-S5
 SAVED_JS = '''  constructor(props) { super(props); this.state = { f: 'all' }; }
   pageVals() {
     const S = this.illoSaved(), f = this.state.f, pre = '__PRE__';
-    const pill = (on) => on ? '__PON__' : '__POFF__';
+    const pill = (on) => on ? '__PON__' : '__POFF__', TH = __TH__, PT = __PT__, LG = __LG__;
     const KC = { '공고': ['#E8F3FF', '#1B64DA'], '교육': ['#FFF4E5', '#C26A00'], '정책': ['#E6F7F1', '#0E8A63'] };
     const F = ['all', '공고', '교육', '정책'].map((k) => ({ label: (k === 'all' ? '전체' : k) + ' ' + S.filter((x) => k === 'all' || x.kind === k).length, style: pill(f === k), go: () => this.setState({ f: k }) }));
     const L = S.filter((x) => f === 'all' || x.kind === f).map((x) => ({ kind: x.kind, t: x.t, s: x.s, kindStyle: 'padding: 3px 9px; border-radius: 6px; background: ' + KC[x.kind][0] + '; color: ' + KC[x.kind][1] + '; font-size: 12px; font-weight: 700;',
-      internal: !!x.h, external: !x.h, href: x.h ? pre + x.h : x.u, isPost: x.kind === '공고' && !!x.h, inApp: x.kind !== '공고' && !!x.h, sv: this.sv(x) }));
-    return { filters: F, items: L, none: L.length === 0, some: L.length > 0, total: S.length };
+      internal: !!x.h, external: !x.h, href: x.h ? pre + x.h : x.u, isPost: x.kind === '공고' && !!x.h, inApp: x.kind !== '공고' && !!x.h, sv: this.sv(x),
+      poster: TH[x.id] || PT[x.id] || '', hasPoster: !!(TH[x.id] || PT[x.id]), logo: x.kind === '공고' ? (LG[x.id] || '') : '', hasLogo: !TH[x.id] && !PT[x.id] && !!LG[x.id],
+      noImg: !TH[x.id] && !PT[x.id] && !LG[x.id], co: (x.s || '').split(' · ')[0], init: (x.s || x.t).replace(/^SeSAC /, '').slice(0, 2),
+      band: 'background: ' + KC[x.kind][0] + '; color: ' + KC[x.kind][1] + ';' }));
+    return { filters: F, items: L, none: L.length === 0, some: L.length > 0, total: S.length, shown: L.length };
   }'''
+
+
+def saved_page_desk(empty):
+    """P05-F13~F16 저장함 데스크톱: 교육과정 목록처럼 이미지 카드 3열. 교육, 정책은 포스터, 공고는 회사 로고. 필터는 글자 탭 줄."""
+    tabs = (f'<nav aria-label="저장한 종류" style="display: flex; align-items: center; gap: 36px; padding-left: 8px; border-top: 1px solid #E5E8EB; border-bottom: 1px solid #E5E8EB;">'
+            f'<sc-for list="@@filters@@" as="g" hint-placeholder-count="4"><button type="button" onClick="@@g.go@@" style="@@g.style@@">@@g.label@@</button></sc-for></nav>')
+    img = (f'<sc-if value="@@x.hasPoster@@" hint-placeholder-val="@@false@@"><img src="@@x.poster@@" alt="" style="width: 100%; height: 140px; object-fit: cover; border-radius: 12px; display: block;"></sc-if>'
+           f'<sc-if value="@@x.hasLogo@@" hint-placeholder-val="@@true@@"><div style="height: 140px; border-radius: 12px; background: {FILL}; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;">'
+           f'<img src="@@x.logo@@" alt="" style="width: 56px; height: 56px; border-radius: 14px; border: 1px solid {LINE}; object-fit: cover; background: #FFFFFF; display: block;"><span style="font-size: 13px; font-weight: 600; color: #4E5968;">@@x.co@@</span></div></sc-if>'
+           f'<sc-if value="@@x.noImg@@" hint-placeholder-val="@@false@@"><div style="@@x.band@@ height: 140px; border-radius: 12px; padding: 16px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between;"><span style="font-size: 13px; font-weight: 700;">@@x.kind@@</span><span style="font-size: 20px; font-weight: 800; letter-spacing: -0.02em; opacity: 0.85;">@@x.co@@</span></div></sc-if>')
+    link = 'font-size: 13px; font-weight: 600; text-decoration: none;'
+    card = (f'<div style="display: flex; flex-direction: column; gap: 10px; padding: 14px; {CARD} min-width: 0;">{img}'
+            f'<div style="display: flex; align-items: center; gap: 6px;"><span style="@@x.kindStyle@@">@@x.kind@@</span><span style="margin-left: auto;">{save_btn("x.sv", 32)}</span></div>'
+            f'<span style="font-size: 15px; font-weight: 700; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 42px;">@@x.t@@</span>'
+            f'<span style="font-size: 12px; line-height: 1.5; color: {SUB};">@@x.s@@</span>'
+            f'<div style="margin-top: auto; padding-top: 8px; border-top: 1px solid {LINE}; display: flex; justify-content: flex-end;">'
+            f'<sc-if value="@@x.isPost@@" hint-placeholder-val="@@false@@"><a href="@@x.href@@" style="{link}">내 경험과 비교하기 ›</a></sc-if>'
+            f'<sc-if value="@@x.inApp@@" hint-placeholder-val="@@false@@"><a href="@@x.href@@" style="{link}">자세히 보기 ›</a></sc-if>'
+            f'<sc-if value="@@x.external@@" hint-placeholder-val="@@true@@"><a href="@@x.href@@" {EXT} style="{link}">원문 보기 ↗</a></sc-if></div></div>')
+    grid = f'<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px;"><sc-for list="@@items@@" as="x" hint-placeholder-count="3">{card}</sc-for></div>'
+    count = (f'<div style="display: flex; justify-content: space-between; align-items: center;"><span style="font-size: 15px; color: {SUB};"><b style="color: {INK};">@@shown@@</b>개 저장</span>'
+             f'<span style="font-size: 13px; color: {MUTE};">이 기기에만 저장돼요</span></div>')
+    empty_d = empty.replace(f'border-top: 1px solid {LINE};', f'{CARD}')
+    return (f'  <div style="padding: 24px 56px 0; display: flex; flex-direction: column; gap: 6px;"><h1 style="margin: 0; font-size: 32px; font-weight: 700; letter-spacing: -0.02em;">마이페이지</h1><span style="font-size: 15px; color: {SUB};">저장한 공고, 교육과정, 정책을 한곳에서 봐요</span><div style="margin-top: 12px;">{mytabs("saved")}</div></div>\n'
+            f'  <div style="display: flex; flex-direction: column; gap: 20px; padding: 24px 56px 56px;">{tabs}'
+            f'<sc-if value="@@some@@" hint-placeholder-val="@@true@@">{count}{grid}</sc-if><sc-if value="@@none@@" hint-placeholder-val="@@false@@">{empty_d}</sc-if></div>\n')
 
 
 def saved_page(mobile):
@@ -353,6 +382,8 @@ def saved_page(mobile):
             f'<div style="display: flex; justify-content: space-between; align-items: baseline;"><h2 id="{pre}sv" style="margin: 0; font-size: {18 if mobile else 20}px; font-weight: 700;">저장함</h2><span style="font-size: 13px; color: {MUTE};">이 기기에 저장돼요</span></div>'
             f'<div{sc} style="display: flex; gap: 6px; {"overflow-x: auto; margin: 0 -18px; padding: 0 18px;" if mobile else ""}">{chips}</div>'
             f'<div><sc-if value="@@some@@" hint-placeholder-val="@@true@@"><sc-for list="@@items@@" as="x" hint-placeholder-count="3">{row}</sc-for></sc-if><sc-if value="@@none@@" hint-placeholder-val="@@false@@">{empty}</sc-if></div></section>')
+    if not mobile:
+        return saved_page_desk(empty)
     if mobile:
         return (f'    <div style="display: flex; flex-direction: column; gap: 6px; padding: 8px 4px 4px;"><h1 style="margin: 0; font-size: 26px; font-weight: 700; letter-spacing: -0.02em;">마이페이지</h1><span style="font-size: 13px; color: {SUB};">저장한 공고, 교육과정, 정책을 한곳에서 봐요</span></div>\n'
                 f'    {mytabs("saved", True)}\n    {card}\n')
@@ -361,7 +392,10 @@ def saved_page(mobile):
 
 
 def saved_js(mobile):
-    return SAVED_JS.replace('__PRE__', 'm-' if mobile else '').replace('__PON__', PILL_ON).replace('__POFF__', PILL_OFF)
+    lg = {p['id']: p['logo'] for p in POSTS if p.get('logo')}
+    on = FTAB + f' border-bottom-color: {BLUE}; color: {BLUE_D}; font-weight: 700;'
+    return (SAVED_JS.replace('__PRE__', 'm-' if mobile else '').replace('__PON__', PILL_ON if mobile else on).replace('__POFF__', PILL_OFF if mobile else FTAB)
+            .replace('__TH__', json.dumps(THUMBS)).replace('__PT__', json.dumps(PTHUMBS)).replace('__LG__', json.dumps(lg)))
 
 
 boards['S5-saved.dc.html'] = ('S5a 마이페이지 · 저장함', dpage('S5-saved.dc.html', '저장함', 'my', saved_page(False), saved_js(False)))

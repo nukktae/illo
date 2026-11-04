@@ -65,12 +65,15 @@ class Component extends DCLogic {
   constructor(props) { super(props); this.state = { f: 'all' }; }
   pageVals() {
     const S = this.illoSaved(), f = this.state.f, pre = 'm-';
-    const pill = (on) => on ? 'flex-shrink: 0; height: 36px; padding: 0 14px; border-radius: 999px; font-size: 14px; cursor: pointer; white-space: nowrap; border: 1px solid #191F28; background: #191F28; color: #FFFFFF; font-weight: 600;' : 'flex-shrink: 0; height: 36px; padding: 0 14px; border-radius: 999px; font-size: 14px; cursor: pointer; white-space: nowrap; border: 1px solid #E5E8EB; background: #FFFFFF; color: #4E5968;';
+    const pill = (on) => on ? 'flex-shrink: 0; height: 36px; padding: 0 14px; border-radius: 999px; font-size: 14px; cursor: pointer; white-space: nowrap; border: 1px solid #191F28; background: #191F28; color: #FFFFFF; font-weight: 600;' : 'flex-shrink: 0; height: 36px; padding: 0 14px; border-radius: 999px; font-size: 14px; cursor: pointer; white-space: nowrap; border: 1px solid #E5E8EB; background: #FFFFFF; color: #4E5968;', TH = {"edu-1465": "assets/sesac-1465.jpg", "edu-1421": "assets/sesac-1421.png", "edu-1235": "assets/sesac-1235.jpg", "edu-1233": "assets/sesac-gc8.jpg", "edu-1202": "assets/sesac-sd6.jpg", "edu-1419": "assets/sesac-gj8.jpg", "edu-1182": "assets/sesac-ydp2.jpg", "edu-1195": "assets/sesac-sb5.jpg", "edu-715": "assets/sesac-ga2.jpg", "edu-835": "assets/sesac-sb4.jpg"}, PT = {"pol-20261018005400213993": "assets/pol-wing.jpg", "pol-20261018005400213991": "assets/pol-jobcamp.jpg", "pol-20261018005400213990": "assets/pol-sesac.jpg", "pol-20261018005400213983": "assets/pol-yc-camp.jpg", "pol-20261018005400213984": "assets/pol-yc-challenge.jpg", "pol-20260317005400112169": "assets/pol-heritage.jpg"}, LG = {"post-343954": "assets/logo-fastview.png", "post-343295": "assets/logo-kakao.png", "post-343289": "assets/logo-kakao.png", "post-358108": "assets/logo-kakao.png", "post-327326": "assets/logo-olive.png", "post-327328": "assets/logo-class101.png", "post-327638": "assets/logo-tripbtoz.png", "post-337232": "assets/logo-vueno.png", "post-338374": "assets/logo-athome.png", "post-342071": "assets/logo-anon-flower.png", "post-346914": "assets/logo-anon-leaf.png", "post-346814": "assets/logo-performed.png"};
     const KC = { '공고': ['#E8F3FF', '#1B64DA'], '교육': ['#FFF4E5', '#C26A00'], '정책': ['#E6F7F1', '#0E8A63'] };
     const F = ['all', '공고', '교육', '정책'].map((k) => ({ label: (k === 'all' ? '전체' : k) + ' ' + S.filter((x) => k === 'all' || x.kind === k).length, style: pill(f === k), go: () => this.setState({ f: k }) }));
     const L = S.filter((x) => f === 'all' || x.kind === f).map((x) => ({ kind: x.kind, t: x.t, s: x.s, kindStyle: 'padding: 3px 9px; border-radius: 6px; background: ' + KC[x.kind][0] + '; color: ' + KC[x.kind][1] + '; font-size: 12px; font-weight: 700;',
-      internal: !!x.h, external: !x.h, href: x.h ? pre + x.h : x.u, isPost: x.kind === '공고' && !!x.h, inApp: x.kind !== '공고' && !!x.h, sv: this.sv(x) }));
-    return { filters: F, items: L, none: L.length === 0, some: L.length > 0, total: S.length };
+      internal: !!x.h, external: !x.h, href: x.h ? pre + x.h : x.u, isPost: x.kind === '공고' && !!x.h, inApp: x.kind !== '공고' && !!x.h, sv: this.sv(x),
+      poster: TH[x.id] || PT[x.id] || '', hasPoster: !!(TH[x.id] || PT[x.id]), logo: x.kind === '공고' ? (LG[x.id] || '') : '', hasLogo: !TH[x.id] && !PT[x.id] && !!LG[x.id],
+      noImg: !TH[x.id] && !PT[x.id] && !LG[x.id], co: (x.s || '').split(' · ')[0], init: (x.s || x.t).replace(/^SeSAC /, '').slice(0, 2),
+      band: 'background: ' + KC[x.kind][0] + '; color: ' + KC[x.kind][1] + ';' }));
+    return { filters: F, items: L, none: L.length === 0, some: L.length > 0, total: S.length, shown: L.length };
   }
 }
 
