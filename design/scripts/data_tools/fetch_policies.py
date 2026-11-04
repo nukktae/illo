@@ -1,12 +1,14 @@
 """온통청년 청년정책 API에서 일자리 분야 정책을 모두 받아 research/youth-policy/jobs_policies.json 에 저장한다.
+--all 을 붙이면 분야 제한 없이 전체 정책을 research/youth-policy/all_policies.json 에 저장한다.
 
 키는 저장소 루트 .env 의 YOUTH_POLICY_KEY 에서 읽는다. 키를 코드나 문서에 적지 않는다.
 사용: python3 design/scripts/data_tools/fetch_policies.py
 """
-import json, os, urllib.parse, urllib.request
+import json, os, sys, urllib.parse, urllib.request
 
 REPO = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
-OUT = os.path.join(REPO, 'research/youth-policy/jobs_policies.json')
+ALL = '--all' in sys.argv
+OUT = os.path.join(REPO, 'research/youth-policy/' + ('all_policies.json' if ALL else 'jobs_policies.json'))
 URL = 'https://www.youthcenter.go.kr/go/ythip/getPlcy?'  # User-Agent 없이 부르면 "invalid api key"가 온다
 
 
@@ -20,7 +22,10 @@ def load_key():
 def main():
     key, out, page = load_key(), [], 1
     while True:
-        q = urllib.parse.urlencode({'apiKeyNm': key, 'pageNum': page, 'pageSize': 100, 'rtnType': 'json', 'lclsfNm': '일자리'})
+        params = {'apiKeyNm': key, 'pageNum': page, 'pageSize': 100, 'rtnType': 'json'}
+        if not ALL:
+            params['lclsfNm'] = '일자리'
+        q = urllib.parse.urlencode(params)
         req = urllib.request.Request(URL + q, headers={'User-Agent': 'Mozilla/5.0'})
         d = json.load(urllib.request.urlopen(req, timeout=60))
         lst = d['result']['youthPolicyList']
