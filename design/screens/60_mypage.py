@@ -243,8 +243,40 @@ def resume_note(mobile):
     return f'    <p style="display: flex; align-items: center; gap: 6px; margin: 0; padding: 0 4px; font-size: 13px; color: {SUB};">{LOCK}이 정보는 이 기기에만 저장돼요</p>\n'
 
 
+PDF_ICON = '<svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M12 17v-6M9.5 13.5L12 11l2.5 2.5"/></svg>'
+CHECK_ICON = '<svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#166534" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>'
+
+
+def resume_ai_desk():
+    """P05-F12 데스크톱: 한 카드, 두 상태. 올린 뒤에는 올리기 버튼을 회색 보조 버튼으로 낮춘다 (주요 행동은 이력서 저장)."""
+    btn = 'height: 44px; padding: 0 18px; display: inline-flex; align-items: center; border: none; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; white-space: nowrap;'
+    file_in = '<input type="file" accept="application/pdf,.pdf" onChange="@@pickPdf@@" style="display: none;">'
+    err = f'<sc-if value="@@pdfErr@@" hint-placeholder-val="@@false@@"><span role="alert" style="font-size: 13px; color: {RED};">PDF 파일만 올릴 수 있어요. 다른 파일이면 PDF로 저장한 뒤 올려 주세요</span></sc-if>'
+    empty = (f'<div style="display: flex; flex-direction: column; gap: 12px; padding: 20px 24px; border-radius: 20px; background: #F4F9FF;">'
+             f'<div style="display: flex; align-items: center; gap: 16px;">'
+             f'<span style="width: 44px; height: 44px; flex-shrink: 0; border-radius: 12px; background: #FFFFFF; color: {BLUE_D}; display: flex; align-items: center; justify-content: center;">{PDF_ICON}</span>'
+             f'<span style="flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: 4px;"><span style="display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 700;">이력서 PDF가 있나요?{AI}</span>'
+             f'<span style="font-size: 13px; line-height: 1.5; color: {SUB};">올리면 AI가 항목을 나눠 채워요 · PDF 파일만</span></span>'
+             f'<div style="display: flex; gap: 8px; flex-shrink: 0;"><label style="{btn} background: {BLUE}; color: #FFFFFF;">PDF 올리기{file_in}</label>'
+             f'<button type="button" onClick="@@tryAi@@" style="{btn} background: #FFFFFF; color: {BLUE_D};">예시 PDF로 해 보기</button></div></div>{err}</div>')
+    done = (f'<div role="status" style="display: flex; flex-direction: column; gap: 14px; padding: 20px 24px; border-radius: 20px; background: #FFFFFF;">'
+            f'<div style="display: flex; align-items: center; gap: 16px;">'
+            f'<span style="width: 44px; height: 44px; flex-shrink: 0; border-radius: 50%; background: #E8F5EC; display: flex; align-items: center; justify-content: center;">{CHECK_ICON}</span>'
+            f'<span style="flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: 4px;">'
+            f'<span style="display: flex; align-items: center; gap: 8px; min-width: 0;"><span style="min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 16px; font-weight: 700;">@@pdf@@</span>{AI}</span>'
+            f'<span style="font-size: 13px; line-height: 1.5; color: {SUB};">{R_DONE}개 항목을 채웠어요 · 비어 있는 {R_TOTAL - R_DONE}개는 접어 두었어요</span></span>'
+            f'<label style="{btn} background: {FILL}; color: {INK};">다시 올리기{file_in}</label></div>'
+            f'<span style="padding-top: 12px; border-top: 1px solid {LINE}; font-size: 13px; line-height: 1.5; color: {SUB};">AI 표시가 붙은 항목이 맞는지 확인하고 저장해 주세요'
+            f'<span style="color: {MUTE};"> · 시연이라 PDF 내용 대신 예시 이력서 값으로 채워요</span></span>{err}</div>')
+    return (f'    <sc-if value="@@aiNot@@" hint-placeholder-val="@@true@@">{empty}</sc-if>\n'
+            f'    <sc-if value="@@aiDone@@" hint-placeholder-val="@@false@@">{done}</sc-if>\n')
+
+
 def resume_ai(mobile):
-    """P05-F12 PDF로 채우기. 11/6은 프론트 시연이라 PDF 내용 대신 예시 이력서 값으로 채운다."""
+    """P05-F12 PDF로 채우기. 11/6은 프론트 시연이라 PDF 내용 대신 예시 이력서 값으로 채운다.
+    데스크톱은 카드 하나가 상태를 바꾼다 (올리기 전 안내 -> 올린 뒤 결과). 모바일은 이전 구조 유지."""
+    if not mobile:
+        return resume_ai_desk()
     btn = f'height: 44px; padding: 0 18px; display: inline-flex; align-items: center; border: none; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; white-space: nowrap;'
     return f'''    <div style="display: flex; flex-direction: column; gap: 12px; padding: {"16px 18px" if mobile else "18px 24px"}; border-radius: 20px; background: #F4F9FF;">
       <div style="display: flex; {"flex-direction: column; align-items: stretch;" if mobile else "align-items: center;"} gap: 12px;">
@@ -266,7 +298,7 @@ RESUME_SCRIPT = ("  constructor(props) { super(props); this.state = { open: { " 
                  "    const a = this.state.ai, rv = Object.assign({}, __RDEF__, this.illoGet('illo-resume', null) || {}, this.state.draft || {});\n"
                  "    const pickPdf = (e) => { const f = e && e.target && e.target.files && e.target.files[0]; if (!f) return; if (f.name.toLowerCase().endsWith('.pdf')) this.setState({ ai: true, pdf: f.name, pdfErr: false, draft: this.snap() }); else this.setState({ pdfErr: true, draft: this.snap() }); };\n"
                  "    const save = () => { const v = this.snap(); this.state.saved = true; this.state.draft = v; this.illoSet('illo-resume', v); };\n"
-                 "    return { open: o, shut, toggle, rv, aiDone: a, pdf: this.state.pdf, pdfErr: this.state.pdfErr, aiLabel: a ? '다시 올리기' : 'PDF 올리기', pickPdf, tryAi: () => this.setState({ ai: true, pdf: '김하늘_이력서.pdf (예시)', pdfErr: false, draft: this.snap() }), saved: this.state.saved, save };\n  }")
+                 "    return { open: o, shut, toggle, rv, aiDone: a, aiNot: !a, pdf: this.state.pdf, pdfErr: this.state.pdfErr, aiLabel: a ? '다시 올리기' : 'PDF 올리기', pickPdf, tryAi: () => this.setState({ ai: true, pdf: '김하늘_이력서.pdf (예시)', pdfErr: false, draft: this.snap() }), saved: this.state.saved, save };\n  }")
 
 
 resume_body = f'''  <div style="padding: 24px 56px 0; display: flex; flex-direction: column; gap: 6px;"><h1 style="margin: 0; font-size: 32px; font-weight: 700; letter-spacing: -0.02em;">마이페이지</h1><span style="font-size: 15px; color: {SUB};">이력서를 한 번 등록하면 공고마다 다시 입력하지 않아도 돼요</span><div style="margin-top: 12px;">{mytabs('resume')}</div></div>
