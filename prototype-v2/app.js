@@ -218,6 +218,7 @@ function route() {
   document.body.classList.toggle('on-home', !a);
   document.body.classList.toggle('on-chat', a === 'chat');
   document.body.classList.toggle('on-trend', a === 'trend');
+  document.body.classList.toggle('on-me', a === 'me');
   const mm = $('.mtop-me'); if (mm) { mm.hidden = !authed(); }
   if (a !== 'login' && a !== 'signup') document.body.classList.remove('auth-on');
   if (a === 'login') { renderLogin(); return; }
@@ -1527,18 +1528,18 @@ function meProfile(body) {
   const pf = store.get('profile', { age: 24, region: '서울 관악구', status: '구직 중', income: '' });
   const sel = (k, opts) => `<select data-pf="${k}">${opts.map((o) => `<option${pf[k] === o ? ' selected' : ''}>${o}</option>`).join('')}</select>`;
   body.innerHTML = `<div class="me-grid"><div style="display:flex;flex-direction:column;gap:16px">
-    <article class="card sec"><div style="display:flex;align-items:center;gap:16px"><img src="assets/avatar-haneul.jpg" alt="" style="width:64px;height:64px;border-radius:50%;object-fit:cover"><div class="head-l" style="flex:1"><b style="font-size:18px;font-weight:600">김하늘</b><span class="sub" style="font-size:13px">미디어커뮤니케이션학과 졸업 예정</span></div></div>
-      <div class="inset" style="padding:14px 16px;gap:6px"><span class="sub">목표 직무</span><b style="font-size:15px;font-weight:600">SNS 콘텐츠 마케터 · 신입, 인턴</b></div>
+    <article class="card sec pf-hero"><div class="pf-id" style="display:flex;align-items:center;gap:16px"><img src="assets/avatar-haneul.jpg" alt="" style="width:64px;height:64px;border-radius:50%;object-fit:cover"><div class="head-l" style="flex:1"><b style="font-size:18px;font-weight:600">김하늘</b><span class="sub" style="font-size:13px">미디어커뮤니케이션학과 졸업 예정</span></div></div>
+      <div class="inset pf-goal" style="padding:14px 16px;gap:6px"><span class="sub">목표 직무</span><b style="font-size:15px;font-weight:600">SNS 콘텐츠 마케터 · 신입, 인턴</b></div>
       <div class="trio"><div><span>대화</span><span class="big" style="font-size:30px">${chats().length}</span></div><div><span>저장</span><span class="big" style="font-size:30px">${Object.keys(saved()).length}</span></div><div><span>기억</span><span class="big" style="font-size:30px">${memEvents().length}</span></div></div></article>
-    <article class="card sec"><div class="sec-h"><h2>정책 자격 정보</h2><span class="sub">바꾸면 바로 다시 계산해요</span></div>
+    <article class="card sec pf-sec"><div class="sec-h"><h2>정책 자격 정보</h2><span class="sub">바꾸면 바로 다시 계산해요</span></div>
       <label class="field"><span>나이 (만)</span><input type="number" min="15" max="45" value="${pf.age}" data-pf="age"></label>
       <label class="field"><span>거주지</span>${sel('region', ['서울 관악구', '서울 강북구', '서울 성동구', '서울 영등포구', '경기 성남시', '부산'])}</label>
       <label class="field"><span>상태</span>${sel('status', ['구직 중', '재학 중', '재직 중'])}</label>
       <label class="field"><span>소득 구간</span>${sel('income', ['', '중위소득 100% 이하', '중위소득 150% 이하', '그 이상'])}</label>
       <div class="inset" style="padding:12px 14px;flex-direction:row;align-items:center;gap:8px;font-size:13px" data-elig></div></article></div>
     <div style="display:flex;flex-direction:column;gap:16px">
-      <article class="card sec"><div class="sec-h"><h2>이력서</h2><span class="sub">김하늘_이력서.pdf · AI가 12개 항목을 채움</span></div><div class="inset">${['마케팅 동아리 인스타그램 운영 · 2023.03 ~ 2025.02', '카페 아르바이트 · 2년', '대학생 마케팅 공모전 장려상 · 2024'].map((x) => `<div class="r"><span class="k">${x}</span></div>`).join('')}</div><a class="btn btn-line" href="#/me/resume" style="align-self:flex-start">전체 이력서 고치기</a></article>
-      <article class="card sec"><div class="sec-h"><h2>지금 채우는 중인 빈칸</h2><a class="sub" href="#/me/memory">나의 기억에서 보기 →</a></div><div class="inset"><div class="r">${verd('no')}<span class="k">숏폼 콘텐츠 성과 분석</span><a class="ev" href="#/edu?gap=${encodeURIComponent('숏폼 성과 분석')}">과정 보기</a></div><div class="r">${verd('part')}<span class="k">캠페인 성과 지표 관리</span><span class="ev">수치 1개 더 적으면 맞음</span></div></div></article>
+      <article class="card sec pf-sec"><div class="sec-h"><h2>이력서</h2><span class="sub">김하늘_이력서.pdf · AI가 12개 항목을 채움</span></div><div class="inset">${['마케팅 동아리 인스타그램 운영 · 2023.03 ~ 2025.02', '카페 아르바이트 · 2년', '대학생 마케팅 공모전 장려상 · 2024'].map((x) => `<div class="r"><span class="k">${x}</span></div>`).join('')}</div><a class="btn btn-line" href="#/me/resume" style="align-self:flex-start">전체 이력서 고치기</a></article>
+      <article class="card sec pf-sec pf-gap"><div class="sec-h"><h2>지금 채우는 중인 빈칸</h2><a class="sub" href="#/me/memory">나의 기억에서 보기 →</a></div><div class="inset"><div class="r">${verd('no')}<span class="k">숏폼 콘텐츠 성과 분석</span><a class="ev" href="#/edu?gap=${encodeURIComponent('숏폼 성과 분석')}">과정 보기</a></div><div class="r">${verd('part')}<span class="k">캠페인 성과 지표 관리</span><span class="ev">수치 1개 더 적으면 맞음</span></div></div></article>
       ${memMini()}
     </div></div>`;
   const elig = () => {
@@ -1633,11 +1634,12 @@ function freeSpot(nodes) {
   return ring.find(([x, y]) => !nodes.some((n) => Math.abs(n.x - x) < 14 && Math.abs(n.y - y) < 9)) || [20 + Math.random() * 60, 20 + Math.random() * 60];
 }
 function meMemory(body) {
+  setTimeout(() => { const i = $('[data-memin]', body); if (i && matchMedia('(max-width:767px)').matches) i.placeholder = i.dataset.mph; }, 0);
   const off = store.get('mem-off', []);
   let sel = 'insta', editing = false, pending = null;
   body.innerHTML = `<div style="display:grid;grid-template-columns:minmax(0,1fr) 420px;gap:16px;align-items:start">
     <div style="display:flex;flex-direction:column;gap:12px">
-      <form class="card mem-ask" data-memask><span class="av" style="background:#191F28;width:28px;height:28px">${ORB(16)}</span><input data-memin placeholder="일로에게 말로 고쳐 달라고 하세요 · 예: 편의점 알바 6개월 했어, 재고 관리 맡았어 / 카페 알바 지워 줘" aria-label="기억 추가 또는 삭제 요청"><button type="submit" class="btn btn-dark">${ic('send')}보내기</button></form>
+      <form class="card mem-ask" data-memask><span class="av" style="background:#191F28;width:28px;height:28px">${ORB(16)}</span><input data-memin placeholder="일로에게 말로 고쳐 달라고 하세요 · 예: 편의점 알바 6개월 했어, 재고 관리 맡았어 / 카페 알바 지워 줘" data-mph="기억 추가, 삭제를 말로 해 보세요" aria-label="기억 추가 또는 삭제 요청"><button type="submit" class="btn btn-dark">${ic('send')}<span class="send-t">보내기</span></button></form>
       <div data-proposal></div>
       <div class="card graph" data-graph><svg class="edges" viewBox="0 0 100 100" preserveAspectRatio="none" data-edges></svg><div data-nodes></div>
       <div class="legend"><span><span class="dot run"></span>경험</span><span><span class="dot ok"></span>역량</span><span><span class="dot part"></span>빈칸</span><span><span class="dot off"></span>관심, 연결된 과정·정책</span></div></div></div>
