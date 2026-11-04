@@ -11,6 +11,15 @@ SRC_POST = f'출처: SNS 콘텐츠 마케팅 {SRC104}. 퍼센트는 해당 단�
 
 def next_tabs(active, mobile):
     pre = 'm-' if mobile else ''
+    if not mobile:
+        # 데스크톱: 교육과정 (E1), 직무 찾기 필터 줄과 같은 글자 탭 줄 (위아래 얇은 선, 지금 탭은 파란 밑줄)
+        out = ''
+        for k, label, href, _ in NEXT_TABS:
+            on = k == active
+            st = FTAB + (f' border-bottom-color: {BLUE}; color: {BLUE_D}; font-weight: 700;' if on else '')
+            cur = ' aria-current="page"' if on else ''
+            out += f'<a href="{href}"{cur} style="{st} display: block; text-decoration: none;">{label}</a>'
+        return (f'<nav aria-label="다음 행동 4가지" style="display: flex; align-items: center; gap: 36px; padding-left: 8px; border-top: 1px solid #E5E8EB; border-bottom: 1px solid #E5E8EB;">{out}</nav>')
     out = ''
     for k, label, href, ic in NEXT_TABS:
         on = k == active
@@ -41,8 +50,10 @@ def next_page(active, title, lead, content, mobile):
     pre = 'm-' if mobile else ''
     head = (f'<div style="display: flex; flex-direction: column; gap: {12 if mobile else 16}px; {"padding: 4px 0 0;" if mobile else "padding: 20px 56px 0;"}">'
             + ('' if mobile else f'<div style="display: flex; align-items: center; justify-content: space-between; gap: 16px;"><a href="S3-compare.dc.html#result" style="font-size: 14px; color: {SUB}; text-decoration: none;">‹ 비교 결과</a>{flow_steps(3)}</div>')
-            + f'{next_tabs(active, mobile)}<div style="display: flex; flex-direction: column; gap: 6px; {"padding: 4px 4px 0;" if mobile else ""}"><h1 style="margin: 0; font-size: {22 if mobile else 30}px; font-weight: 700; line-height: 1.35; letter-spacing: -0.02em;">{title}</h1>'
-            f'<span style="font-size: {14 if mobile else 15}px; line-height: 1.55; color: {SUB};">{lead}</span></div></div>')
+            + (f'{next_tabs(active, mobile)}' if mobile else '')
+            + f'<div style="display: flex; flex-direction: column; gap: 6px; {"padding: 4px 4px 0;" if mobile else ""}"><h1 style="margin: 0; font-size: {22 if mobile else 30}px; font-weight: 700; line-height: 1.35; letter-spacing: -0.02em;">{title}</h1>'
+            f'<span style="font-size: {14 if mobile else 15}px; line-height: 1.55; color: {SUB};">{lead}</span></div>'
+            + ('' if mobile else next_tabs(active, mobile)) + '</div>')
     if mobile:
         return f'    {head}\n{content}    {gap_card(active, True)}\n'
     return (f'  {head}\n  <div style="display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 24px; padding: 24px 56px 56px; align-items: start;">\n'
@@ -180,7 +191,7 @@ EDU_GRID_JS = '''  constructor(props) { super(props); this.state = { all: false,
 
 def edu_grid_js(mobile):
     return (EDU_GRID_JS.replace('__MC__', MC_JSON).replace('__TH__', json.dumps(THUMBS)).replace('__GC__', json.dumps(GCOL, ensure_ascii=False)).replace('__SC__', json.dumps(STC, ensure_ascii=False))
-            .replace('__CD__', CD_ID).replace('__PRE__', 'm-' if mobile else '').replace('__GON__', PG_ON).replace('__GOFF__', PG_OFF).replace('__PON__', PILL_ON).replace('__POFF__', PILL_OFF))
+            .replace('__CD__', CD_ID).replace('__PRE__', 'm-' if mobile else '').replace('__GON__', PG_ON).replace('__GOFF__', PG_OFF).replace('__PON__', PILL_ON if mobile else SORT_ON).replace('__POFF__', PILL_OFF if mobile else SORT_OFF))
 
 
 def edu_grid(mobile):
@@ -201,6 +212,12 @@ def edu_grid(mobile):
     tabs = (f'<div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;"><div style="display: flex; gap: 6px;">'
             f'<button type="button" onClick="@@liveTab.go@@" style="@@liveTab.style@@">모집 중, 예정 {MC_LIVE}</button><button type="button" onClick="@@allTab.go@@" style="@@allTab.style@@">지난 과정 포함 {len(MC)}</button></div>'
             f'<span style="font-size: 13px; color: {SUB};">빈 칸을 직접 채우는 과정 먼저</span></div>')
+    if not mobile:
+        dot = '<span aria-hidden="true" style="color: #D1D6DB;">·</span>'
+        tabs = (f'<div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;">'
+                f'<span style="font-size: 15px; color: {SUB};"><b style="color: {INK};">@@total@@</b>개 과정 · 빈 칸을 직접 채우는 과정 먼저</span>'
+                f'<div style="display: flex; align-items: center; gap: 10px;"><button type="button" onClick="@@liveTab.go@@" style="@@liveTab.style@@">모집 중, 예정 {MC_LIVE}</button>{dot}'
+                f'<button type="button" onClick="@@allTab.go@@" style="@@allTab.style@@">지난 과정 포함 {len(MC)}</button></div></div>')
     pager = (f'<sc-if value="@@hasPages@@" hint-placeholder-val="@@false@@"><nav aria-label="페이지" style="display: flex; justify-content: center; gap: 4px;"><sc-for list="@@nums@@" as="x" hint-placeholder-count="3"><button type="button" onClick="@@x.go@@" aria-current="@@x.cur@@" style="@@x.style@@">@@x.n@@</button></sc-for></nav></sc-if>')
     grid = f'<div style="display: grid; grid-template-columns: repeat({1 if mobile else 2}, minmax(0, 1fr)); gap: 12px;"><sc-for list="@@cards@@" as="c" hint-placeholder-count="6">{card}</sc-for></div>'
     src = f'<span style="font-size: 12px; color: {MUTE};">출처: SeSAC 과정 정보 (팀 수집 210개, 2026.10.27 기준). "채움"은 과정명, 분야, 해시태그에 숏폼, 영상, 편집, 디자인 단어가 있는지로 표시해요</span>'
