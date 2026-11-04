@@ -1,7 +1,39 @@
 """P05 마이페이지: 한눈에 보기, 저장함, 이력서 등록, 취업 수기."""
 
+# 14 sections like a job-board resume (P05-F04). Filled ones show the persona, empty optional ones fold into one line.
+# 취업 우대·병역은 묻지 않는다. 생년월일, 주소, 사진은 팀 결정으로 다시 받되 비교 요청에는 넣지 않는다 (PRD v1.3).
+RSEC = [('basic', '인적사항', True, True), ('job', '희망 직무', True, True), ('skill', '스킬', True, False), ('school', '학력', True, True),
+        ('career', '경력', True, False), ('act', '인턴, 대외활동', True, False), ('train', '교육', False, False), ('cert', '자격증', True, False),
+        ('award', '수상', False, False), ('abroad', '해외 경험', False, False), ('lang', '어학', True, False), ('pf', '포트폴리오', True, False),
+        ('intro', '자기소개서', True, False), ('cond', '희망 근무 조건', True, False)]
+FOLD = [k for k, _, filled, _ in RSEC if not filled]
+R_TOTAL, R_DONE = len(RSEC), sum(1 for _, _, filled, _ in RSEC if filled)
+R_PCT = round(R_DONE * 100 / R_TOTAL)
+R_COUNT = f'{R_TOTAL}개 중 {R_DONE}개 작성'
+
 # --- S5 마이페이지 (내 경험 + 내 경로) ---
-MY_SCRIPT = "  renderVals() { return {}; }"
+# P05-F17~F19 내 취업 경로: 목표 공고 하나 + 비교한 다른 공고 목록 + 목표로 정하기.
+# 11/6은 P03이 비교 기록을 남기지 않아서, 처음에는 예시 기록 3개를 넣어 둔다 (예시 데이터 라벨). 브라우저 illo-path에 저장.
+PATH_SEED = {'target': 'post-327326', 'items': [
+    {'id': 'post-327326', 't': '[올리브인터내셔널] 성분에디터 콘텐츠 마케팅 인턴', 's': '채용연계형 인턴', 'u': POSTING, 'd': '2026-11-03',
+     'total': 6, 'ok': 1, 'part': 1, 'miss': '숏폼 발행, 영상 툴, 트렌드, 실무 경험', 'demo': True,
+     'next': 'SeSAC (강북5기) AI 활용 SNS 마케터 양성 과정', 'nextSub': '11/25 개강 · 모집 마감 11/8', 'nextU': SESAC + '1421', 'nextL': '과정 페이지'},
+    {'id': 'post-358108', 't': '[카카오] 숏폼 서비스 영상 콘텐츠 제작 및 운영_어시스턴트', 's': '신입', 'u': 'https://linkareer.com/activity/358108', 'd': '2026-11-02',
+     'total': 7, 'ok': 2, 'part': 1, 'miss': '영상 편집 툴, 숏폼 기획, 데이터 분석, 협업 경험', 'demo': False,
+     'next': '', 'nextSub': '', 'nextU': '', 'nextL': ''},
+    {'id': 'post-327328', 't': '[클래스101] [인턴] 콘텐츠 마케터', 's': '인턴', 'u': 'https://linkareer.com/activity/327328', 'd': '2026-10-31',
+     'total': 5, 'ok': 2, 'part': 2, 'miss': '콘텐츠 성과 분석', 'demo': False,
+     'next': '대외활동: 브랜드 SNS 서포터즈', 'nextSub': '포트폴리오에 올릴 결과물 만들기', 'nextU': 'https://linkareer.com/list/activity', 'nextL': '활동 찾기'}]}
+MY_SCRIPT = ("  pageVals() {\n"
+             "    const P = this.illoGet('illo-path', __PATH__) || { items: [] }, items = Array.isArray(P.items) ? P.items : [];\n"
+             "    const sorted = items.slice().sort((a, b) => String(b.d).localeCompare(String(a.d)));\n"
+             "    const tid = items.some((x) => x.id === P.target) ? P.target : (sorted[0] || {}).id;\n"
+             "    const dec = (x) => Object.assign({}, x, { hasNext: !!x.next, noNext: !x.next, notDemo: !x.demo, date: String(x.d).slice(5).replace('-', '.'),\n"
+             "      pick: () => this.illoSet('illo-path', { target: x.id, items: items }) });\n"
+             "    const t = items.find((x) => x.id === tid);\n"
+             "    const others = sorted.filter((x) => x.id !== tid).map(dec);\n"
+             "    return { hasPath: !!t, noPath: !t, pt: t ? dec(t) : {}, others, hasOthers: others.length > 0 };\n"
+             "  }").replace('__PATH__', json.dumps(PATH_SEED, ensure_ascii=False))
 
 
 def mytabs(active, mobile=False):
@@ -18,9 +50,9 @@ def my_exp(mobile):
     p = 'm-' if mobile else ''
     rows = ''.join(f'<div style="display: flex; gap: 12px; padding: 12px 0; border-top: 1px solid {LINE}; font-size: 14px; line-height: 1.5;"><span style="width: 72px; flex-shrink: 0; color: {MUTE};">{k}</span><span>{v}</span></div>'
                    for k, v in [('학력', '미디어커뮤니케이션학과 · 2026.02 졸업 예정'), ('활동', '학생회 홍보부 인스타그램 운영 1년'), ('자격증', '컴퓨터활용능력 2급'), ('어학', 'OPIc IM2'), ('스킬', '캔바, 인스타그램 운영, 엑셀')])
-    bar = f'<span style="display: block; height: 6px; border-radius: 999px; background: {FILL};"><span style="display: block; width: 73%; height: 6px; border-radius: 999px; background: {BLUE};"></span></span>'
+    bar = f'<span style="display: block; height: 6px; border-radius: 999px; background: {FILL};"><span style="display: block; width: {R_PCT}%; height: 6px; border-radius: 999px; background: {BLUE};"></span></span>'
     return f'''    <section aria-labelledby="{p}cv" style="display: flex; flex-direction: column; gap: 12px; padding: {'20px' if mobile else '28px'}; {CARD}">
-      <div style="display: flex; justify-content: space-between; align-items: baseline;"><h2 id="{p}cv" style="margin: 0; font-size: {18 if mobile else 20}px; font-weight: 700;">내 이력서</h2><span style="font-size: 13px; color: {SUB};">15개 항목 중 11개 작성</span></div>
+      <div style="display: flex; justify-content: space-between; align-items: baseline;"><h2 id="{p}cv" style="margin: 0; font-size: {18 if mobile else 20}px; font-weight: 700;">내 이력서</h2><span style="font-size: 13px; color: {SUB};">{R_TOTAL}개 항목 중 {R_DONE}개 작성</span></div>
       {bar}
       <div style="display: flex; flex-direction: column; margin-top: 4px;">{rows}</div>
       <a href="{p}S5-resume.dc.html" style="height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 12px; background: {FILL}; color: {INK}; font-size: 15px; font-weight: 600; text-decoration: none;">이력서 등록, 수정하기</a>
@@ -37,13 +69,26 @@ def path_step(n, label, title, sub, on=True):
 
 def my_path(mobile):
     p = 'm-' if mobile else ''
-    steps = (path_step(1, '목표 공고', '[올리브인터내셔널] 성분에디터 콘텐츠 마케팅 인턴', f'채용연계형 인턴 · <a href="{POSTING}" {EXT} style="text-decoration: none;">원문 공고 ↗</a>')
-             + path_step(2, 'AI 비교 결과', '공고 요구 6개 중 맞음 1개, 일부 1개', f'찾지 못함: 숏폼 발행, 영상 툴, 트렌드, 실무 경험 · <a href="{p}S3-compare.dc.html#result" style="text-decoration: none;">다시 보기</a>')
-             + path_step(3, '다음 행동 (내가 고름)', 'SeSAC (강북5기) AI 활용 SNS 마케터 양성 과정', f'11/25 개강 · 모집 마감 11/8 · <a href="{SESAC}1421" {EXT} style="text-decoration: none;">과정 페이지 ↗</a>')
+    iff = lambda v, body, d='false': f'<sc-if value="@@{v}@@" hint-placeholder-val="@@{d}@@">{body}</sc-if>'
+    steps = (path_step(1, '목표 공고', '@@pt.t@@', f'@@pt.s@@ · <a href="@@pt.u@@" {EXT} style="text-decoration: none;">원문 공고 ↗</a>')
+             + path_step(2, 'AI 비교 결과', '공고 요구 @@pt.total@@개 중 맞음 @@pt.ok@@개, 일부 @@pt.part@@개',
+                         '찾지 못함: @@pt.miss@@' + iff('pt.demo', f' · <a href="{p}S3-compare.dc.html#result" style="text-decoration: none;">다시 보기</a>', 'true'))
+             + path_step(3, '다음 행동 (내가 고름)', iff('pt.hasNext', '@@pt.next@@', 'true') + iff('pt.noNext', '아직 고르지 않았어요'),
+                         iff('pt.hasNext', f'@@pt.nextSub@@ · <a href="@@pt.nextU@@" {EXT} style="text-decoration: none;">@@pt.nextL@@ ↗</a>', 'true') + iff('pt.noNext', '비교 결과에서 다음 행동을 골라 보세요'))
              + path_step('·', '그다음', '과정을 마치면 같은 공고와 다시 비교해 보세요', f'<a href="{p}S1-list.dc.html" style="text-decoration: none;">다른 공고와도 비교하기 ›</a>', False))
+    row = (f'<div style="display: flex; {"flex-direction: column; align-items: stretch;" if mobile else "align-items: center;"} gap: 10px; padding: 14px 0; border-top: 1px solid {LINE};">'
+           f'<span style="flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: 4px;"><span style="font-size: 15px; font-weight: 600; line-height: 1.4;">@@o.t@@</span>'
+           f'<span style="font-size: 13px; color: {SUB};">요구 @@o.total@@개 중 맞음 @@o.ok@@개, 일부 @@o.part@@개 · @@o.date@@ 비교</span></span>'
+           f'<button type="button" onClick="@@o.pick@@" style="flex-shrink: 0; height: 38px; padding: 0 14px; border: none; border-radius: 10px; background: {FILL}; color: {INK}; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit;">목표로 정하기</button></div>')
+    others = iff('hasOthers', f'<div style="display: flex; flex-direction: column;"><h3 style="margin: 0 0 4px; font-size: 15px; font-weight: 700;">비교한 다른 공고</h3><sc-for list="@@others@@" as="o" hint-placeholder-count="2">{row}</sc-for></div>', 'true')
+    empty = (f'<div style="display: flex; flex-direction: column; align-items: flex-start; gap: 10px;"><span style="font-size: 15px; font-weight: 600;">아직 비교한 공고가 없어요</span>'
+             f'<a href="{p}S1-list.dc.html" style="height: 40px; padding: 0 16px; display: flex; align-items: center; border-radius: 10px; background: {FILL}; color: {INK}; font-size: 14px; font-weight: 600; text-decoration: none;">직무 찾기</a></div>')
     return f'''    <section aria-labelledby="{p}path" style="display: flex; flex-direction: column; gap: 16px; padding: {'20px' if mobile else '28px'}; {CARD}">
-      <h2 id="{p}path" style="margin: 0; font-size: {18 if mobile else 20}px; font-weight: 700;">내 취업 경로</h2>
-      <ol style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 14px;">{steps}</ol>
+      <div style="display: flex; flex-direction: column; gap: 6px;"><div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;"><h2 id="{p}path" style="margin: 0; font-size: {18 if mobile else 20}px; font-weight: 700;">내 취업 경로</h2><span style="padding: 4px 8px; border: 1.5px dashed #D1D6DB; border-radius: 6px; font-size: 11px; color: {SUB};">예시 데이터 · 비교 기록은 아직 예시예요</span></div>
+      <span style="font-size: 13px; line-height: 1.5; color: {SUB};">비교해 본 공고 중 목표를 하나 정하고, 고른 다음 행동을 이어 가요. 공고 한 건의 자세한 비교는 비교 결과 화면에서 봐요</span></div>
+      {iff('hasPath', f'<ol style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 14px;">{steps}</ol>', 'true')}
+      {iff('noPath', empty)}
+      {others}
     </section>
 '''
 
@@ -76,27 +121,33 @@ m_s5 = f'''    <div style="display: flex; flex-direction: column; gap: 6px; padd
 boards['m-S5-path.dc.html'] = ('M5 마이페이지 (모바일)', mpage('m-S5-path.dc.html', 'M5 마이페이지 (모바일)', topbar_logo(auth_mobile()), m_s5, 'my', MY_SCRIPT))
 
 # --- S5b 이력서 등록 (마이페이지 두 번째 탭) ---
-# 15 sections like a job-board resume. Filled ones show the persona, empty optional ones fold into one line.
-RSEC = [('basic', '인적사항', True, True), ('job', '희망 직무', True, True), ('skill', '스킬', True, False), ('school', '학력', True, True),
-        ('career', '경력', True, False), ('act', '인턴, 대외활동', True, False), ('train', '교육', False, False), ('cert', '자격증', True, False),
-        ('award', '수상', False, False), ('abroad', '해외 경험', False, False), ('lang', '어학', True, False), ('pf', '포트폴리오', True, False),
-        ('pref', '취업 우대, 병역', False, False), ('intro', '자기소개서', True, False), ('cond', '희망 근무 조건', True, False)]
-FOLD = [k for k, _, filled, _ in RSEC if not filled]
 INTRO = ('학생회 홍보부에서 1년 동안 인스타그램 계정을 맡았습니다. 매주 카드뉴스를 캔바로 만들어 올렸고, 팔로워는 300명에서 1,200명으로 늘었습니다. '
          '반응이 좋았던 게시물의 공통점을 정리해 다음 기획에 반영했던 경험을 살려, 숫자로 이야기하는 콘텐츠 마케터가 되고 싶습니다.')
 
 
+RDEF = {}       # 칸 키 -> 예시 이력서 값. 데스크톱과 모바일이 같은 순서로 그려서 키가 같다
+_rk = [0]
+
+
+def _rkey(val):
+    _rk[0] += 1
+    k = f'f{_rk[0]}'
+    RDEF[k] = val
+    return k
+
+
 def rf(label, val='', ph='', span=1, req=False, kind='text'):
     star = f' <span style="color: {RED};">*</span>' if req else ''
-    v = f' value="{val}"' if val else ''
+    k = _rkey(val)
     return (f'<label style="grid-column: span {span}; display: flex; flex-direction: column; gap: 6px; min-width: 0;"><span style="font-size: 13px; color: {SUB};">{label}{star}</span>'
-            f'<input type="{kind}"{v} placeholder="{ph}" style="{INP_D} font-size: 15px;"></label>')
+            f'<input type="{kind}" data-rk="{k}" value="@@rv.{k}@@" placeholder="{ph}" style="{INP_D} font-size: 15px;"></label>')
 
 
 def rta(label, val='', ph='', h=96, span=2, count=''):
     c = f'<span style="align-self: flex-end; font-size: 12px; color: {MUTE};">{count}</span>' if count else ''
+    k = _rkey(val)
     return (f'<label style="grid-column: span {span}; display: flex; flex-direction: column; gap: 6px;"><span style="font-size: 13px; color: {SUB};">{label}</span>'
-            f'<textarea placeholder="{ph}" style="{TA_D} height: {h}px; font-size: 15px;">{val}</textarea>{c}</label>')
+            f'<textarea data-rk="{k}" placeholder="{ph}" style="{TA_D} height: {h}px; font-size: 15px;">@@rv.{k}@@</textarea>{c}</label>')
 
 
 def rgrid(cols, *fields):
@@ -116,7 +167,9 @@ def rchips(items, on=True):
     return ''.join(f'<span style="display: inline-flex; align-items: center; padding: 7px 12px; border-radius: 999px; background: {BLUE_BG if on else FILL}; color: {BLUE_D if on else "#4E5968"}; font-size: 14px;">{t}{x if on else ""}</span>' for t in items)
 
 
-def rcard(key, title, body, sub='', mobile=False):
+def rcard(key, title, body, sub='', mobile=False, ai=True):
+    if ai:
+        title = f'<span style="display: inline-flex; align-items: center; gap: 8px;">{title}<sc-if value="@@aiDone@@" hint-placeholder-val="@@false@@">{AI}</sc-if></span>'
     return (f'    <section id="{"m-" if mobile else ""}r-{key}" aria-labelledby="{"m-" if mobile else ""}rh-{key}" style="display: flex; flex-direction: column; gap: 16px; padding: {"20px 18px" if mobile else "26px 28px"}; {CARD} scroll-margin-top: 16px;">\n'
             f'      <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px;"><h2 id="{"m-" if mobile else ""}rh-{key}" style="margin: 0; font-size: {17 if mobile else 19}px; font-weight: 700;">{title}</h2><span style="font-size: 12px; color: {MUTE}; text-align: right;">{sub}</span></div>\n'
             f'      {body}\n    </section>\n')
@@ -128,11 +181,12 @@ def rfold(key, title, hint, body, mobile=False):
             f'    <div id="{"m-" if mobile else ""}r-{key}" style="display: flex; align-items: center; gap: 12px; padding: {"16px 18px" if mobile else "18px 28px"}; {CARD}"><span style="flex: 1 1 0; display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 16px; font-weight: 700;">{title}</span><span style="font-size: 12px; color: {MUTE};">{hint}</span></span>'
             f'<button type="button" onClick="@@toggle.{key}@@" style="flex-shrink: 0; height: 38px; padding: 0 14px; border: none; border-radius: 10px; background: {FILL}; color: {INK}; font-size: 14px; font-weight: 600; cursor: pointer;">+ 추가</button></div>\n'
             f'    </sc-if>\n    <sc-if value="@@open.{key}@@" hint-placeholder-val="@@false@@">\n'
-            + rcard(key, title, body + f'<button type="button" onClick="@@toggle.{key}@@" style="align-self: flex-start; border: none; background: none; padding: 0; font-size: 13px; color: {MUTE}; cursor: pointer;">접기</button>', '선택', mobile)
+            + rcard(key, title, body + f'<button type="button" onClick="@@toggle.{key}@@" style="align-self: flex-start; border: none; background: none; padding: 0; font-size: 13px; color: {MUTE}; cursor: pointer;">접기</button>', '선택', mobile, ai=False)
             + '    </sc-if>\n')
 
 
 def resume_sections(mobile):
+    _rk[0] = 0
     c2, c3, c4 = (2, 2, 2) if mobile else (2, 3, 4)
     tools = '<span style="font-size: 12px; color: {}; ">공고에서 많이 찾는 툴</span>'.format(SUB)
     sugg = ''.join(f'<span style="padding: 7px 12px; border-radius: 999px; border: 1px solid #E5E8EB; font-size: 13px; color: #4E5968;">+ {t} <span style="color: {MUTE};">{n}건</span></span>' for t, n in [('프리미어', 30), ('포토샵', 28), ('피그마', 19), ('캡컷', 10)])
@@ -142,7 +196,7 @@ def resume_sections(mobile):
              + rgrid(1, rf('홈페이지, SNS', '', 'https://')))
     basic = basic if mobile else f'<div style="display: flex; gap: 20px; align-items: flex-start;"><div style="flex: 1 1 0; display: flex; flex-direction: column; gap: 12px;">{basic}</div>{photo}</div>'
     out = ''
-    out += rcard('basic', '인적사항', basic, '연락처는 기업에만 보여요', mobile)
+    out += rcard('basic', '인적사항', basic, '비교에는 쓰지 않아요', mobile)
     out += rcard('job', '희망 직무', f'<div style="display: flex; gap: 6px; flex-wrap: wrap;">{rchips(["SNS 콘텐츠 마케팅", "콘텐츠 마케터"])}</div>{radd("직무")}', '최대 5개', mobile)
     out += rcard('skill', '스킬', f'<div style="display: flex; gap: 6px; flex-wrap: wrap;">{rchips(["캔바", "인스타그램 운영", "엑셀"])}</div><div style="display: flex; flex-direction: column; gap: 8px;">{tools}<div style="display: flex; gap: 6px; flex-wrap: wrap;">{sugg}</div></div>', 'SNS 콘텐츠 마케팅 공고 104건 기준 추천', mobile)
     out += rcard('school', '학력', rentry(rgrid(c3, rf('학교 구분', '대학교 (4년제)', req=True), rf('학교명', '', '학교 이름', req=True), rf('전공', '미디어커뮤니케이션학과', req=True)),
@@ -158,10 +212,8 @@ def resume_sections(mobile):
     out += rcard('pf', '포트폴리오', rgrid(1, rf('링크', '', 'https://instagram.com/학생회 계정', kind='url'))
                  + f'<label style="display: flex; align-items: center; gap: 10px; height: 48px; padding: 0 14px; border-radius: 12px; border: 1.5px dashed #D1D6DB; cursor: pointer;"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="{BLUE}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4"/><path d="M7 9l5-5 5 5"/><path d="M5 20h14"/></svg><span style="font-size: 15px;">파일 올리기</span><span style="margin-left: auto; font-size: 12px; color: {MUTE};">PDF, 이미지 · 20MB</span><input type="file" style="display: none;"></label>',
                  '링크나 파일', mobile)
-    pref = ''.join(f'<label style="display: flex; align-items: center; gap: 8px; padding: 12px 14px; border-radius: 12px; background: {FILL}; font-size: 14px; cursor: pointer;"><input type="checkbox" style="width: 17px; height: 17px; accent-color: {BLUE};">{t}</label>' for t in ['보훈 대상', '취업 보호 대상', '고용 지원금 대상', '장애', '병역'])
-    out += rfold('pref', '취업 우대, 병역', '해당할 때만', f'<div style="display: grid; grid-template-columns: repeat({2 if mobile else 5}, minmax(0, 1fr)); gap: 8px;">{pref}</div>', mobile)
     out += rcard('intro', '자기소개서', rgrid(1, rf('제목', '숫자로 이야기하는 콘텐츠 마케터')) + rta('내용', INTRO, h=150 if mobile else 128, span=1, count=f'{len(INTRO)} / 1,000자'),
-                 f'{AI} 이력서로 초안 만들기', mobile)
+                 '', mobile)
     cond = (rgrid(c3, rf('고용 형태', '인턴, 정규직'), rf('근무 지역', '서울'), rf('희망 연봉', '회사 내규에 따름')))
     out += rcard('cond', '희망 근무 조건', cond, '', mobile)
     return out
@@ -175,47 +227,65 @@ def resume_nav():
         star = f'<span style="color: {RED}; font-size: 12px;">*</span>' if req else ''
         items += f'<a href="#r-{k}" style="display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 10px; color: {INK if filled else SUB}; font-size: 14px; text-decoration: none;">{dot}{name}{star}</a>'
     return f'''    <aside style="position: sticky; top: 24px; display: flex; flex-direction: column; gap: 14px; padding: 22px 16px; {CARD}">
-      <div style="display: flex; flex-direction: column; gap: 8px; padding: 0 6px;"><span style="font-size: 15px; font-weight: 700;">15개 중 11개 작성</span><span style="display: block; height: 6px; border-radius: 999px; background: {FILL};"><span style="display: block; width: 73%; height: 6px; border-radius: 999px; background: {BLUE};"></span></span></div>
+      <div style="display: flex; flex-direction: column; gap: 8px; padding: 0 6px;"><span style="font-size: 15px; font-weight: 700;">{R_COUNT}</span><span style="display: block; height: 6px; border-radius: 999px; background: {FILL};"><span style="display: block; width: {R_PCT}%; height: 6px; border-radius: 999px; background: {BLUE};"></span></span></div>
       <nav aria-label="이력서 항목" style="display: flex; flex-direction: column;">{items}</nav>
       <button type="button" onClick="@@save@@" style="height: 52px; border: none; border-radius: 14px; background: {BLUE}; color: #FFFFFF; font-size: 16px; font-weight: 600; cursor: pointer;">이력서 저장</button>
-      <sc-if value="@@saved@@" hint-placeholder-val="@@false@@"><span style="padding: 0 6px; font-size: 12px; line-height: 1.5; color: {BLUE_D};">저장했어요 · 시연용이라 실제로 저장되지 않아요</span></sc-if>
+      <sc-if value="@@saved@@" hint-placeholder-val="@@false@@"><span style="padding: 0 6px; font-size: 12px; line-height: 1.5; color: {BLUE_D};">저장했어요 · 이 기기 브라우저에만 저장돼요</span></sc-if>
     </aside>
 '''
 
 
+LOCK = '<svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>'
+
+
+def resume_note(mobile):
+    """P05-F24 폼 위 저장 위치 안내."""
+    return f'    <p style="display: flex; align-items: center; gap: 6px; margin: 0; padding: 0 4px; font-size: 13px; color: {SUB};">{LOCK}이 정보는 이 기기에만 저장돼요</p>\n'
+
+
 def resume_ai(mobile):
-    return f'''    <div style="display: flex; {"flex-direction: column; align-items: stretch;" if mobile else "align-items: center;"} gap: 12px; padding: {"16px 18px" if mobile else "18px 24px"}; border-radius: 20px; background: #F4F9FF;">
+    """P05-F12 PDF로 채우기. 11/6은 프론트 시연이라 PDF 내용 대신 예시 이력서 값으로 채운다."""
+    btn = f'height: 44px; padding: 0 18px; display: inline-flex; align-items: center; border: none; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; white-space: nowrap;'
+    return f'''    <div style="display: flex; flex-direction: column; gap: 12px; padding: {"16px 18px" if mobile else "18px 24px"}; border-radius: 20px; background: #F4F9FF;">
+      <div style="display: flex; {"flex-direction: column; align-items: stretch;" if mobile else "align-items: center;"} gap: 12px;">
       <span style="flex: 1 1 0; display: flex; flex-direction: column; gap: 4px;"><span style="display: flex; align-items: center; gap: 6px; font-size: 15px; font-weight: 700;">{AI}이력서 PDF가 있나요?</span><span style="font-size: 13px; line-height: 1.5; color: {SUB};">올리면 AI가 항목을 나눠 채워요. 채운 뒤 맞는지만 확인하면 돼요</span></span>
-      <button type="button" onClick="@@toggleAi@@" style="flex-shrink: 0; height: 44px; padding: 0 18px; border: none; border-radius: 12px; background: #FFFFFF; color: {BLUE_D}; font-size: 14px; font-weight: 600; cursor: pointer;">@@aiLabel@@</button>
+      <div style="display: flex; gap: 8px; flex-shrink: 0;"><label style="{btn} background: {BLUE}; color: #FFFFFF;">@@aiLabel@@<input type="file" accept="application/pdf,.pdf" onChange="@@pickPdf@@" style="display: none;"></label><button type="button" onClick="@@tryAi@@" style="{btn} background: #FFFFFF; color: {BLUE_D};">예시 PDF로 해 보기</button></div>
+      </div>
+      <sc-if value="@@pdfErr@@" hint-placeholder-val="@@false@@"><span role="alert" style="font-size: 13px; color: {RED};">PDF 파일만 올릴 수 있어요</span></sc-if>
     </div>
-    <sc-if value="@@aiDone@@" hint-placeholder-val="@@false@@"><div style="display: flex; align-items: center; gap: 8px; padding: 12px 16px; border-radius: 14px; background: #F0EBFF; font-size: 14px; color: #4B36B5;">{AI}예시 이력서에서 11개 항목을 채웠어요. 비어 있는 4개는 접어 두었어요</div></sc-if>
+    <sc-if value="@@aiDone@@" hint-placeholder-val="@@false@@"><div role="status" style="display: flex; flex-direction: column; gap: 4px; padding: 12px 16px; border-radius: 14px; background: #F0EBFF; font-size: 14px; line-height: 1.5; color: #4B36B5;"><span style="display: flex; align-items: center; gap: 8px;">{AI}<span><b>@@pdf@@</b>에서 {R_DONE}개 항목을 채웠어요. 비어 있는 {R_TOTAL - R_DONE}개는 접어 두었어요</span></span><span style="font-size: 12px; color: #6B4EE6;">AI 표시가 붙은 항목이 맞는지 확인하고 저장해 주세요 · 시연이라 PDF 내용 대신 예시 이력서 값으로 채워요</span></div></sc-if>
 '''
 
 
 _fold_js = ', '.join(f'{k}: false' for k in FOLD)
-RESUME_SCRIPT = ("  constructor(props) { super(props); this.state = { open: { " + _fold_js + " }, ai: false, saved: false }; }\n"
+RESUME_SCRIPT = ("  constructor(props) { super(props); this.state = { open: { " + _fold_js + " }, ai: false, pdf: '', pdfErr: false, saved: false, draft: null }; }\n"
+                 # 다시 그리기 전에 입력 중인 값을 잡아 둔다 (화면 전체를 다시 그리므로)
+                 "  snap() { const o = {}; try { document.querySelectorAll('[data-rk]').forEach((el) => { o[el.getAttribute('data-rk')] = el.value; }); } catch (e) {} return o; }\n"
                  "  renderVals() {\n    const o = this.state.open, toggle = {}, shut = {};\n"
-                 "    Object.keys(o).forEach(k => { shut[k] = !o[k]; toggle[k] = () => this.setState({ open: Object.assign({}, o, { [k]: !o[k] }) }); });\n"
-                 "    const a = this.state.ai;\n"
-                 "    return { open: o, shut, toggle, aiDone: a, aiLabel: a ? '다시 올리기' : 'PDF 올리기', toggleAi: () => this.setState({ ai: !a }), saved: this.state.saved, save: () => this.setState({ saved: true }) };\n  }")
+                 "    Object.keys(o).forEach(k => { shut[k] = !o[k]; toggle[k] = () => this.setState({ open: Object.assign({}, o, { [k]: !o[k] }), draft: this.snap() }); });\n"
+                 "    const a = this.state.ai, rv = Object.assign({}, __RDEF__, this.illoGet('illo-resume', null) || {}, this.state.draft || {});\n"
+                 "    const pickPdf = (e) => { const f = e && e.target && e.target.files && e.target.files[0]; if (!f) return; if (f.name.toLowerCase().endsWith('.pdf')) this.setState({ ai: true, pdf: f.name, pdfErr: false, draft: this.snap() }); else this.setState({ pdfErr: true, draft: this.snap() }); };\n"
+                 "    const save = () => { const v = this.snap(); this.state.saved = true; this.state.draft = v; this.illoSet('illo-resume', v); };\n"
+                 "    return { open: o, shut, toggle, rv, aiDone: a, pdf: this.state.pdf, pdfErr: this.state.pdfErr, aiLabel: a ? '다시 올리기' : 'PDF 올리기', pickPdf, tryAi: () => this.setState({ ai: true, pdf: '김하늘_이력서.pdf (예시)', pdfErr: false, draft: this.snap() }), saved: this.state.saved, save };\n  }")
+
 
 resume_body = f'''  <div style="padding: 24px 56px 0; display: flex; flex-direction: column; gap: 6px;"><h1 style="margin: 0; font-size: 32px; font-weight: 700; letter-spacing: -0.02em;">마이페이지</h1><span style="font-size: 15px; color: {SUB};">이력서를 한 번 등록하면 공고마다 다시 입력하지 않아도 돼요</span><div style="margin-top: 12px;">{mytabs('resume')}</div></div>
   <div style="display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: 24px; padding: 24px 56px 56px; align-items: start;">
 {resume_nav()}    <div style="display: flex; flex-direction: column; gap: 14px; min-width: 0;">
-{resume_ai(False)}{resume_sections(False)}    </div>
+{resume_note(False)}{resume_ai(False)}{resume_sections(False)}    </div>
   </div>
 '''
-boards['S5-resume.dc.html'] = ('S5b 마이페이지 · 이력서 등록', dpage('S5-resume.dc.html', '이력서 등록', 'my', resume_body, RESUME_SCRIPT))
+boards['S5-resume.dc.html'] = ('S5b 마이페이지 · 이력서 등록', dpage('S5-resume.dc.html', '이력서 등록', 'my', resume_body, RESUME_SCRIPT.replace('__RDEF__', json.dumps(RDEF, ensure_ascii=False))))
 
 m_jump = ''.join(f'<a href="#m-r-{k}" style="flex-shrink: 0; padding: 7px 12px; border-radius: 999px; background: {BLUE_BG if f else "#FFFFFF"}; color: {BLUE_D if f else SUB}; font-size: 13px; text-decoration: none;">{n}</a>' for k, n, f, _ in RSEC)
 m_resume = f'''    <div style="display: flex; flex-direction: column; gap: 6px; padding: 8px 4px 4px;"><h1 style="margin: 0; font-size: 26px; font-weight: 700; letter-spacing: -0.02em;">마이페이지</h1><span style="font-size: 13px; color: {SUB};">이력서를 한 번 등록하면 공고마다 다시 입력하지 않아요</span></div>
     {mytabs('resume', True)}
-    <div style="display: flex; flex-direction: column; gap: 10px; padding: 16px 18px; {CARD}"><span style="font-size: 15px; font-weight: 700;">15개 중 11개 작성</span><span style="display: block; height: 6px; border-radius: 999px; background: {FILL};"><span style="display: block; width: 73%; height: 6px; border-radius: 999px; background: {BLUE};"></span></span>
+    <div style="display: flex; flex-direction: column; gap: 10px; padding: 16px 18px; {CARD}"><span style="font-size: 15px; font-weight: 700;">{R_COUNT}</span><span style="display: block; height: 6px; border-radius: 999px; background: {FILL};"><span style="display: block; width: {R_PCT}%; height: 6px; border-radius: 999px; background: {BLUE};"></span></span>
       <nav aria-label="이력서 항목" class="illo-scroll" style="display: flex; gap: 6px; overflow-x: auto; margin: 0 -18px; padding: 2px 18px;">{m_jump}</nav></div>
-{resume_ai(True)}{resume_sections(True)}    <button type="button" onClick="@@save@@" style="height: 54px; border: none; border-radius: 14px; background: {BLUE}; color: #FFFFFF; font-size: 17px; font-weight: 600; cursor: pointer;">이력서 저장</button>
-    <sc-if value="@@saved@@" hint-placeholder-val="@@false@@"><span style="text-align: center; font-size: 12px; color: {BLUE_D};">저장했어요 · 시연용이라 실제로 저장되지 않아요</span></sc-if>
+{resume_note(True)}{resume_ai(True)}{resume_sections(True)}    <button type="button" onClick="@@save@@" style="height: 54px; border: none; border-radius: 14px; background: {BLUE}; color: #FFFFFF; font-size: 17px; font-weight: 600; cursor: pointer;">이력서 저장</button>
+    <sc-if value="@@saved@@" hint-placeholder-val="@@false@@"><span style="text-align: center; font-size: 12px; color: {BLUE_D};">저장했어요 · 이 기기 브라우저에만 저장돼요</span></sc-if>
 '''
-boards['m-S5-resume.dc.html'] = ('M5b 이력서 등록 (모바일)', mpage('m-S5-resume.dc.html', 'M5b 이력서 등록 (모바일)', topbar_logo(auth_mobile()), m_resume, 'my', RESUME_SCRIPT))
+boards['m-S5-resume.dc.html'] = ('M5b 이력서 등록 (모바일)', mpage('m-S5-resume.dc.html', 'M5b 이력서 등록 (모바일)', topbar_logo(auth_mobile()), m_resume, 'my', RESUME_SCRIPT.replace('__RDEF__', json.dumps(RDEF, ensure_ascii=False))))
 
 # --- 저장함 ---
 SAVED_JS = '''  constructor(props) { super(props); this.state = { f: 'all' }; }
