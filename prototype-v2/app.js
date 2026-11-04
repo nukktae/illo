@@ -1068,19 +1068,8 @@ function createApp(p) {
       { sec: '스킬', from: '캔바, 인스타그램 운영, 엑셀', to: '인스타그램 운영, 캔바, 엑셀', why: '공고가 먼저 찾는 역량 순서로', on: true },
       { sec: '희망 직무', from: 'SNS 콘텐츠 마케팅', to: `${company} ${type} · SNS 콘텐츠 마케터`, why: '지원하는 직무 이름과 같게', on: true },
     ],
-    essays: [
-      { q: '지원 동기와 이 직무를 고른 이유를 적어 주세요', limit: 500, basis: ['공고 · 콘텐츠 기획 및 제작', '경험 · 동아리 인스타 운영'], drafts: [
-        `동아리 공식 인스타그램을 2년 동안 운영하면서, 같은 내용도 어떤 형식으로 보여 주느냐에 따라 반응이 크게 달라진다는 것을 배웠습니다. 매주 반응을 기록하고 다음 기획에 반영한 끝에 팔로워를 3천에서 1.2만으로 늘렸습니다. ${company}에서 이 경험을 실제 브랜드 채널로 넓히고 싶어 지원했습니다.`,
-        `저는 콘텐츠를 만들고 끝내기보다, 반응을 보고 다시 고치는 과정을 좋아합니다. 동아리 인스타그램을 운영하며 팔로워를 4배로 늘린 것도 그 반복 덕분이었습니다. ${company}의 SNS 콘텐츠 마케터로서 같은 방식으로 브랜드 채널을 키우고 싶습니다.`] },
-      { q: '가장 큰 성과를 낸 경험을 수치와 함께 적어 주세요', limit: 700, basis: ['공고 · 캠페인 성과 지표 관리', '경험 · 팔로워 3천 → 1.2만'], drafts: [
-        '동아리 인스타그램 운영진으로 2년 동안 주 3회 콘텐츠를 기획하고 제작했습니다. 처음에는 행사 공지 위주였지만, 저장 수가 높은 정보형 카드뉴스로 형식을 바꾸고 게시 시간을 조정했습니다. 그 결과 팔로워가 3천에서 1.2만으로 늘었고, 캠페인 참여자는 [숫자 확인 필요]명이었습니다.',
-        '숫자로 결과를 확인하는 습관이 가장 큰 성과였습니다. 동아리 계정의 게시물마다 도달과 저장 수를 기록했고, 반응이 좋은 형식만 남겼습니다. 2년 동안 팔로워는 3천에서 1.2만으로 4배가 되었습니다. 캠페인 성과는 [숫자 확인 필요]로 정리할 예정입니다.'] },
-      { q: '입사 후 이루고 싶은 목표를 적어 주세요', limit: 500, basis: ['빈칸 · 숏폼 콘텐츠 성과 분석'], drafts: [
-        '입사 후에는 숏폼 콘텐츠의 성과를 데이터로 분석하는 역량을 가장 먼저 키우고 싶습니다. 지금은 카드뉴스 중심의 경험이 있지만, 릴스와 숏폼에서도 같은 방식으로 기록하고 개선하는 마케터가 되겠습니다.',
-        '첫 1년 동안 숏폼 콘텐츠를 직접 기획하고, 도달과 저장 수를 기준으로 성과를 정리하는 일을 맡고 싶습니다. 부족한 숏폼 분석 경험은 지금 SeSAC 과정으로 채우고 있습니다.'] },
-    ],
+    essays: [], setup: false,
   };
-  a.essays.forEach((e) => { e.text = e.drafts[0]; e.v = 0; });
   all.unshift(a); saveApps(all); remember(`${company} 지원서를 만들었어요 · 기본 이력서는 그대로`); return a;
 }
 function appCard(ctx, a) {
@@ -1097,12 +1086,33 @@ function renderApplyList() {
       return `<a class="card mini" href="#/apply/${a.id}" style="text-decoration:none;animation-delay:${i * 40}ms">${companyLogo(a.company, a.title, 48, '10px')}<span class="tx"><span>${esc(a.company)}${a.close ? (a.close < today ? ' · 마감' : ` · D-${d}`) : ''}</span><b>${esc(a.title)}</b><small>${a.req ? a.req.map((k) => DOCS[k][0]).join(' + ') : '제출 서류 고르기 전'}</small></span><span class="st"><span class="dot ${a.status === '제출함' ? 'ok' : 'part'}"></span>${esc(a.status)}</span></a>`; }).join('')}</div>`
       : `<div class="empty card">아직 지원서가 없어요<span class="sub" style="font-size:13px">공고와 비교한 뒤 "지원 준비하기"를 누르거나, 공고 화면에서 바로 만들 수 있어요</span><a class="btn btn-line" href="#/jobs">공고 보러 가기</a></div>`}</div>`);
 }
-const DOCS = { essay: ['자기소개서', 'chat', '회사 문항에 맞춰 AI가 초안을 써요'], resume: ['이력서', 'docs', '기본 이력서를 복사해 이 공고에 맞게 고쳐요'], pf: ['포트폴리오', 'folder', 'PDF나 링크 · AI가 넣을 작업물을 골라 줘요'] };
+const DOCS = { essay: ['자기소개서', 'chat', '문항별 AI 초안'], resume: ['이력서', 'docs', '이 공고용 복사본'], pf: ['포트폴리오', 'folder', 'PDF나 링크'] };
 const PRESETS = [['essay'], ['essay', 'pf'], ['resume', 'pf'], ['resume']];
 function guessReq(a) {
   const p = DATA.posts.find((x) => x.url === a.url) || { company: a.company, title: a.title, type: a.type, ov: [] };
   const docs = makeJD(p).docs; const map = { '자기소개서': 'essay', '이력서': 'resume', '포트폴리오': 'pf' };
   return { g: docs.map((d) => map[d]), found: true };
+}
+/* 자소서 draft bank: picked by what the question asks, cut to the character limit. Facts only from the résumé/memory. */
+function draftFor(q, company, limit) {
+  const B = [
+    [/동기|지원|이유|왜/, [`동아리 공식 인스타그램을 2년 동안 운영하면서, 같은 내용도 어떤 형식으로 보여 주느냐에 따라 반응이 크게 달라진다는 것을 배웠습니다. 매주 반응을 기록하고 다음 기획에 반영한 끝에 팔로워를 3천에서 1.2만으로 늘렸습니다. ${company}에서 이 경험을 실제 브랜드 채널로 넓히고 싶어 지원했습니다.`, `저는 콘텐츠를 만들고 끝내기보다, 반응을 보고 다시 고치는 과정을 좋아합니다. 동아리 인스타그램을 운영하며 팔로워를 4배로 늘린 것도 그 반복 덕분이었습니다. ${company}에서 같은 방식으로 브랜드 채널을 키우고 싶습니다.`], ['공고 · 콘텐츠 기획 및 제작', '경험 · 동아리 인스타 운영']],
+    [/성과|경험|사례|해결|도전|수치/, ['동아리 인스타그램 운영진으로 2년 동안 주 3회 콘텐츠를 기획하고 제작했습니다. 처음에는 행사 공지 위주였지만, 저장 수가 높은 정보형 카드뉴스로 형식을 바꾸고 게시 시간을 조정했습니다. 그 결과 팔로워가 3천에서 1.2만으로 늘었고, 캠페인 참여자는 [숫자 확인 필요]명이었습니다.', '숫자로 결과를 확인하는 습관이 가장 큰 성과였습니다. 게시물마다 도달과 저장 수를 기록했고, 반응이 좋은 형식만 남겼습니다. 2년 동안 팔로워는 3천에서 1.2만으로 4배가 되었습니다.'], ['공고 · 캠페인 성과 지표 관리', '경험 · 팔로워 3천 → 1.2만']],
+    [/포부|목표|입사 후|계획|성장/, ['입사 후에는 숏폼 콘텐츠의 성과를 데이터로 분석하는 역량을 가장 먼저 키우고 싶습니다. 지금은 카드뉴스 중심의 경험이 있지만, 릴스와 숏폼에서도 같은 방식으로 기록하고 개선하는 마케터가 되겠습니다.', '첫 1년 동안 숏폼 콘텐츠를 직접 기획하고, 도달과 저장 수를 기준으로 성과를 정리하는 일을 맡고 싶습니다. 부족한 숏폼 분석 경험은 지금 SeSAC 과정으로 채우고 있습니다.'], ['빈칸 · 숏폼 콘텐츠 성과 분석']],
+    [/협업|갈등|팀|소통/, ['카페에서 2년 동안 일하며 바쁜 시간대에도 동료와 역할을 나누는 법을 배웠습니다. 동아리에서도 운영진 6명이 주제를 나눠 맡고 매주 반응을 함께 보며 다음 콘텐츠를 정했습니다.', '의견이 다를 때는 숫자를 먼저 봤습니다. 동아리 운영진과 게시물 반응을 함께 비교하고, 더 반응이 좋은 쪽으로 정하는 방식으로 갈등을 줄였습니다.'], ['경험 · 카페 알바 2년', '경험 · 운영진 6명 협업']],
+    [/장점|강점|단점|성격/, ['제 강점은 기록하고 고치는 습관입니다. 게시물마다 반응을 적어 두고, 다음 기획에서 하나씩 바꿔 봤습니다. 단점은 처음에 완벽하게 하려다 늦어지는 것이라, 지금은 작게 먼저 올리고 고칩니다.', '꾸준함이 강점입니다. 2년 동안 주 3회 게시를 거르지 않았고, 그 기록이 팔로워 4배라는 결과로 이어졌습니다.'], ['경험 · 동아리 인스타 운영']],
+  ];
+  const hit = B.find(([re]) => re.test(q)) || [null, [`${company}의 이 문항에 맞춰 동아리 인스타그램 운영(팔로워 3천 → 1.2만)과 카페 아르바이트 2년 경험을 근거로 답하겠습니다. [이 문항에 맞는 경험을 한 줄 더 알려 주면 더 정확하게 써요]`], ['나의 기억']];
+  const cut = (t) => t.length <= limit ? t : t.slice(0, limit - 1).replace(/\s\S*$/, '') + '…';
+  return { drafts: hit[1].map(cut), basis: hit[2] };
+}
+function parseQs(text) {
+  const parts = text.split(/\n+|(?=\b\d+\s*[.)]\s)|(?=\[\s*\d+\s*\])|(?=문항\s*\d)/).map((x) => x.trim()).filter((x) => x.length > 2);
+  return parts.map((x) => {
+    const m = x.match(/(\d{2,4})\s*자/) || x.match(/(\d{2,4})\s*(?:byte|bytes|바이트)/i);
+    const q = x.replace(/^\s*(\d+\s*[.)]|\[\s*\d+\s*\]|문항\s*\d+\s*[.:)]?)\s*/, '').replace(/[(\[]?\s*(최대|공백 ?포함|공백 ?제외)?\s*\d{2,4}\s*(자|byte|bytes|바이트)\s*(이내|내외|이하)?\s*[)\]]?/gi, '').replace(/\s{2,}/g, ' ').trim();
+    return { q: q || x, limit: m ? Number(m[1]) : 500 };
+  });
 }
 function renderApply(id) {
   const all = apps(); const a = all.find((x) => x.id === id); if (!a) { go('#/apply'); return; }
@@ -1113,24 +1123,58 @@ function renderApply(id) {
   if (!a.req) {
     const gs = guessReq(a); let pick = gs.found ? gs.g.slice() : [];
     mount(`<div class="page">${head}
-      <section class="card sec" style="max-width:880px"><div class="sec-h"><h2>이 회사는 어떤 서류를 내라고 하나요?</h2></div>
-        <p class="sub" style="margin:0;font-size:13px;line-height:1.6">회사마다 달라요. 자소서만 받는 곳도, 이력서와 포트폴리오만 받는 곳도 있어요. 고른 서류만 초안을 만들어요.</p>
-        ${gs.found ? `<div class="banner card" style="background:var(--blue-bg);border-color:#D6E4FF"><span class="ai-tag">AI</span><span>공고의 제출 서류에서 <b style="font-weight:600">${gs.g.map((k) => DOCS[k][0]).join(', ')}</b>을(를) 찾았어요 · 맞는지 확인해 주세요</span></div>` : `<div class="banner card"><span class="ai-tag">AI</span><span class="sub" style="font-size:13px">공고에 제출 서류가 적혀 있지 않아요 · 회사 지원 페이지에서 확인하고 골라 주세요</span></div>`}
-        <span class="sub">자주 쓰는 조합</span>
-        <div class="preset-row">${PRESETS.map((pr) => `<button type="button" class="preset" data-preset="${pr.join(',')}">${pr.map((k) => DOCS[k][0]).join(' + ')}</button>`).join('')}</div>
-        <span class="sub">직접 고르기</span>
+      <section class="card sec doc-sec"><div class="sec-h"><h2>어떤 서류를 내나요?</h2></div>
+        ${gs.found ? `<div class="banner card" style="background:var(--blue-bg);border-color:#D6E4FF"><span class="ai-tag">AI</span><span>공고에서 <b style="font-weight:600">${gs.g.map((k) => DOCS[k][0]).join(' + ')}</b>를 찾았어요</span></div>` : `<div class="banner card"><span class="ai-tag">AI</span><span class="sub" style="font-size:13px">공고에 제출 서류가 없어요 · 직접 골라 주세요</span></div>`}
         <div class="doc-pick">${Object.entries(DOCS).map(([k, [n, g, d]]) => `<button type="button" class="doc-opt" data-doc="${k}" aria-pressed="false">${glass(g, 40)}<span class="nt"><b>${n}</b><small>${d}</small></span><span class="tick">${ic('check')}</span></button>`).join('')}</div>
         <div style="display:flex;gap:8px;align-items:center"><span class="sub" data-pick-sum></span><span style="flex:1"></span>${a.url ? `<a class="btn btn-line" href="${esc(a.url)}" target="_blank" rel="noopener">공고 원문 ${ic('ext')}</a>` : ''}<button type="button" class="btn btn-primary" data-go disabled>이 서류로 시작하기</button></div></section></div>`);
     const root = $('.pane', view);
-    const sync = () => { $$('[data-doc]', root).forEach((b) => b.setAttribute('aria-pressed', pick.includes(b.dataset.doc))); $$('[data-preset]', root).forEach((b) => b.setAttribute('aria-pressed', b.dataset.preset === pick.slice().sort((x, y) => Object.keys(DOCS).indexOf(x) - Object.keys(DOCS).indexOf(y)).join(','))); $('[data-go]', root).disabled = !pick.length; $('[data-pick-sum]', root).textContent = pick.length ? `${pick.map((k) => DOCS[k][0]).join(' + ')} · 나중에 바꿀 수 있어요` : '서류를 하나 이상 골라 주세요'; };
+    const sync = () => { $$('[data-doc]', root).forEach((b) => b.setAttribute('aria-pressed', pick.includes(b.dataset.doc))); $$('[data-preset]', root).forEach((b) => b.setAttribute('aria-pressed', b.dataset.preset === pick.slice().sort((x, y) => Object.keys(DOCS).indexOf(x) - Object.keys(DOCS).indexOf(y)).join(','))); $('[data-go]', root).disabled = !pick.length; $('[data-pick-sum]', root).textContent = pick.length ? `${pick.length}개 선택` : '하나 이상 골라 주세요'; };
     root.addEventListener('click', (e) => {
       const pr = e.target.closest('[data-preset]'); if (pr) { pick = pr.dataset.preset.split(','); sync(); return; }
       const d = e.target.closest('[data-doc]'); if (d) { const k = d.dataset.doc; pick = pick.includes(k) ? pick.filter((x) => x !== k) : pick.concat(k); sync(); return; }
-      if (e.target.closest('[data-go]')) { a.req = Object.keys(DOCS).filter((k) => pick.includes(k)); persist(); remember(`${a.company}는 ${a.req.map((k) => DOCS[k][0]).join(' + ')}를 받아요`); toast(`${a.req.map((k) => DOCS[k][0]).join(' + ')} 초안을 만들었어요`); renderApply(id); }
+      if (e.target.closest('[data-go]')) { a.req = Object.keys(DOCS).filter((k) => pick.includes(k)); persist(); remember(`${a.company}는 ${a.req.map((k) => DOCS[k][0]).join(' + ')}를 받아요`); a.setup = !(a.req.includes('essay') || a.req.includes('pf')); persist(); renderApply(id); }
     });
     sync(); return;
   }
   if (!a.pf) a.pf = { link: '', picks: [{ t: '동아리 인스타그램 카드뉴스 3편', why: '공고 문장 "SNS 채널 운영 경험" · 팔로워 3천 → 1.2만 수치와 함께', on: true }, { t: '마케팅 공모전 기획서 (장려상)', why: '공고 문장 "콘텐츠 기획" · 팀장 역할을 첫 장에', on: true }, { t: '카페 매장 SNS 사진 모음', why: '디자인 툴 역량이 약해서, 넣을지는 직접 정해 주세요', on: false }] };
+  if (a.setup === undefined) a.setup = (a.essays || []).length > 0;
+  if (!a.pf.fmt) a.pf.fmt = 'pdf';
+  if (!a.setup) {
+    const needE = a.req.includes('essay'), needP = a.req.includes('pf');
+    let Q = (a.essays || []).map((e) => ({ q: e.q, limit: e.limit }));
+    mount(`<div class="page">${head}
+      <div class="steps2"><span class="done">1 서류 고르기</span><span class="cur">2 회사 요건 넣기</span><span>3 초안 다듬기</span></div>
+      <div class="setup-grid${needE && needP ? '' : ' one'}">
+      ${needE ? `<section class="card sec"><div class="sec-h"><h2>자기소개서 문항</h2><span class="sub" data-qn></span></div>
+        <form class="nl-box" data-nl><textarea data-nlin rows="3" placeholder="지원 페이지의 문항을 그대로 붙여 넣거나 말로 적어 주세요&#10;예: 1. 지원 동기 500자  2. 가장 큰 성과 700자 이내  3. 입사 후 포부 500자"></textarea><div class="nl-f"><span class="ai-tag">AI</span><span class="sub" style="flex:1;font-size:12px">문항과 글자 수를 나눠서 정리해요</span><button type="submit" class="btn btn-dark sm">문항 정리하기</button></div></form>
+        <div class="qrows" data-qrows></div><button type="button" class="btn btn-ghost sm" data-qadd style="align-self:flex-start">+ 직접 추가</button></section>` : ''}
+      ${needP ? `<section class="card sec"><div class="sec-h"><h2>포트폴리오 형식</h2><span class="sub">회사가 받는 형식</span></div>
+        <div class="fmt">${[['pdf', 'PDF 파일', '대부분 이 형식이에요'], ['link', '링크', '노션, 비핸스 등'], ['both', '둘 다 받아요', 'PDF와 링크 함께']].map(([k, t, d]) => `<button type="button" class="fmt-o" data-fmt="${k}" aria-pressed="${a.pf.fmt === k}"><b>${t}</b><small>${d}</small></button>`).join('')}</div>
+        <label class="field" data-mbf><span>PDF 용량 제한</span><span class="mb"><input type="number" min="1" max="100" data-mb value="${a.pf.mb || 20}">MB</span></label></section>` : ''}
+      </div>
+      <div class="setup-f"><button type="button" class="btn btn-ghost" data-back>서류 다시 고르기</button><span style="flex:1"></span><span class="sub" data-hint></span><button type="button" class="btn btn-primary" data-build>초안 만들기</button></div></div>`);
+    const root = $('.pane', view);
+    const drawQ = () => { if (!needE) return;
+      $('[data-qrows]', root).innerHTML = Q.length ? Q.map((x, i) => `<div class="qrow" style="animation-delay:${i * 50}ms"><span class="qn">${i + 1}</span><input data-qq="${i}" value="${esc(x.q)}" aria-label="문항 ${i + 1}"><span class="lim"><input type="number" min="50" max="3000" step="50" data-ql="${i}" value="${x.limit}" aria-label="글자 수">자</span><button type="button" class="icon-btn" data-qx="${i}" aria-label="문항 삭제">${ic('x')}</button></div>`).join('') : '<div class="pp-empty" style="padding:16px">아직 문항이 없어요 · 위에 붙여 넣거나 직접 추가해 주세요</div>';
+      $('[data-qn]', root).textContent = Q.length ? `${Q.length}개 문항 · 글자 수 ${Q.reduce((n, x) => n + Number(x.limit || 0), 0).toLocaleString()}자` : '';
+      sync(); };
+    const sync = () => { const ok = !needE || Q.some((x) => x.q.trim()); $('[data-build]', root).disabled = !ok; $('[data-hint]', root).textContent = ok ? '' : '문항을 하나 이상 넣어 주세요';
+      const mbf = $('[data-mbf]', root); if (mbf) mbf.hidden = a.pf.fmt === 'link'; };
+    root.addEventListener('submit', async (e) => { if (!e.target.matches('[data-nl]')) return; e.preventDefault(); const ta = $('[data-nlin]', root); const v = ta.value.trim(); if (!v) return;
+      const btn = $('[type=submit]', e.target); btn.disabled = true; btn.textContent = '정리하는 중…'; await wait(REDUCE ? 0 : 650);
+      const got = parseQs(v); Q = Q.concat(got); ta.value = ''; btn.disabled = false; btn.textContent = '문항 정리하기'; drawQ(); toast(`문항 ${got.length}개를 정리했어요 · 글자 수가 없으면 500자로 넣었어요`); });
+    root.addEventListener('input', (e) => { const q = e.target.dataset.qq, l = e.target.dataset.ql; if (q !== undefined) Q[q].q = e.target.value; if (l !== undefined) Q[l].limit = Number(e.target.value) || 500; if (e.target.matches('[data-mb]')) a.pf.mb = Number(e.target.value) || 20; if (q !== undefined || l !== undefined) { $('[data-qn]', root).textContent = `${Q.length}개 문항 · 글자 수 ${Q.reduce((n, x) => n + Number(x.limit || 0), 0).toLocaleString()}자`; sync(); } });
+    root.addEventListener('click', (e) => { const T = e.target;
+      const x = T.closest('[data-qx]'); if (x) { Q.splice(Number(x.dataset.qx), 1); drawQ(); return; }
+      if (T.closest('[data-qadd]')) { Q.push({ q: '', limit: 500 }); drawQ(); $$('[data-qq]', root).pop().focus(); return; }
+      const f = T.closest('[data-fmt]'); if (f) { a.pf.fmt = f.dataset.fmt; $$('[data-fmt]', root).forEach((b) => b.setAttribute('aria-pressed', b === f)); sync(); return; }
+      if (T.closest('[data-back]')) { a.req = null; persist(); renderApply(id); return; }
+      if (T.closest('[data-build]')) {
+        if (needE) a.essays = Q.filter((x) => x.q.trim()).map((x) => { const d = draftFor(x.q, a.company, x.limit); return { q: x.q.trim(), limit: x.limit, basis: d.basis, drafts: d.drafts, text: '', v: 0 }; });
+        a.setup = true; a.fresh = true; persist(); remember(`${a.company} 자소서 ${needE ? a.essays.length + '문항' : ''}${needP ? ' · 포트폴리오 ' + { pdf: 'PDF', link: '링크', both: 'PDF와 링크' }[a.pf.fmt] : ''}`); renderApply(id); }
+    });
+    drawQ(); return;
+  }
   let qi = 0;
   const sections = a.req.map((k) => `<section class="card sec" data-sec="${k}"></section>`).join('');
   mount(`<div class="page">${head}
@@ -1144,14 +1188,14 @@ function renderApply(id) {
       ${a.changes.map((c, i) => `<div class="inset" style="padding:14px 16px;gap:8px${c.on ? '' : ';opacity:.6'}"><div style="display:flex;align-items:center;gap:8px"><b style="font-size:13px;font-weight:600;flex:1">${esc(c.sec)}</b><button type="button" class="chipbtn" data-ch="${i}" aria-pressed="${c.on}">${c.on ? '적용함' : '원래대로'}</button></div><span style="font-size:13px;color:var(--faint);text-decoration:line-through">${esc(c.from)}</span><span style="font-size:14px">${esc(c.to)}</span><span class="sub" style="font-size:12px">${esc(c.why)}</span></div>`).join('')}
       <button type="button" class="btn btn-line" data-pdf style="align-self:flex-start">이 공고용 이력서 PDF</button>`; };
   const drawPf = () => { const el = S('pf'); if (!el) return;
-    el.innerHTML = `<div class="sec-h"><h2>포트폴리오</h2><span class="ai-tag">AI 추천</span><span class="sub">PDF 또는 링크</span></div>
-      <div class="drop" data-drop>${glass('folder', 40)}<span><b style="font-size:14px;font-weight:600">${a.pf.file ? esc(a.pf.file) : 'PDF를 끌어다 놓거나 눌러서 고르세요'}</b><small class="sub" style="display:block">${a.pf.file ? '올렸어요 · 다시 누르면 바꿀 수 있어요' : 'PDF · 20MB까지 · 시연에서는 파일 이름만 저장해요'}</small></span><input type="file" accept="application/pdf" data-file hidden></div>
-      <label class="field"><span>또는 링크</span><input data-pflink placeholder="notion.so/… 또는 behance.net/…" value="${esc(a.pf.link)}"></label>
+    el.innerHTML = `<div class="sec-h"><h2>포트폴리오</h2><span class="ai-tag">AI 추천</span><span class="sub">${{ pdf: `PDF · ${a.pf.mb || 20}MB까지`, link: '링크로 내요', both: 'PDF와 링크' }[a.pf.fmt || 'both']}</span></div>
+      ${a.pf.fmt === 'link' ? '' : `<div class="drop" data-drop>${glass('folder', 40)}<span><b style="font-size:14px;font-weight:600">${a.pf.file ? esc(a.pf.file) : 'PDF를 끌어다 놓거나 눌러서 고르세요'}</b><small class="sub" style="display:block">${a.pf.file ? '올렸어요 · 다시 누르면 바꿀 수 있어요' : `PDF · ${a.pf.mb || 20}MB까지 · 시연에서는 파일 이름만 저장해요`}</small></span><input type="file" accept="application/pdf" data-file hidden></div>`}
+      ${a.pf.fmt === 'pdf' ? '' : `<label class="field"><span>${a.pf.fmt === 'link' ? '포트폴리오 링크' : '링크'}</span><input data-pflink placeholder="notion.so/… 또는 behance.net/…" value="${esc(a.pf.link)}"></label>`}
       <span class="sub">이 공고에 넣으면 좋은 작업물 · 나의 기억에서 골랐어요</span>
       ${a.pf.picks.map((p, i) => `<div class="inset" style="padding:12px 14px;flex-direction:row;align-items:center;gap:10px;${p.on ? '' : 'opacity:.65'}"><span style="flex:1;display:flex;flex-direction:column;gap:2px"><b style="font-size:13px;font-weight:600">${esc(p.t)}</b><span class="sub" style="font-size:12px">${esc(p.why)}</span></span><button type="button" class="chipbtn" data-pk="${i}" aria-pressed="${p.on}">${p.on ? '넣기' : '빼기'}</button></div>`).join('')}`; };
   const drawEssay = () => { const el = S('essay'); if (!el) return;
     const e = a.essays[qi];
-    el.innerHTML = `<div class="sec-h"><h2>자기소개서</h2><span class="ai-tag">AI 초안</span><span class="sub">예시 문항이에요 · 회사 문항으로 바꿔 주세요</span></div>
+    el.innerHTML = `<div class="sec-h"><h2>자기소개서</h2><span class="ai-tag">AI 초안</span><span class="sub">${a.essays.length}개 문항 · <button type="button" class="linkbtn" data-resetup>문항 다시 넣기</button></span></div>
       <div class="tabs" role="tablist">${a.essays.map((x, i) => `<button type="button" role="tab" aria-selected="${qi === i}" data-q="${i}">문항 ${i + 1}</button>`).join('')}<button type="button" data-addq style="color:var(--blue-d)">+ 문항 추가</button></div>
       <div style="display:flex;align-items:flex-start;gap:8px"><b style="font-size:15px;font-weight:600;flex:1;line-height:1.5" data-qtext>${esc(e.q)}</b><button type="button" class="btn btn-ghost" data-editq>문항 바꾸기</button>${a.essays.length > 1 ? '<button type="button" class="btn btn-ghost" data-delq>삭제</button>' : ''}</div>
       <div class="tagrow">${e.basis.map((b) => `<span class="tag" style="height:26px;font-size:12px">근거 · ${esc(b)}</span>`).join('')}</div>
@@ -1166,17 +1210,18 @@ function renderApply(id) {
   root.addEventListener('click', (e) => {
     const T = e.target;
     if (T.closest('[data-rereq]')) { a.req = null; persist(); renderApply(id); return; }
+    if (T.closest('[data-resetup]')) { a.setup = false; persist(); renderApply(id); return; }
     const ch = T.closest('[data-ch]'); if (ch) { const c = a.changes[ch.dataset.ch]; c.on = !c.on; persist(); drawResume(); toast(c.on ? '이 공고용 이력서에 적용했어요' : '원래 문장으로 돌렸어요 · 기본 이력서는 그대로예요'); return; }
     const pk = T.closest('[data-pk]'); if (pk) { const p = a.pf.picks[pk.dataset.pk]; p.on = !p.on; persist(); drawPf(); return; }
     if (T.closest('[data-drop]')) { $('[data-file]', root).click(); return; }
     const q = T.closest('[data-q]'); if (q) { typing++; qi = Number(q.dataset.q); drawEssay(); return; }
-    if (T.closest('[data-addq]')) { a.essays.push({ q: '회사 문항을 붙여 넣어 주세요', limit: 500, basis: ['나의 기억'], drafts: ['문항을 넣고 "다시 쓰기"를 누르면 나의 기억과 공고 문장으로 초안을 써요.'], text: '', v: 0 }); qi = a.essays.length - 1; persist(); drawEssay(); $('[data-editq]', root).click(); return; }
+    if (T.closest('[data-addq]')) { a.essays.push({ q: '회사 문항을 붙여 넣어 주세요', limit: 500, basis: ['나의 기억'], drafts: draftFor('', a.company, 500).drafts, text: '', v: 0 }); qi = a.essays.length - 1; persist(); drawEssay(); $('[data-editq]', root).click(); return; }
     if (T.closest('[data-delq]')) { const gone = a.essays.splice(qi, 1)[0]; const at = qi; qi = Math.max(0, qi - 1); persist(); drawEssay(); toast('문항을 지웠어요', { label: '되돌리기', run: () => { a.essays.splice(at, 0, gone); qi = at; persist(); drawEssay(); } }); return; }
     if (T.closest('[data-rewrite]')) { const ex = a.essays[qi]; ex.v = (ex.v + 1) % ex.drafts.length; typeInto(ex.drafts[ex.v]); return; }
     if (T.closest('[data-tone]')) { const s2 = a.essays[qi].text.split(/(?<=[.다])\s+/).slice(0, 2).join(' '); typeInto(s2); toast('두 문장으로 줄였어요'); return; }
     if (T.closest('[data-copy]')) { const v = $('[data-ans]', root).value; (navigator.clipboard ? navigator.clipboard.writeText(v) : Promise.reject()).then(() => toast('복사했어요 · 회사 지원 페이지에 붙여 넣어 주세요'), () => toast('복사하지 못했어요 · 직접 선택해 주세요')); return; }
     if (T.closest('[data-editq]')) { const el = $('[data-qtext]', root); const inp = document.createElement('textarea'); inp.className = 'qedit'; inp.value = a.essays[qi].q; el.replaceWith(inp); inp.focus(); inp.select();
-      const fin = () => { const v = inp.value.trim(); if (v) { a.essays[qi].q = v; persist(); toast('문항을 바꿨어요 · "다시 쓰기"를 누르면 새 문항에 맞춰 써요'); } drawEssay(); };
+      const fin = () => { const v = inp.value.trim(); if (v) { const d = draftFor(v, a.company, a.essays[qi].limit); Object.assign(a.essays[qi], { q: v, drafts: d.drafts, basis: d.basis, v: 0 }); persist(); toast('문항을 바꿨어요 · "다시 쓰기"를 누르면 새 문항에 맞춰 써요'); } drawEssay(); };
       inp.onkeydown = (ev) => { if (ev.key === 'Enter' && !ev.shiftKey) { ev.preventDefault(); fin(); } if (ev.key === 'Escape') drawEssay(); }; inp.onblur = fin; return; }
     if (T.closest('[data-pdf]')) { toast('이 공고용 이력서 PDF를 만들었어요 (시연에서는 내려받기 없이 보여만 줘요)'); return; }
     if (T.closest('[data-submitted]')) { a.status = '제출함'; persist(); $('[data-status]', root).value = '제출함'; T.closest('[data-submitted]').textContent = '제출 완료로 표시됨'; $('[data-stdot]', root).className = 'dot ok'; toast('제출함으로 표시했어요 · 결과는 예측하지 않아요'); remember(`${a.company} 지원서를 제출했다고 표시했어요`); }
@@ -1187,6 +1232,7 @@ function renderApply(id) {
   root.addEventListener('drop', (e) => { const d = e.target.closest('[data-drop]'); if (!d) return; e.preventDefault(); const f = e.dataTransfer.files[0]; if (f) { a.pf.file = f.name; persist(); drawPf(); toast('포트폴리오 PDF를 올렸어요'); } });
   const stSel = $('[data-status]', root); if (stSel) stSel.addEventListener('change', (e) => { a.status = e.target.value; persist(); $('[data-stdot]', root).className = 'dot ' + (a.status === '제출함' ? 'ok' : 'part'); toast(`상태를 "${a.status}"로 바꿨어요`); });
   drawResume(); drawPf(); drawEssay();
+  if (a.fresh && a.essays.length) { a.fresh = false; a.essays.forEach((x, i) => { if (i) x.text = x.drafts[0]; }); persist(); toast(`문항 ${a.essays.length}개에 맞춰 초안을 쓰고 있어요`); typeInto(a.essays[0].drafts[0]); } else if (a.fresh) { a.fresh = false; persist(); }
 }
 /* ---------- drawer ---------- */
 function openDrawer(html, onMount) {
