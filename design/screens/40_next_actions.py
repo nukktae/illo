@@ -165,7 +165,7 @@ EDU_GRID_JS = '''  constructor(props) { super(props); this.state = { all: false,
     const badge = (st) => 'padding: 3px 9px; border-radius: 999px; background: ' + (SC[st] || SC['종료'])[0] + '; color: ' + (SC[st] || SC['종료'])[1] + '; font-size: 12px; font-weight: 600;';
     const cards = L.slice((page - 1) * per, page * per).map((c) => {
       const col = GC[c.g] || GC['기타'];
-      return { n: c.n, cp: c.cp, f: c.f, st: c.st, stStyle: badge(c.st), edu: c.edu, h: c.h, tags: c.tags.map((t) => '#' + t.replace(/^#/, '')), u: c.u,
+      return { n: c.n, cp: c.cp, f: c.f, st: c.st, stStyle: badge(c.st), edu: c.edu, h: c.h, tags: c.tags.map((t) => '#' + t.replace(/^#/, '')), rv: c.rv, hasRv: c.rv > 0, u: c.u,
         due: c.st === '모집 중' && c.recEnd ? c.recEnd.slice(5) + ' 마감' : '', hasDue: c.st === '모집 중' && !!c.recEnd,
         thumb: TH[c.id] || '', hasThumb: !!TH[c.id], noThumb: !TH[c.id], band: 'background: ' + col[0] + '; color: ' + col[1] + ';', g: c.g,
         fills: c.fills.map((x) => x + ' 채움'), direct: c.fills.length > 0, related: c.fills.length === 0,
@@ -184,7 +184,10 @@ def edu_grid_js(mobile):
 
 
 def edu_grid(mobile):
-    card = (f'<div style="display: flex; flex-direction: column; gap: 10px; padding: 14px; {CARD} min-width: 0;">'
+    fills = (f'<div style="display: flex; gap: 4px; flex-wrap: wrap;"><sc-if value="@@c.direct@@" hint-placeholder-val="@@false@@"><sc-for list="@@c.fills@@" as="x" hint-placeholder-count="1"><span style="padding: 3px 8px; border-radius: 6px; background: {BLUE_BG}; color: {BLUE_D}; font-size: 12px; font-weight: 600;">@@x@@</span></sc-for></sc-if>'
+             f'<sc-if value="@@c.related@@" hint-placeholder-val="@@true@@"><span style="padding: 3px 8px; border-radius: 6px; background: {FILL}; color: {SUB}; font-size: 12px;">관련 분야 · 커리큘럼 확인 필요</span></sc-if></div>')
+    # 데스크톱은 교육과정 목록 (E1)과 같은 카드. 모바일은 이전 카드 유지
+    card = course_card(140, fills) if not mobile else (f'<div style="display: flex; flex-direction: column; gap: 10px; padding: 14px; {CARD} min-width: 0;">'
             f'<sc-if value="@@c.hasThumb@@" hint-placeholder-val="@@false@@"><img src="@@c.thumb@@" alt="" style="width: 100%; height: 150px; object-fit: cover; border-radius: 12px; display: block;"></sc-if>'
             f'<sc-if value="@@c.noThumb@@" hint-placeholder-val="@@true@@"><div style="@@c.band@@ height: 150px; border-radius: 12px; padding: 16px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between;"><span style="font-size: 13px; font-weight: 700;">@@c.g@@</span><span style="font-size: 22px; font-weight: 800; letter-spacing: -0.02em; opacity: 0.85;">SeSAC @@c.cp@@</span></div></sc-if>'
             f'<div style="display: flex; align-items: center; gap: 6px;"><span style="@@c.stStyle@@">@@c.st@@</span><sc-if value="@@c.hasDue@@" hint-placeholder-val="@@false@@"><span style="font-size: 12px; font-weight: 700; color: {RED};">@@c.due@@</span></sc-if><span style="margin-left: auto;">{save_btn("c.sv", 32)}</span></div>'

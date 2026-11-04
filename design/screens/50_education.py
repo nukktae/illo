@@ -110,14 +110,7 @@ def e1_v5(mobile):
              '<button type="button" onClick="@@sort.close.go@@" style="@@sort.close.style@@">마감 임박순</button><span aria-hidden="true" style="color: #D1D6DB;">·</span>'
              '<button type="button" onClick="@@sort.rv.go@@" style="@@sort.rv.style@@">후기 많은 순</button>')
     img_h = 132 if mobile else 140
-    card = (f'<div style="display: flex; flex-direction: column; gap: 10px; padding: 14px; {CARD} min-width: 0;">'
-            f'<sc-if value="@@c.hasThumb@@" hint-placeholder-val="@@false@@"><img src="@@c.thumb@@" alt="" style="width: 100%; height: {img_h}px; object-fit: cover; border-radius: 12px; display: block;"></sc-if>'
-            f'<sc-if value="@@c.noThumb@@" hint-placeholder-val="@@true@@"><div style="@@c.band@@ height: {img_h}px; border-radius: 12px; padding: 16px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between;"><span style="font-size: 13px; font-weight: 700;">@@c.g@@</span><span style="font-size: 22px; font-weight: 800; letter-spacing: -0.02em; opacity: 0.85;">SeSAC @@c.cp@@</span></div></sc-if>'
-            f'<div style="display: flex; align-items: center; gap: 6px;"><span style="@@c.stStyle@@">@@c.st@@</span><sc-if value="@@c.hasDue@@" hint-placeholder-val="@@false@@"><span style="font-size: 12px; font-weight: 700; color: {RED};">@@c.due@@</span></sc-if><span style="margin-left: auto;">{save_btn("c.sv", 32)}</span></div>'
-            f'<span style="font-size: 15px; font-weight: 700; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 42px;">@@c.n@@</span>'
-            f'<span style="font-size: 12px; line-height: 1.5; color: {SUB};">@@c.cp@@ · @@c.f@@ · @@c.h@@<br>@@c.edu@@</span>'
-            f'<span style="display: flex; gap: 6px; flex-wrap: wrap; font-size: 12px; color: {MUTE};"><sc-for list="@@c.tags@@" as="t" hint-placeholder-count="3"><span>@@t@@</span></sc-for></span>'
-            f'<div style="margin-top: auto; padding-top: 8px; border-top: 1px solid {LINE}; display: flex; justify-content: space-between; align-items: center;"><span style="font-size: 12px; color: {MUTE};"><sc-if value="@@c.hasRv@@" hint-placeholder-val="@@false@@">후기 @@c.rv@@</sc-if></span><sc-if value="@@c.detail@@" hint-placeholder-val="@@false@@"><a href="@@c.dhref@@" style="font-size: 13px; font-weight: 600; text-decoration: none;">자세히 보기 ›</a></sc-if><sc-if value="@@c.noDetail@@" hint-placeholder-val="@@true@@"><a href="@@c.u@@" {EXT} style="font-size: 13px; font-weight: 600; text-decoration: none;">SeSAC에서 보기 ↗</a></sc-if></div></div>')
+    card = course_card(img_h)
     empty = lambda clear, msg: (f'<div style="display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 48px 0; {CARD} color: {SUB}; font-size: 15px;">{msg}'
                                 f'<button type="button" onClick="@@{clear}@@" style="height: 38px; padding: 0 14px; border: none; border-radius: 10px; background: {FILL}; color: {INK}; font-size: 14px; font-weight: 600; cursor: pointer;">조건 지우기</button></div>')
     cols = 1 if mobile else 3

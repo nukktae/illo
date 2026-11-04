@@ -72,7 +72,7 @@ class Component extends DCLogic {
     const badge = (st) => 'padding: 3px 9px; border-radius: 999px; background: ' + (SC[st] || SC['종료'])[0] + '; color: ' + (SC[st] || SC['종료'])[1] + '; font-size: 12px; font-weight: 600;';
     const cards = L.slice((page - 1) * per, page * per).map((c) => {
       const col = GC[c.g] || GC['기타'];
-      return { n: c.n, cp: c.cp, f: c.f, st: c.st, stStyle: badge(c.st), edu: c.edu, h: c.h, tags: c.tags.map((t) => '#' + t.replace(/^#/, '')), u: c.u,
+      return { n: c.n, cp: c.cp, f: c.f, st: c.st, stStyle: badge(c.st), edu: c.edu, h: c.h, tags: c.tags.map((t) => '#' + t.replace(/^#/, '')), rv: c.rv, hasRv: c.rv > 0, u: c.u,
         due: c.st === '모집 중' && c.recEnd ? c.recEnd.slice(5) + ' 마감' : '', hasDue: c.st === '모집 중' && !!c.recEnd,
         thumb: TH[c.id] || '', hasThumb: !!TH[c.id], noThumb: !TH[c.id], band: 'background: ' + col[0] + '; color: ' + col[1] + ';', g: c.g,
         fills: c.fills.map((x) => x + ' 채움'), direct: c.fills.length > 0, related: c.fills.length === 0,
