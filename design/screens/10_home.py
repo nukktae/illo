@@ -30,7 +30,7 @@ EX_ROWS = [
 def ex_card(mobile):
     rows = ''
     for k, req, ev in EX_ROWS:
-        label, fg, bg = {'ok': ('맞음', BLUE_D, BLUE_BG), 'no': ('없음', SUB, '#EEF0F3')}[k]  # 30_compare.py MK와 같은 색
+        label, fg, bg = {'ok': ('맞음', '#166534', '#E8F5EC'), 'no': ('없음', '#B42318', '#FDECEC')}[k]  # 30_compare.py COMPARE_COLORS와 같은 색
         rows += (f'<div style="display: flex; flex-direction: column; gap: 8px; padding: {"14px" if mobile else "16px 18px"}; background: #FFFFFF; border-radius: 14px;">'
                  f'<div style="display: flex; align-items: flex-start; gap: 10px;"><span style="flex-shrink: 0; padding: 3px 8px; border-radius: 6px; background: {bg}; color: {fg}; font-size: 12px; font-weight: 700;">{label}</span>'
                  f'<span style="font-size: {14 if mobile else 15}px; line-height: 1.5; color: {INK};">"{req}"</span></div>'
@@ -41,14 +41,17 @@ def ex_card(mobile):
             f'{rows}</div>')
 
 
-# P01-F05 핫 공고: 시연 공고만 비교하기 (글자 링크), 나머지는 비교 준비 중. 흐리게 하지 않는다
-def hot_row(k, company, title, href):
+# P01-F05 핫 공고: 시연 공고는 비교하기, 나머지는 직무 찾기 목록처럼 원문 ↗ (새 탭). 막힌 행이 없다
+def hot_row(k, company, title, href, url=None, logo=None):
     act = (f'<span style="flex-shrink: 0; font-size: 14px; font-weight: 600; color: {BLUE_D};">비교하기 ›</span>' if href else
-           f'<span style="flex-shrink: 0; padding: 4px 9px; border-radius: 999px; background: {FILL}; font-size: 12px; color: #4E5968;">비교 준비 중</span>')
-    inner = (f'{mark(k, 40)}<span style="flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 12px; color: {SUB};">{company}</span>'
+           f'<span style="flex-shrink: 0; height: 34px; padding: 0 12px; display: flex; align-items: center; border-radius: 10px; background: {FILL}; font-size: 13px; font-weight: 600; color: {INK}; white-space: nowrap;">원문 ↗</span>')
+    icon = (f'<img src="{_LOGO(logo)}" alt="로고" style="width: 40px; height: 40px; flex-shrink: 0; border-radius: 12px; border: 1px solid {LINE}; object-fit: cover; box-sizing: border-box;">'
+            if logo else mark(k, 40))
+    inner = (f'{icon}<span style="flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 12px; color: {SUB};">{company}</span>'
              f'<span style="font-size: 16px; font-weight: 600; color: {INK};">{title}</span></span>{act}')
-    row = 'flex: 1 1 0; min-width: 0; display: flex; align-items: center; gap: 14px; padding: 14px 0;'
-    body = f'<a href="{href}" style="{row} text-decoration: none;">{inner}</a>' if href else f'<span style="{row}">{inner}</span>'
+    row = 'flex: 1 1 0; min-width: 0; display: flex; align-items: center; gap: 14px; padding: 14px 0; text-decoration: none;'
+    body = (f'<a href="{href}" style="{row}">{inner}</a>' if href else
+            f'<a href="{url}" {EXT} aria-label="{company} {title} 원문 보기 (새 탭)" style="{row}">{inner}</a>')
     return f'<div style="display: flex; align-items: center; gap: 10px; border-top: 1px solid {LINE};">{body}{save_btn("sv." + k)}</div>'
 
 
@@ -82,8 +85,8 @@ def ai_section():
 
 def hot_section(pre, mobile):
     rows = (hot_row('olive', '올리브인터내셔널', '성분에디터 콘텐츠 마케팅 인턴', f'{pre}S3-compare.dc.html')
-            + hot_row('ks', '카카오스타일', 'SNS 콘텐츠 마케터', None)
-            + hot_row('rxc', 'RXC', '숏폼 콘텐츠 기획 편집', None))
+            + hot_row('ks', '카카오스타일', '[인턴] SNS 콘텐츠 마케터', None, 'https://linkareer.com/activity/297553')
+            + hot_row('kakao', '카카오', '숏폼 서비스 영상 콘텐츠 제작 및 운영', None, 'https://linkareer.com/activity/358108', 'kakao'))
     return (f'<section aria-labelledby="{pre}hot" style="display: flex; flex-direction: column; padding: {"20px 18px 8px" if mobile else "26px 32px 12px"}; {CARD}">'
             f'<div style="display: flex; align-items: baseline; gap: 10px; margin-bottom: 8px;"><h2 id="{pre}hot" style="margin: 0; font-size: {18 if mobile else 20}px; font-weight: 700;">이번 주 핫 공고</h2>'
             f'</div>{rows}</section>')
@@ -93,9 +96,10 @@ def hot_section(pre, mobile):
 def kw_section(pre, mobile):
     return (f'<section aria-labelledby="{pre}kw" style="display: flex; flex-direction: column; gap: 6px; padding: {"18px 12px 14px" if mobile else "22px 22px 16px"}; {CARD}">'
             f'<div style="display: flex; align-items: center; gap: 8px; padding: 0 10px 4px;"><h2 id="{pre}kw" style="margin: 0; font-size: {16 if mobile else 17}px; font-weight: 700;">요즘 공고에 많이 나오는 말</h2>'
+            f'<span style="flex-shrink: 0; padding: 3px 8px; border-radius: 6px; background: {FILL}; font-size: 12px; font-weight: 600; color: #4E5968;">SNS 콘텐츠 마케팅</span>'
             f'<button type="button" onClick="@@openTrend@@" style="margin-left: auto; border: none; background: none; padding: 0; font-size: 13px; color: {SUB}; cursor: pointer; font-family: inherit;">전체 보기 ›</button></div>'
             f'<div style="display: flex; flex-direction: column;">{trend_rows(RANK[:5], button=True, pad="0 10px", h=42)}</div>'
-            f'<span style="padding: 0 10px; font-size: 12px; color: {MUTE};">SNS 콘텐츠 마케팅 2026 공고 59건 기준</span></section>')
+            f'<span style="padding: 0 10px; font-size: 12px; line-height: 1.5; color: {MUTE};">2026 공고 59건 기준 · 직무 찾기 목록은 신입, 인턴 46건</span></section>')
 
 
 H1 = '공고 문장마다,<br>내 경험을 비교해요'
