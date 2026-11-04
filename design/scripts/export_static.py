@@ -17,6 +17,7 @@ ASSETS = {
     '/_blob/6fc9bd2821d6438cc5b97a683759372c': (os.path.join(REPO, 'design/assets/sesac-ga2.jpg'), 'assets/sesac-ga2.jpg'),
     '/_blob/c88a1eb7bb1518ac0f871c8ae631c6ad': (os.path.join(REPO, 'design/assets/sesac-sb4.jpg'), 'assets/sesac-sb4.jpg'),
     '/_blob/70b2d2f6c328b6f5ee29ac16d9bb4509': (os.path.join(REPO, 'design/assets/avatar-haneul.jpg'), 'assets/avatar-haneul.jpg'),
+    '/_blob/62269ffba7ac06f0ee16bf8a2e14a850': (os.path.join(REPO, 'design/assets/photo-haneul.jpg'), 'assets/photo-haneul.jpg'),
     '/_blob/61db9921e026af1c40c1407f866018d8': (os.path.join(REPO, 'design/assets/pol-wing.jpg'), 'assets/pol-wing.jpg'),
     '/_blob/c2dbb8dd0f747dc2fecc62ed45422aed': (os.path.join(REPO, 'design/assets/pol-jobcamp.jpg'), 'assets/pol-jobcamp.jpg'),
     '/_blob/2903327b271a5f5367228d0fbc308a83': (os.path.join(REPO, 'design/assets/pol-sesac.jpg'), 'assets/pol-sesac.jpg'),

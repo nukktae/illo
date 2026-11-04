@@ -190,8 +190,10 @@ def resume_sections(mobile):
     c2, c3, c4 = (2, 2, 2) if mobile else (2, 3, 4)
     tools = '<span style="font-size: 12px; color: {}; ">공고에서 많이 찾는 툴</span>'.format(SUB)
     sugg = ''.join(f'<span style="padding: 7px 12px; border-radius: 999px; border: 1px solid #E5E8EB; font-size: 13px; color: #4E5968;">+ {t} <span style="color: {MUTE};">{n}건</span></span>' for t, n in [('프리미어', 30), ('포토샵', 28), ('피그마', 19), ('캡컷', 10)])
-    photo = (f'<span aria-hidden="true" style="width: 96px; height: 120px; flex-shrink: 0; border-radius: 12px; border: 1.5px dashed #D1D6DB; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: {MUTE}; font-size: 12px;">'
-             f'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="9" r="3.5"/><path d="M5 20c1-3.5 3.8-5 7-5s6 1.5 7 5"/></svg>사진 · 선택</span>')
+    # 김하늘 증명사진 (AI로 만든 가상 인물, design/assets/photo-haneul.jpg). 비교 요청에는 넣지 않는다
+    photo = ('<span style="width: 96px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 6px;">'
+             '<img src="/_blob/62269ffba7ac06f0ee16bf8a2e14a850" alt="김하늘 증명사진" style="width: 96px; height: 120px; border-radius: 12px; object-fit: cover; display: block;">'
+             f'<span style="font-size: 12px; color: {MUTE};">사진 · 선택</span></span>')
     basic = (rgrid(c3, rf('이름', '김하늘', req=True), rf('생년월일', '2002.03.14', req=True), rf('성별', '여', 'ex. 여'), rf('이메일', '', 'name@example.com', req=True, kind='email'), rf('휴대폰', '', '010-0000-0000', req=True, kind='tel'), rf('주소', '서울 성북구', '시, 구까지만'))
              + rgrid(1, rf('홈페이지, SNS', '', 'https://')))
     basic = basic if mobile else f'<div style="display: flex; gap: 20px; align-items: flex-start;"><div style="flex: 1 1 0; display: flex; flex-direction: column; gap: 12px;">{basic}</div>{photo}</div>'
