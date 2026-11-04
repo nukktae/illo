@@ -13,7 +13,7 @@ for kind in ('empty', 'long'):
     else:
         text = '긴문장검증' * 80
         ns['DUTIES'] = [text]
-        ns['POST_REQ'] = [(title, [(text, 'no')], [('no', text, '프로젝트', 'S4-activity.dc.html')])
+        ns['POST_REQ'] = [(title, [(text, kind) for kind in ('ok', 'part', 'no')], [('no', text, '프로젝트', 'S4-activity.dc.html')])
                           for title in ('자격요건', '우대사항')]
         ns['PROCEDURE'] = text
     body = ns['side_panel'](True) + ns['posting_card'](True)
@@ -24,6 +24,11 @@ for kind in ('empty', 'long'):
     canvas = output / (kind + '-canvas')
     canvas.mkdir(parents=True, exist_ok=True)
     (canvas / 'm-S3-compare.dc.html').write_text(html)
+    desktop_body = ('<div style="display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 24px; padding: 16px 56px 56px; align-items: start;">'
+                    + ns['posting_card'](False) + ns['side_panel'](False) + '</div>')
+    desktop = ns['dpage']('S3-compare.dc.html', '테스트 공고', 'find',
+                          desktop_body + ns['compare_trend_popup'](False), ns['V6_SCRIPT'], saves=('olive',))
+    (canvas / 'S3-compare.dc.html').write_text(desktop)
     subprocess.run([sys.executable, str(ROOT / 'design/scripts/export_static.py'), str(canvas), str(output / kind)], check=True)
 
     shutil.copyfile(ROOT / 'design/scripts/dc-lite.js', output / kind / 'dc-lite.js')

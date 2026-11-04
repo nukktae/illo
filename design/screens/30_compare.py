@@ -73,8 +73,8 @@ V6_JS = r'''  constructor(props) {
   }
 '''
 
-HL = {'ok': f'background: {BLUE_BG}; color: {BLUE_D}; border-radius: 4px; padding: 1px 2px; font-weight: 600;',
-      'part': f'background: {OR_BG}; color: {OR}; border-radius: 4px; padding: 1px 2px; font-weight: 600;',
+HL = {'ok': f'border: 1px solid {BLUE_D}; background: {BLUE_BG}; color: {BLUE_D}; border-radius: 4px; padding: 1px 2px; font-weight: 600; text-decoration: none; -webkit-box-decoration-break: clone; box-decoration-break: clone;',
+      'part': f'border: 1px solid {OR}; background: {OR_BG}; color: {OR}; border-radius: 4px; padding: 1px 2px; font-weight: 600; text-decoration: none; -webkit-box-decoration-break: clone; box-decoration-break: clone;',
       'no': 'border: 1px solid #6B7684; background: #D5DCE5; color: #333D4B; border-radius: 4px; padding: 1px 2px; font-weight: 600; text-decoration: none; -webkit-box-decoration-break: clone; box-decoration-break: clone;'}
 
 

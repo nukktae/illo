@@ -114,7 +114,7 @@ class Component extends DCLogic {
   }
   pageVals() {
     const d = this.state.done;
-    const hl = (k) => d ? {"ok": "background: #E8F3FF; color: #1B64DA; border-radius: 4px; padding: 1px 2px; font-weight: 600;", "part": "background: #FFF6E5; color: #C26A00; border-radius: 4px; padding: 1px 2px; font-weight: 600;", "no": "border: 1px solid #6B7684; background: #D5DCE5; color: #333D4B; border-radius: 4px; padding: 1px 2px; font-weight: 600; text-decoration: none; -webkit-box-decoration-break: clone; box-decoration-break: clone;"}[k] : '';
+    const hl = (k) => d ? {"ok": "border: 1px solid #1B64DA; background: #E8F3FF; color: #1B64DA; border-radius: 4px; padding: 1px 2px; font-weight: 600; text-decoration: none; -webkit-box-decoration-break: clone; box-decoration-break: clone;", "part": "border: 1px solid #C26A00; background: #FFF6E5; color: #C26A00; border-radius: 4px; padding: 1px 2px; font-weight: 600; text-decoration: none; -webkit-box-decoration-break: clone; box-decoration-break: clone;", "no": "border: 1px solid #6B7684; background: #D5DCE5; color: #333D4B; border-radius: 4px; padding: 1px 2px; font-weight: 600; text-decoration: none; -webkit-box-decoration-break: clone; box-decoration-break: clone;"}[k] : '';
     return {
       trendOpen: this.state.trendOpen,
       openTrend: () => this.openCompareTrend(), closeTrend: () => this.closeCompareTrend(),
