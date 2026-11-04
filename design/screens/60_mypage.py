@@ -1,7 +1,7 @@
 """P05 마이페이지: 한눈에 보기, 저장함, 이력서 등록, 취업 수기."""
 
 # 14 sections like a job-board resume (P05-F04). Filled ones show the persona, empty optional ones fold into one line.
-# 생년월일, 주소, 사진, 취업 우대·병역은 비교에 쓰지 않아 묻지 않는다 (PRD v1.2, PR #3 리뷰).
+# 취업 우대·병역은 묻지 않는다. 생년월일, 주소, 사진은 팀 결정으로 다시 받되 비교 요청에는 넣지 않는다 (PRD v1.3).
 RSEC = [('basic', '인적사항', True, True), ('job', '희망 직무', True, True), ('skill', '스킬', True, False), ('school', '학력', True, True),
         ('career', '경력', True, False), ('act', '인턴, 대외활동', True, False), ('train', '교육', False, False), ('cert', '자격증', True, False),
         ('award', '수상', False, False), ('abroad', '해외 경험', False, False), ('lang', '어학', True, False), ('pf', '포트폴리오', True, False),
@@ -190,8 +190,11 @@ def resume_sections(mobile):
     c2, c3, c4 = (2, 2, 2) if mobile else (2, 3, 4)
     tools = '<span style="font-size: 12px; color: {}; ">공고에서 많이 찾는 툴</span>'.format(SUB)
     sugg = ''.join(f'<span style="padding: 7px 12px; border-radius: 999px; border: 1px solid #E5E8EB; font-size: 13px; color: #4E5968;">+ {t} <span style="color: {MUTE};">{n}건</span></span>' for t, n in [('프리미어', 30), ('포토샵', 28), ('피그마', 19), ('캡컷', 10)])
-    basic = (rgrid(c2, rf('이름', '김하늘', req=True), rf('성별', '여', 'ex. 여'), rf('이메일', '', 'name@example.com', req=True, kind='email'), rf('휴대폰', '', '010-0000-0000', req=True, kind='tel'))
+    photo = (f'<span aria-hidden="true" style="width: 96px; height: 120px; flex-shrink: 0; border-radius: 12px; border: 1.5px dashed #D1D6DB; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: {MUTE}; font-size: 12px;">'
+             f'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="9" r="3.5"/><path d="M5 20c1-3.5 3.8-5 7-5s6 1.5 7 5"/></svg>사진 · 선택</span>')
+    basic = (rgrid(c3, rf('이름', '김하늘', req=True), rf('생년월일', '2002.03.14', req=True), rf('성별', '여', 'ex. 여'), rf('이메일', '', 'name@example.com', req=True, kind='email'), rf('휴대폰', '', '010-0000-0000', req=True, kind='tel'), rf('주소', '서울 성북구', '시, 구까지만'))
              + rgrid(1, rf('홈페이지, SNS', '', 'https://')))
+    basic = basic if mobile else f'<div style="display: flex; gap: 20px; align-items: flex-start;"><div style="flex: 1 1 0; display: flex; flex-direction: column; gap: 12px;">{basic}</div>{photo}</div>'
     out = ''
     out += rcard('basic', '인적사항', basic, '비교에는 쓰지 않아요', mobile)
     out += rcard('job', '희망 직무', f'<div style="display: flex; gap: 6px; flex-wrap: wrap;">{rchips(["SNS 콘텐츠 마케팅", "콘텐츠 마케터"])}</div>{radd("직무")}', '최대 5개', mobile)
