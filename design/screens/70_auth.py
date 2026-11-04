@@ -21,10 +21,19 @@ def af(label, id_, ph, kind='text', val=''):
             f'<input id="{id_}" type="{kind}"{v} placeholder="{ph}" style="{INP_D} font-size: 15px;"></label>')
 
 
+def login_perks():
+    """로그인하면 마이페이지에서 할 수 있는 것. 이력서 PDF로 채우기가 로그인 전에도 보이게 (리뷰 9번)."""
+    items = ''.join(f'<li style="display: flex; align-items: center; gap: 8px; font-size: 13px; line-height: 1.5; color: #333D4B;">{badge}{t}</li>'
+                    for badge, t in [(AI, '이력서 PDF를 올리면 AI가 항목을 나눠 채워요'), ('', '한 번 등록한 이력서로 공고마다 바로 비교해요'), ('', '저장한 공고, 교육과정, 정책과 내 취업 경로를 모아 봐요')])
+    return (f'<div style="display: flex; flex-direction: column; gap: 8px; padding: 14px 16px; border-radius: 12px; background: #F4F9FF;">'
+            f'<span style="font-size: 13px; font-weight: 700;">로그인하면 마이페이지에서</span><ul style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 6px;">{items}</ul></div>')
+
+
 def login_page(mobile):
     pre = 'm-' if mobile else ''
     inner = (f'<div style="display: flex; flex-direction: column; gap: 6px;"><h1 style="margin: 0; font-size: {26 if mobile else 28}px; font-weight: 700; letter-spacing: -0.02em;">로그인</h1>'
              f'<span style="font-size: 14px; line-height: 1.5; color: {SUB};">저장한 공고와 이력서를 어디서든 이어서 봐요</span></div>'
+             f'{login_perks()}'
              f'<div style="display: flex; flex-direction: column; gap: 8px;">{social_btns(pre + "Main.dc.html")}</div>{divider("또는 이메일로")}'
              f'{af("이메일", pre + "li-email", "name@example.com", "email")}{af("비밀번호", pre + "li-pw", "비밀번호", "password")}'
              f'<a href="{pre}Main.dc.html" onClick="@@loginAs@@" style="height: 52px; display: flex; align-items: center; justify-content: center; border-radius: 14px; background: {BLUE}; color: #FFFFFF; font-size: 16px; font-weight: 600; text-decoration: none;">로그인</a>'
