@@ -225,6 +225,7 @@ function route() {
   else if (a === 'saved') { navKey = 'saved'; renderSaved(); }
   else if (a === 'me' && !authed()) { navKey = 'me'; mount(`<div class="page"><div class="empty card" style="margin-top:40px">마이페이지는 로그인한 뒤 볼 수 있어요<button type="button" class="btn btn-dark" data-act="login">로그인</button></div></div>`); }
   else if (a === 'me') { navKey = 'me'; renderMe(b || 'profile'); }
+  else if (a === 'trend') { navKey = 'trend'; renderTrend(); }
   else if (a === 'tasks') { navKey = 'tasks'; renderTasks(); }
   else if (a === 'apply') { navKey = 'apply'; if (b) renderApply(b); else renderApplyList(); }
   else renderHome();
@@ -276,8 +277,8 @@ function renderLogin() {
   document.body.classList.add('auth-on');
   view.className = 'view'; view.innerHTML = authShell(`<div class="head-l"><h2>다시 만나서 반가워요</h2><span class="sub">이메일로 로그인하세요</span></div>
     <form class="auth-form" data-login novalidate>
-      <label class="field"><span>이메일</span><input type="email" name="em" autocomplete="email" placeholder="you@example.com" required></label>
-      <label class="field"><span>비밀번호</span><span class="pw"><input type="password" name="pw" autocomplete="current-password" placeholder="비밀번호" required><button type="button" class="pw-eye" data-eye aria-label="비밀번호 보기">보기</button></span></label>
+      <label class="field"><span>이메일</span><input type="email" name="em" autocomplete="email" placeholder="비워 두고 로그인해도 돼요 (시연)"></label>
+      <label class="field"><span>비밀번호</span><span class="pw"><input type="password" name="pw" autocomplete="current-password" placeholder="비밀번호"><button type="button" class="pw-eye" data-eye aria-label="비밀번호 보기">보기</button></span></label>
       <div class="auth-row"><label class="ck"><input type="checkbox" checked> 로그인 상태 유지</label><button type="button" class="linkbtn" data-forgot>비밀번호를 잊었어요</button></div>
       <p class="err" data-err hidden></p>
       <button type="submit" class="btn btn-primary big">로그인</button>
@@ -292,12 +293,7 @@ function renderLogin() {
     if (e.target.closest('[data-forgot]')) toast('비밀번호 재설정 메일을 보냈다고 가정할게요 (시연)');
   });
   $('[data-login]', root).addEventListener('submit', (e) => {
-    e.preventDefault(); const f = e.target; const err = $('[data-err]', root);
-    const em = f.em.value.trim(), pw = f.pw.value;
-    $$('.field', f).forEach((x) => x.classList.remove('bad'));
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) { f.em.closest('.field').classList.add('bad'); err.textContent = '이메일 형식을 확인해 주세요'; err.hidden = false; f.em.focus(); return; }
-    if (pw.length < 8) { f.pw.closest('.field').classList.add('bad'); err.textContent = '비밀번호는 8자 이상이에요'; err.hidden = false; f.pw.focus(); return; }
-    err.hidden = true; const b = $('[type="submit"]', f); b.disabled = true; b.innerHTML = '<span class="ring" style="border-color:#fff;border-right-color:transparent"></span>';
+    e.preventDefault(); const f = e.target; const b = $('[type="submit"]', f); b.disabled = true; b.innerHTML = '<span class="ring" style="border-color:#fff;border-right-color:transparent"></span>';
     setTimeout(() => finishAuth('로그인했어요 · 시연이라 김하늘 계정으로 보여요'), REDUCE ? 0 : 700);
   });
   setTimeout(() => { const i = $('input[name="em"]', root); if (i) i.focus(); }, 60);
@@ -443,24 +439,62 @@ const PROMPTS = [
   ['빈칸', '숏폼 성과 분석 빈칸, 2주 안에 채우는 방법 알려 줘'],
   ['정책', '구직 기간에 받을 수 있는 서울 청년 정책은?'],
 ];
+/* highlight what the weekly agent found, on the page the digest card opens */
+let WK = {}, HL = null;
+const HL_ATTR = { jobs: 'k', pol: 'p', edu: 'c' };
+const HL_TXT = { jobs: ['새 공고', '건'], pol: ['받을 수 있는 정책', '건'], edu: ['빈칸 채울 과정', '개'], trend: ['급상승 역량', '개'] };
+function isHL(kind, id) { return !!HL && HL.kind === kind && HL.ids.includes(id); }
+function hlSort(L, kind, key) { if (HL && HL.kind === kind) L.sort((a, b) => isHL(kind, key(b)) - isHL(kind, key(a))); return L; }
+function hlOff() { HL = null; $$('.hl', view).forEach((x) => x.classList.toggle('hl', false)); const b = $('.hl-bar', view); if (b) b.outerHTML = ''; }
+function markHL() {
+  if (!HL) return;
+  if (location.hash.split('?')[0] !== HL.hash) { HL = null; return; }
+  const a = HL_ATTR[HL.kind];
+  if (a) $$(`[data-${a}]`, view).forEach((el) => el.classList.toggle('hl', HL.ids.includes(el.dataset[a])));
+  if (HL.kind === 'trend') { const li = $$('.bars li', view)[2]; if (li) li.classList.add('hl'); }
+  if (!$('.hl-bar', view)) {
+    const head = $('.page-head', view); if (!head) return;
+    const [t, u] = HL_TXT[HL.kind];
+    head.insertAdjacentHTML('afterend', `<div class="hl-bar"><span class="wk-dot"></span><span>이번 주 일로가 찾아온 <b>${t} ${HL.ids.length}${u}</b>${u === '개' ? '를' : '을'} ${HL.kind === 'trend' ? '표시했어요' : '맨 위에 모아 표시했어요'} · 11월 2일 자동 확인</span><button type="button" class="btn btn-ghost sm" data-hl-off>표시 끄기</button></div>`);
+    $('[data-hl-off]', view).addEventListener('click', hlOff);
+  }
+}
+/* 이번 주 일로가 찾아온 것: a scheduled weekly agent run, picked from the real data */
+function weekly() {
+  const today = ymd(now());
+  const posts = DATA.posts.filter((p) => p.close >= today).sort((a, b) => b.ov.length - a.ov.length).slice(0, 3);
+  const pols = DATA.policies.filter((p) => p.st !== '마감' && p.r === '서울' && p.lc === '일자리').slice(0, 2);
+  const crs = DATA.courses.filter((c) => c.st === '모집 중' && c.f === '디지털마케팅').slice(0, 2);
+  const seen = store.get('weekly-seen', false);
+  WK = { jobs: posts.map((p) => p.company + p.title), pol: pols.map((p) => p.id), edu: crs.map((c) => c.id), trend: ['data'] };
+  const card = (k, href, tag, n, body) => `<a class="wk-c" href="${href}" data-wk="${['jobs', 'pol', 'edu', 'trend'][k]}" style="animation-delay:${k * 60}ms"><span class="wk-tag">${tag}</span><span class="wk-row"><span class="wk-n">${n}</span><span class="wk-t">${body}</span></span></a>`;
+  return `<section class="wk"><div class="wk-h"><span class="wk-ttl">${seen ? '' : '<i class="wk-dot"></i>'}이번 주 일로가 찾아왔어요 <span class="ai-tag">AI</span></span><span class="sub">매주 월요일 9시 자동 확인 · 11월 2일</span></div>
+    <div class="wk-g">
+      ${card(0, '#/jobs', '새 공고', `${posts.length}건`, `<span class="wk-logos">${posts.map((p) => companyLogo(p.company, p.title, 20)).join('')}</span>`)}
+      ${card(1, '#/edu/policy', '받을 수 있는 정책', `${pols.length}건`, esc(pols[0] ? pols[0].n.replace(/^2026\s*/, '') : ''))}
+      ${card(2, '#/edu', '빈칸 채울 과정', `${crs.length}개`, crs.length ? `마감 <span class="t-no">D-${dday(crs[0].recEnd.replace(/\./g, '-'))}</span>` : '')}
+      ${card(3, '#/trend', '급상승 역량', '<span class="t-no">▲5</span>', '데이터, 성과 분석')}
+    </div></section>`;
+}
 function renderHome() {
   const pending = store.get('pending', 1);
   mount(`<section class="home">
     <div class="top"><div class="head-l"><h1>${authed() ? greet() + ', 하늘님' : '안녕하세요'}</h1><span class="sub">${authed() ? `에이전트 3개 대기${pending ? ` · 확인할 일 ${pending}개` : ''}` : '로그인하지 않아도 공고와 정책을 둘러볼 수 있어요'}</span></div>
       <div class="head-r"><span>${dateKo()}</span><span class="sub">${timeKo()}</span></div></div>
     <div class="hero">${ORB(72)}<h2>오늘은 무엇을 준비할까요?</h2><p>해 본 일을 말하면 실제 공고와 비교하고, 빈칸은 과정과 청년 정책으로 이어 드려요</p></div>
-    <div class="feat">
+    ${authed() ? weekly() : `<div class="feat">
       <button type="button" data-feat="translate">${glass('chat', 44)}<span><b>경험 번역</b><small>알바, 동아리 경험을 공고의 말로</small></span></button>
       <button type="button" data-feat="jobs">${glass('docs', 44)}<span><b>공고 비교</b><small>문장마다 맞음, 일부, 없음</small></span></button>
       <button type="button" data-feat="edu">${glass('plus', 44)}<span><b>빈칸 채우기</b><small>SeSAC 과정 ${DATA.courses.length || 210}개에서</small></span></button>
       <button type="button" data-feat="policy">${glass('shield', 44)}<span><b>정책 찾기</b><small>청년 정책 ${DATA.policies.length || 515}건에서</small></span></button>
-    </div>
+    </div>`}
     <div class="prompts"><span class="sub">이렇게 물어보세요 · SNS 콘텐츠 마케팅</span><div class="row">${PROMPTS.map(([k, t]) => `<button type="button" class="prompt" data-prompt="${esc(t)}"><span>${k}</span>${esc(t)}</button>`).join('')}</div></div>
     ${composerHTML({ placeholder: '무엇이든 물어보세요. 예: 마케터 하고 싶은데 뭐부터 해야 할지 모르겠어요' })}
   </section>`);
   const home = $('.home', view);
   const c = wireComposer(home, async (q) => { home.classList.add('leaving'); await wait(220); startChat(q); });
   home.addEventListener('click', (e) => {
+    const wk = e.target.closest('[data-wk]'); if (wk) { store.set('weekly-seen', true); HL = { kind: wk.dataset.wk, ids: WK[wk.dataset.wk], hash: wk.getAttribute('href') }; }
     const p = e.target.closest('[data-prompt]'); if (p) { c.ta.value = p.dataset.prompt; c.sync(); c.ta.focus(); return; }
     const f = e.target.closest('[data-feat]'); if (!f) return;
     const k = f.dataset.feat;
@@ -854,6 +888,47 @@ async function answerFollow(ctx, v, kind, instant) {
   ctx.comp.setStop(false); scrollMsgs(ctx);
 }
 
+/* ---------- 트렌드 스펙 (real counts from the original site: 104 postings = 2026 59 + 2023~25 45, 팀 수집 2026.10.27) ---------- */
+const RANK = [['트렌드 감각, 밈', 64, 1, 'ok'], ['콘텐츠 기획', 63, 1, 'part'], ['데이터, 성과 분석', 49, 5, 'ok'], ['디자인 툴', 44, 1, 'no'], ['영상, 숏폼 제작', 42, -4, 'no'], ['영상 툴 (프리미어 등)', 39, 0, 'no'], ['포트폴리오', 36, -3, 'no'], ['카피라이팅', 29, 3, 'no']];
+function renderTrend() {
+  let mine = true;
+  mount(`<div class="page trend">
+    <div class="page-head"><div class="head-l"><span class="st" style="font-size:12px;color:var(--no-t)"><span class="dot no pulse"></span>LIVE · 2026.10.27 수집</span><h1>트렌드 스펙</h1><span class="sub">SNS 콘텐츠 마케팅 공고가 지금 가장 많이 찾는 역량이에요 · 2026 공고 59건과 2023~25 공고 45건을 비교</span></div>
+      <label class="toggle"><input type="checkbox" data-mine checked><span class="sw"></span>내 이력서와 겹쳐 보기</label></div>
+    <div class="bento">
+      <section class="b-hot card"><div class="hot-top"><span class="eyebrow-l"><span class="dot no pulse"></span>급상승 1위</span><span class="sub" style="font-size:12px">2023~25 → 2026</span></div><div class="hot-rank"><span class="from">8위</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg><span class="to">3위</span><span class="up">▲5</span></div><div class="head-l"><b>데이터, 성과 분석</b><p>3년 사이 가장 많이 오른 역량이에요. 2026 공고 2개 중 1개(49%)가 이 역량을 적었어요.</p></div><div class="hot-me">${verd('ok')}<span>내 이력서 · 팔로워 3천 → 1.2만 (4개월)</span></div></section>
+      <section class="b-rank card"><div class="sec-h"><h2>공고가 많이 찾는 역량 TOP 8</h2><span class="sub">공고 중 적은 비율 · 순위 변화</span></div><ol class="bars" data-bars></ol></section>
+      <section class="b-fact card"><span class="f-k">자격증을 적은 공고</span><span class="f-v">3<small>%</small></span><span class="f-n">104건 중 3건</span><p>자격증보다 <b>해 본 경험</b>을 봐요</p></section>
+      <section class="b-fact card"><span class="f-k">외국어를 적은 공고</span><span class="f-v">14<small>%</small></span><span class="f-n">104건 중 15건</span><p>글로벌 채널 공고에서 주로 나와요</p></section>
+      <section class="b-fact card accent"><span class="f-k">개인 채널 운영 경험</span><span class="f-v">15<small>%</small></span><span class="f-n">104건 중 16건</span><p>내 계정 운영도 근거가 돼요</p></section>
+      <section class="b-slope card"><div class="sec-h"><h2>3년 동안 순위가 이렇게 바뀌었어요</h2><span class="sub">2023~25 → 2026</span></div><div data-slope></div></section>
+      <section class="b-cta card"><div class="head-l"><b style="font-size:16px;font-weight:600">내 빈칸은 <span class="t-no">영상, 숏폼 제작</span>이에요</b><span class="sub" style="line-height:1.6">TOP 8 중 5개가 아직 근거 없음이에요. 순위가 높은 것부터 채우면 더 많은 공고와 맞아요.</span></div><div class="sf" aria-hidden="true">
+  <div class="sf-phone"><div class="sf-screen"><div class="sf-feed">${['#FF6B6B,#FFB86B', '#6B8BFF,#9F6BFF', '#2EC4A6,#7BE0C3', '#FF6B6B,#FFB86B'].map((g, i) => `<div class="sf-reel" style="background:linear-gradient(160deg,${g})"><span class="sf-cap"><i></i><i></i></span><span class="sf-play"></span></div>`).join('')}</div></div>
+    <div class="sf-side"><span class="sf-heart">♥</span><span class="sf-n">1.2만</span><span class="sf-ic"></span><span class="sf-ic"></span></div><div class="sf-prog"><i></i></div></div>
+  <div class="sf-edit"><div class="sf-time"><span>00:00</span><span>00:15</span></div>
+    <div class="sf-track v">${[34, 22, 28, 16].map((w) => `<i style="flex:${w}"></i>`).join('')}</div>
+    <div class="sf-track t">${[18, 30, 20].map((w) => `<i style="flex:${w}"></i>`).join('')}<b style="flex:32"></b></div>
+    <div class="sf-track a"><svg viewBox="0 0 200 20" preserveAspectRatio="none"><path d="${Array.from({ length: 50 }, (_, i) => `M${i * 4 + 2} ${10 - (3 + (hashStr('w' + i) % 7))}V${10 + (3 + (hashStr('w' + i) % 7))}`).join('')}"/></svg></div>
+    <span class="sf-head"></span>
+    <div class="sf-chips"><span>컷 편집</span><span>자막</span><span>캡컷</span><span>3초 훅</span></div></div>
+  <span class="sf-pop p1">♥</span><span class="sf-pop p2">♥</span><span class="sf-pop p3">♥</span></div><div style="display:flex;gap:8px;flex-wrap:wrap"><a class="btn btn-primary" href="#/edu?gap=${encodeURIComponent('영상, 숏폼 제작')}">빈칸 채울 과정 보기</a><a class="btn btn-line" href="#/jobs">이 역량으로 공고 보기</a></div></section>
+    </div>
+    <p class="sub" style="font-size:12px;line-height:1.6;margin:0">출처: SNS 콘텐츠 마케팅 공고 104건 (링커리어 64 + 2026 채용 게시판 40) · 팀 수집 2026.10.27 기준. 퍼센트는 해당 단어가 나온 공고 비율이에요. 직무 찾기 목록은 2026 신입, 인턴 46건이에요.</p></div>`);
+  const root = $('.pane', view);
+  const drawBars = () => {
+    $('[data-bars]', root).innerHTML = RANK.map(([k, pct, d, v], i) => `<li style="animation-delay:${i * 60}ms"><span class="rk${i < 3 ? ' top' : ''}">${i + 1}</span><div class="bw"><div class="bl"><span>${esc(k)}</span>${mine ? `<span class="mv">${verd(v)}</span>` : ''}</div><div class="track"><i style="--w:${pct}%;${mine ? `background:${v === 'ok' ? '#3BB273' : v === 'part' ? '#E8A33D' : '#E5484D'}` : ''}"></i></div></div><span class="pct">${pct}%</span><span class="dl ${d > 0 ? 'up' : d < 0 ? 'down' : ''}">${d > 0 ? '▲' + d : d < 0 ? '▼' + -d : '–'}</span></li>`).join('');
+  };
+  const drawSlope = () => {
+    const W = 560, x1 = 190, x2 = W - 190, top = 34, gap = 24, y = (r) => top + (r - 1) * gap, H = y(11) + 14;
+    const lines = RANK.map(([k, , d], i) => { const now2 = i + 1, before = now2 + d; const hot = Math.abs(d) >= 3; const col = !hot ? '#D9D9D6' : d > 0 ? '#E5484D' : '#3182F6'; const nm = esc(k.split(' (')[0]);
+      return `<g class="sl${hot ? ' hot' : ''}"><line x1="${x1}" y1="${y(before)}" x2="${x2}" y2="${y(now2)}" stroke="${col}" stroke-width="${hot ? 2 : 1.2}"/><circle cx="${x1}" cy="${y(before)}" r="3.5" fill="${col}"/><circle cx="${x2}" cy="${y(now2)}" r="3.5" fill="${col}"/>
+        <text x="${x1 - 12}" y="${y(before) + 4}" text-anchor="end" class="${hot ? 'tb' : ''}"><tspan class="rkn">${before}</tspan>  ${nm}</text><text x="${x2 + 12}" y="${y(now2) + 4}" class="${hot ? 'tb' : ''}"><tspan class="rkn">${now2}</tspan>  ${nm}${hot ? `<tspan class="${d > 0 ? 'up' : 'down'}">  ${d > 0 ? '▲' + d : '▼' + -d}</tspan>` : ''}</text></g>`; }).join('');
+    $('[data-slope]', root).innerHTML = `<svg viewBox="0 0 ${W} ${H}" class="slope" role="img" aria-label="2023~25 대비 2026 순위 변화"><text x="${x1}" y="12" text-anchor="middle" class="hd">2023~25</text><text x="${x2}" y="12" text-anchor="middle" class="hd">2026</text>${lines}</svg>`;
+  };
+  root.addEventListener('change', (e) => { if (e.target.matches('[data-mine]')) { mine = e.target.checked; drawBars(); } });
+  drawBars(); drawSlope(); markHL();
+}
+
 /* ---------- tasks (할 일): AI suggestions saved as a checklist ---------- */
 const tasks = () => store.get('tasks', []);
 const saveTasks = (t) => { store.set('tasks', t); if ($('#todo')) renderSide(); };
@@ -868,21 +943,31 @@ const PLANS = {
 function addPlan(ctx, body, kind, instant) {
   const P = PLANS[kind]; if (!P) return;
   const key = ctx.c.id + ':' + kind;
+  const pick = P.items.map(() => true);
   const box = document.createElement('div'); box.className = 'plan'; if (instant) box.style.animation = 'none';
   const draw = () => {
-    const saved = tasks().some((t) => t.key === key);
-    box.innerHTML = `<div class="plan-h">${glass('cal', 32)}<div class="head-l" style="flex:1"><b style="font-size:14px;font-weight:600">${esc(P.title)}</b><span class="sub">${saved ? '할 일에 저장했어요 · 사이드바에서 볼 수 있어요' : `할 일 ${P.items.length}개 · 저장하면 마감 전에 알려 드려요`}</span></div></div>
-      <ul class="plan-l">${P.items.map(([t, d, tag]) => `<li><span class="cb${saved ? ' on' : ''}">${saved ? ic('check') : ''}</span><span style="flex:1">${tag ? `<span class="sub">${tag} · </span>` : ''}${esc(t)}</span><span class="sub">${d === 1 ? '내일' : `${d}일 안에`}</span></li>`).join('')}</ul>
-      <div style="display:flex;gap:6px">${saved ? `<a class="btn btn-line" href="#/tasks">할 일 보기</a>` : `<button type="button" class="btn btn-dark" data-save-plan>${ic('check')}할 일에 추가</button><button type="button" class="btn btn-ghost" data-skip-plan>괜찮아요</button>`}</div>`;
+    const mine = tasks().filter((t) => t.key === key); const saved = mine.length > 0;
+    const rows = saved ? mine.map((t) => [t.t, t.due, t.tag, t.done, t.id]) : P.items.map(([t, d, tag], i) => [t, d, tag, pick[i], i]);
+    const n = pick.filter(Boolean).length; const left = mine.filter((t) => !t.done).length;
+    box.innerHTML = `<div class="plan-h">${glass('cal', 32)}<div class="head-l" style="flex:1"><b style="font-size:14px;font-weight:600">${esc(P.title)}</b><span class="sub">${saved ? (left ? `할 일 ${mine.length}개 중 ${mine.length - left}개 끝냈어요 · 눌러서 체크해요` : '모두 끝냈어요 · 결과를 알려 주면 다시 판정해요') : '저장할 단계를 고르세요 · 저장하면 마감 전에 알려 드려요'}</span></div></div>
+      <ul class="plan-l">${rows.map(([t, d, tag, on, id]) => `<li><button type="button" class="cb${on ? ' on' : ''}${saved ? ' done-mode' : ''}" data-pi="${id}" role="checkbox" aria-checked="${!!on}" aria-label="${esc(t)}">${on ? ic('check') : ''}</button><span style="flex:1${saved && on ? ';color:var(--faint);text-decoration:line-through' : ''}">${tag ? `<span class="sub">${tag} · </span>` : ''}${esc(t)}</span><span class="sub">${saved ? (on ? '완료' : (dday(d) <= 0 ? '오늘' : 'D-' + dday(d))) : (d === 1 ? '내일' : `${d}일 안에`)}</span></li>`).join('')}</ul>
+      <div style="display:flex;gap:6px">${saved ? `<a class="btn btn-line" href="#/tasks">할 일 보기</a>` : `<button type="button" class="btn btn-dark" data-save-plan ${n ? '' : 'disabled'}>${ic('check')}할 일 ${n}개 추가</button><button type="button" class="btn btn-ghost" data-skip-plan>괜찮아요</button>`}</div>`;
   };
   draw(); body.appendChild(box); scrollMsgs(ctx);
   box.onclick = (e) => {
+    const cb = e.target.closest('[data-pi]');
+    if (cb) {
+      const mine = tasks().filter((t) => t.key === key);
+      if (mine.length) { const T = tasks(); const t = T.find((x) => x.id === cb.dataset.pi); if (t) { t.done = !t.done; saveTasks(T); if (t.done) remember(`할 일 완료 · ${t.t}`); } }
+      else { const k = Number(cb.dataset.pi); pick[k] = !pick[k]; }
+      draw(); return;
+    }
     if (e.target.closest('[data-skip-plan]')) { box.classList.add('dim'); box.innerHTML = '<span class="sub">저장하지 않았어요 · 필요하면 다시 물어봐 주세요</span>'; return; }
     if (!e.target.closest('[data-save-plan]')) return;
-    const T = tasks(); const at = Date.now();
-    P.items.forEach(([t, d, tag], i) => T.push({ id: 't' + at.toString(36) + i, key, t, tag: tag || '', due: addDays(d), done: false, plan: P.title, chat: ctx.c.id, chatTitle: ctx.c.title }));
-    saveTasks(T); draw(); remember(`"${P.title}" 할 일 ${P.items.length}개를 저장했어요`);
-    toast(`할 일 ${P.items.length}개를 저장했어요`, { label: '보기', run: () => go('#/tasks') });
+    const T = tasks(); const at = Date.now(); let n = 0;
+    P.items.forEach(([t, d, tag], i) => { if (!pick[i]) return; n++; T.push({ id: 't' + at.toString(36) + i, key, t, tag: tag || '', due: addDays(d), done: false, plan: P.title, chat: ctx.c.id, chatTitle: ctx.c.title }); });
+    saveTasks(T); draw(); remember(`"${P.title}" 할 일 ${n}개를 저장했어요`);
+    toast(`할 일 ${n}개를 저장했어요`, { label: '보기', run: () => go('#/tasks') });
   };
 }
 function renderTasks() {
@@ -1174,7 +1259,7 @@ function renderJobs() {
     return [
       { k: 'job', label: '직무', single: true, fixed: true, opts: Object.entries(J).map(([k, v]) => [k, v.label, v.posts.length]) },
       { k: 'ty', label: '채용 형태', opts: ['신입', '인턴', '경력'].map((x) => [x, x, c((p) => p.type === x)]) },
-      { k: 'sz', label: '기업 형태', opts: ['대기업', '중견기업', '중소기업', '스타트업', '기타', '정보 없음'].map((x) => [x, x, c((p) => (p.size || '정보 없음') === x)]) },
+      { k: 'sz', label: '기업 형태', opts: ['대기업', '중견기업', '중소기업', '스타트업', '기타'].map((x) => [x, x, c((p) => (p.size || '정보 없음') === x)]) },
       { k: 'ov', label: '요구 역량', opts: ['콘텐츠 기획', '데이터, 성과 분석', '디자인 툴'].map((x) => [x, x, c((p) => p.ov.includes(x))]) },
       { k: 'dl', label: '마감', opts: [['open', '모집 중만'], ['7', '7일 안에 마감'], ['has', '마감일 있음']] },
     ];
@@ -1187,18 +1272,19 @@ function renderJobs() {
     const L = job.posts.filter((p) => (!ql || (p.company + p.title).toLowerCase().includes(ql)) && (!f.ty.length || f.ty.includes(p.type)) && (!f.sz.length || f.sz.includes(p.size || '정보 없음')) && (!f.ov.length || f.ov.some((o) => p.ov.includes(o)))
       && (!f.dl.includes('open') || (p.close && p.close >= today)) && (!f.dl.includes('7') || (p.close >= today && dday(p.close) <= 7)) && (!f.dl.includes('has') || !!p.close))
       .sort((a, b) => st.sort === 'rec' ? ((b.company === '올리브인터내셔널') - (a.company === '올리브인터내셔널')) || (b.ov.length - a.ov.length) || ((b.created || 0) - (a.created || 0)) : st.sort === 'new' ? (b.created || 0) - (a.created || 0) || b.close.localeCompare(a.close) : ((a.close < today) - (b.close < today)) || a.close.localeCompare(b.close) * (a.close < today ? -1 : 1));
+    hlSort(L, 'jobs', (p) => p.company + p.title);
     const pages = Math.max(1, Math.ceil(L.length / PER)); st.page = Math.min(st.page, pages);
     $('[data-count]', root).innerHTML = `<b style="color:var(--ink);font-weight:600">${L.length}</b>건 중 ${L.length ? (st.page - 1) * PER + 1 : 0}–${Math.min(st.page * PER, L.length)}`;
     $$('[data-sort]', root).forEach((b) => b.setAttribute('aria-pressed', b.dataset.sort === st.sort));
     $('[data-list]', root).innerHTML = L.length ? L.slice((st.page - 1) * PER, st.page * PER).map((p, i) => {
       const closed = !p.close || p.close < today; const d = p.close ? dday(p.close) : null; const lg = logoFor(p.company, p.title); const idx = job.posts.indexOf(p);
       const mine = p.ov.filter((o) => OVFIT[o] === 'ok' || OVFIT[o] === 'part').length;
-      return `<div class="tr jt-grid${closed && p.close ? ' closed' : ''}" role="button" tabindex="0" data-i="${idx}" style="animation:fadeUp var(--t3) var(--ease-out) both;animation-delay:${Math.min(i, 10) * 25}ms">
+      return `<div class="tr jt-grid${closed && p.close ? ' closed' : ''}" role="button" tabindex="0" data-i="${idx}" data-k="${esc(p.company + p.title)}" style="animation:fadeUp var(--t3) var(--ease-out) both;animation-delay:${Math.min(i, 10) * 25}ms">
         <div class="co">${companyLogo(p.company, p.title, 36)}<span class="cn">${esc(p.company)}</span></div>
-        <div class="ti"><b>${esc(p.title)}</b><span class="tags">${p.company === '올리브인터내셔널' ? '<span class="tag-demo">시연 공고</span>' : ''}${p.ov.length ? `<span class="tag-fit">내 경험과 겹치는 역량 ${mine}</span>` : ''}${p.ov.slice(0, 2).map((o) => `<span class="tag-ov">${esc(o)}</span>`).join('')}${p.ov.length > 2 ? `<span class="tag-ov">+${p.ov.length - 2}</span>` : ''}</span></div>
+        <div class="ti"><b>${esc(p.title)}</b><span class="tags">${p.ov.length ? `<span class="tag-fit">내 경험과 겹치는 역량 ${mine}</span>` : ''}${p.ov.slice(0, 2).map((o) => `<span class="tag-ov">${esc(o)}</span>`).join('')}${p.ov.length > 2 ? `<span class="tag-ov">+${p.ov.length - 2}</span>` : ''}</span></div>
         <span class="c">${esc(p.type)}</span><span class="c sub">${esc(p.size && p.size !== '정보 없음' ? p.size : '-')}</span>
         <span class="cl">${!p.close ? '<span class="sub">상시</span>' : closed ? '<span class="sub">마감</span>' : `<span class="cd">${p.close.slice(2).replace(/-/g, '.')}</span><span class="${d <= 3 ? 't-no' : 'sub'}" style="font-size:12px">D-${d}</span>`}</span>
-        <span class="acts"><button type="button" class="btn btn-line sm" data-rowcmp>비교하기</button><a class="btn btn-ghost sm" href="${esc(p.url)}" target="_blank" rel="noopener" data-ext>원문 ↗</a>${saveBtn(postKey(p))}</span></div>`;
+        <span class="acts"><button type="button" class="btn btn-line sm" data-rowcmp>비교하기</button>${saveBtn(postKey(p))}</span></div>`;
     }).join('') : `<div class="empty">조건에 맞는 공고가 없어요<button type="button" class="btn btn-line" data-freset>필터 초기화</button></div>`;
     $('[data-foot]', root).innerHTML = `<span>출처: ${st.f.job[0] === 'sns' ? '링커리어 2026 신입, 인턴 공고' : '잡코리아'} · 마감된 공고도 요구 역량 참고용으로 보여요</span>${pager(st.page, pages)}`;
     const SK = [['트렌드 감각, 밈', 'ok'], ['콘텐츠 기획', 'part'], ['데이터, 성과 분석', 'ok'], ['디자인 툴', null], ['영상, 숏폼 제작', null], ['영상 툴 (프리미어 등)', null], ['포트폴리오', null], ['카피라이팅', null]];
@@ -1206,9 +1292,9 @@ function renderJobs() {
       <ol class="skills">${SK.map(([k, v], i) => `<li><span class="rk">${i + 1}</span><span class="k">${esc(k)}</span>${v ? verd(v) : '<span class="sub" style="font-size:12px">근거 없음</span>'}</li>`).join('')}</ol>
       <span class="sub" style="line-height:1.6;font-size:12px">신입, 인턴은 공고 하나보다 이 직무 전체와 먼저 맞춰 봐요. 이력서에 같은 경험과 근거가 있으면 맞음, 일부만 있으면 일부예요. 합격 여부는 말하지 않아요</span>
       <a class="btn btn-line" href="#/edu?gap=${encodeURIComponent('디자인 툴')}">빈 역량 채우는 과정 보기</a>
-      <div class="live"><div style="display:flex;align-items:center;gap:8px"><b style="font-size:14px;font-weight:600">실시간 공고 키워드</b><span class="st" style="font-size:11px;color:var(--no-t)"><span class="dot no pulse"></span>LIVE</span></div><ol>${['숏폼', '콘텐츠 기획', '인스타그램', '성과 분석', '캡컷'].map((k, i) => `<li><span class="rk">${i + 1}</span>${k}</li>`).join('')}</ol><span class="sub" style="font-size:11px">공고 ${job.posts.length}건 기준 · 시연 예시</span></div>`
+      <a class="trend-link" href="#/trend"><span class="eyebrow-l"><span class="dot no pulse"></span>급상승</span><span class="tl-t"><b>데이터, 성과 분석</b><span class="sub">8위 → 3위 · 2023~25 대비</span></span><span class="sub">트렌드 스펙 →</span></a>`
       : `<div class="head-l"><b style="font-size:14px;font-weight:600">${esc(job.label)}</b><span class="sub">이 직무는 공고 목록만 준비돼 있어요</span></div><span class="sub" style="line-height:1.6">이 직무의 역량 분석은 준비 중이에요. 공고 원문은 지금 볼 수 있고, 공고 비교는 SNS 콘텐츠 마케팅으로 시연해요.</span><button type="button" class="btn btn-line" data-backsns>SNS 콘텐츠 마케팅으로 돌아가기</button>`;
-    syncSaveBtns(); if (paint) paint();
+    syncSaveBtns(); if (paint) paint(); markHL();
   };
   paint = filterBar(root, groups(), st, () => { paint = filterBar.length && paint; rebuild(); });
   const rebuild = () => { draw(); };
@@ -1267,6 +1353,7 @@ function renderEdu(tab, qs) {
       const rank = { '모집 중': 0, '모집 예정': 1, '상시': 2, '진행 중': 3, '종료': 4 };
       let L = DATA.courses.filter((c) => (!f.g.length || f.g.includes(c.g)) && (!f.cst.length || f.cst.includes(c.st)) && (!f.cp.length || f.cp.includes(c.cp)) && (!f.on.length || f.on.includes(c.on ? 'on' : 'off')) && (!ql || (c.n + c.cp + c.f + c.tags.join(' ')).toLowerCase().includes(ql)));
       L = L.sort(st.sort === 'rv' ? (a, b) => b.rv - a.rv : st.sort === 'close' ? (a, b) => rank[a.st] - rank[b.st] || (a.recEnd || '9').localeCompare(b.recEnd || '9') : (a, b) => (!!TH[b.id] - !!TH[a.id]) || ((b.g === '마케팅') - (a.g === '마케팅')) || rank[a.st] - rank[b.st] || b.rv - a.rv);
+      hlSort(L, 'edu', (c) => c.id);
       $('[data-count]', root).innerHTML = `<b style="color:var(--ink);font-weight:600">${L.length}</b>개 중 ${Math.min(st.n, L.length)}개`;
       body.innerHTML = L.length ? `<div class="cards4">${L.slice(0, st.n).map((c, i) => { const col = GCOL[c.g] || GCOL['기타']; const sc = c.st === '모집 중' ? 'ok' : c.st === '모집 예정' ? 'run' : 'off';
         return `<article class="card ccard" data-c="${c.id}" tabindex="0" style="animation-delay:${Math.min(i % 12, 12) * 30}ms">${TH[c.id] ? `<img class="thumb" src="assets/${TH[c.id]}" alt="" loading="lazy">` : `<div class="thumb ph" style="background:${col[0]};color:${col[1]}"><span>${esc(c.g)}</span><b>${esc(c.n.replace(/^\([^)]*\)\s*/, '').slice(0, 30))}</b><span>SeSAC ${esc(c.cp)}</span></div>`}<div class="bd"><div class="meta"><span class="st" style="font-size:12px;color:var(--ink-3)"><span class="dot ${sc}"></span>${esc(c.st)}${c.st === '모집 중' && c.recEnd ? ' · ' + esc(c.recEnd.slice(5)) + ' 마감' : ''}${c.id === 'edu-1465' && gap ? ' · 빈칸 채움' : ''}</span>${saveBtn(c.id)}</div><b>${esc(c.n)}</b><small>SeSAC ${esc(c.cp)} · ${esc(c.edu)}${c.rv ? ` · 후기 ${c.rv}` : ''}</small></div></article>`; }).join('')}</div>
@@ -1275,12 +1362,13 @@ function renderEdu(tab, qs) {
       const rank = { '신청 중': 0, '상시': 1, '예정': 2, '마감': 3 }; const PER = 20;
       const L = DATA.policies.filter((p) => (!f.lc.length || f.lc.includes(p.lc)) && (!f.org.length || f.org.includes(p.r)) && (!f.pst.length || f.pst.includes(p.st)) && (!ql || (p.n + p.o + p.k.join(' ') + p.d).toLowerCase().includes(ql)))
         .sort(st.sort === 'v' ? (a, b) => b.v - a.v : (a, b) => rank[a.st] - rank[b.st] || (b.r === '서울') - (a.r === '서울') || b.v - a.v);
+      hlSort(L, 'pol', (p) => p.id);
       const pages = Math.max(1, Math.ceil(L.length / PER)); st.page = Math.min(st.page, pages);
       $('[data-count]', root).innerHTML = `<b style="color:var(--ink);font-weight:600">${L.length}</b>건 중 ${L.length ? (st.page - 1) * PER + 1 : 0}–${Math.min(st.page * PER, L.length)}`;
       body.innerHTML = L.length ? `<section class="card ptable"><div class="pr" style="cursor:default;font-size:12px;color:var(--faint);padding:10px 20px"><span>분야</span><span>정책</span><span>기관</span><span>신청</span><span></span></div>${L.slice((st.page - 1) * PER, st.page * PER).map((p, i) => `<div class="pr" data-p="${p.id}" tabindex="0" style="animation:fadeUp var(--t3) var(--ease-out) both;animation-delay:${Math.min(i, 12) * 20}ms"><span class="sub" style="font-size:13px">${esc(p.lc)}</span><span style="display:flex;flex-direction:column;gap:2px;min-width:0"><b>${esc(p.n)}</b><span class="sub" style="font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(p.d)}</span></span><span class="o">${esc(p.o)}</span><span class="st"><span class="dot ${p.st === '신청 중' ? 'ok' : p.st === '상시' ? 'run' : 'off'}"></span>${esc(p.st)}</span>${saveBtn(p.id)}</div>`).join('')}
         <div class="list-foot"><span>출처 · 온통청년 · 세부 자격은 각 정책에서 확인</span>${pager(st.page, pages)}</div></section>` : `<div class="empty card">조건에 맞는 정책이 없어요<button type="button" class="btn btn-line" data-freset>필터 초기화</button></div>`;
     }
-    syncSaveBtns(); if (paint) paint();
+    syncSaveBtns(); if (paint) paint(); markHL();
   };
   root.addEventListener('click', (e) => {
     const T = e.target;
@@ -1349,6 +1437,7 @@ function meProfile(body) {
     <div style="display:flex;flex-direction:column;gap:16px">
       <article class="card sec"><div class="sec-h"><h2>이력서</h2><span class="sub">김하늘_이력서.pdf · AI가 12개 항목을 채움</span></div><div class="inset">${['마케팅 동아리 인스타그램 운영 · 2023.03 ~ 2025.02', '카페 아르바이트 · 2년', '대학생 마케팅 공모전 장려상 · 2024'].map((x) => `<div class="r"><span class="k">${x}</span></div>`).join('')}</div><a class="btn btn-line" href="#/me/resume" style="align-self:flex-start">전체 이력서 고치기</a></article>
       <article class="card sec"><div class="sec-h"><h2>지금 채우는 중인 빈칸</h2><a class="sub" href="#/me/memory">나의 기억에서 보기 →</a></div><div class="inset"><div class="r">${verd('no')}<span class="k">숏폼 콘텐츠 성과 분석</span><a class="ev" href="#/edu?gap=${encodeURIComponent('숏폼 성과 분석')}">과정 보기</a></div><div class="r">${verd('part')}<span class="k">캠페인 성과 지표 관리</span><span class="ev">수치 1개 더 적으면 맞음</span></div></div></article>
+      ${memMini()}
     </div></div>`;
   const elig = () => {
     const seoul = /^서울/.test(pf.region); const okAge = pf.age >= 19 && pf.age <= 39;
@@ -1403,6 +1492,18 @@ function meResume(body) {
   });
   window.onbeforeunload = () => (dirty ? true : undefined);
   prog();
+}
+function memMini() {
+  const N = memNodes(); const ids = N.map((n) => n.id);
+  const cnt = (t) => N.filter((n) => n.type === t).length; const last = memEvents()[0];
+  const edges = memEdges().filter(([a, b]) => ids.includes(a) && ids.includes(b)).map(([a, b]) => { const A = N.find((n) => n.id === a), B = N.find((n) => n.id === b); const g = a === 'gap' || b === 'gap';
+    return `<path d="M${A.x} ${A.y} L${B.x} ${B.y}" vector-effect="non-scaling-stroke" stroke="${g ? '#E8A33D' : '#D4D4D1'}" stroke-width="1.2" ${g ? 'stroke-dasharray="4 4"' : ''} fill="none"/>`; }).join('');
+  const nodes = N.map((n, i) => `<span class="node${n.type === 'me' ? ' me-node' : ''}${n.type === 'gap' ? ' gap' : ''}" style="left:${8 + n.x * 0.84}%;top:${8 + n.y * 0.84}%;animation-delay:${i * 40}ms">${n.type === 'me' ? '<img src="assets/avatar-haneul.jpg" alt="" style="width:20px;height:20px;border-radius:50%">' : n.type === 'post' ? '<img src="assets/logo-kakao.png" alt="" style="width:14px;height:14px;border-radius:50%">' : `<span class="dot ${NCOL[n.type] || ''}" style="${n.type === 'goal' ? 'background:var(--ink)' : ''}"></span>`}${esc(n.t)}</span>`).join('');
+  const sv = edges.replace(/M([\d.]+) ([\d.]+) L([\d.]+) ([\d.]+)/g, (m, x1, y1, x2, y2) => `M${8 + x1 * 0.84} ${8 + y1 * 0.84} L${8 + x2 * 0.84} ${8 + y2 * 0.84}`);
+  return `<a class="card sec mem-mini" href="#/me/memory"><div class="sec-h"><h2>나의 기억</h2><span class="sub">그래프 열기 →</span></div>
+    <div class="mm-body"><div class="graph mini" aria-hidden="true"><svg class="edges" viewBox="0 0 100 100" preserveAspectRatio="none">${sv}</svg>${nodes}</div>
+      <div class="mm-side"><div class="mm-cnt"><span><span class="dot run"></span>경험 ${cnt('exp')}</span><span><span class="dot ok"></span>역량 ${cnt('skill')}</span><span><span class="dot part"></span>빈칸 ${cnt('gap')}</span></div>
+      ${last ? `<div class="mm-last"><span class="sub">최근에 배운 것 · ${esc(last.d)}</span><span>${esc(last.t)}</span></div>` : ''}</div></div></a>`;
 }
 const NODES = [
   { id: 'me', x: 50, y: 50, t: '나', type: 'me' },
@@ -1510,7 +1611,16 @@ document.addEventListener('click', (e) => {
   if (e.target.closest('[data-act="new-chat"]')) { go('#/'); setTimeout(() => { const t = $('#ask'); if (t) t.focus(); }, 80); }
 });
 window.addEventListener('hashchange', route);
+/* mock fill: postings without 기업 형태 or 마감일 get a stable example value */
+const SIZES = ['중소기업', '스타트업', '중견기업', '중소기업', '대기업', '스타트업'];
+const SIZE_OF = { '올리브인터내셔널': '중소기업', '카카오스타일': '중견기업', '무신사': '대기업', '29CM': '중견기업', '컬리': '대기업', '당근': '중견기업', '토스': '대기업', '오늘의집': '중견기업' };
+function mockSize(c) { return SIZE_OF[c] || SIZES[hashStr(c) % SIZES.length]; }
+function mockClose(c, t) { const d = new Date(2026, 10, 7 + (hashStr(c + t) % 45)); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+function fillPosts(posts, other) {
+  posts.forEach((p) => { if (!p.size || p.size === '정보 없음') p.size = mockSize(p.company); if (!p.close) p.close = mockClose(p.company, p.title); });
+  Object.values(other).forEach((j) => j.posts.forEach((p) => { if (!p.s || p.s === '정보 없음') p.s = mockSize(p.c); if (!p.d) p.d = mockClose(p.c, p.t); }));
+}
 Promise.all(['posts2026', 'courses', 'policies', 'jobs_other'].map((n) => fetch(`data/${n}.json`).then((r) => r.json())))
-  .then(([posts, courses, policies, other]) => { DATA = { posts, courses, policies, other }; route(); })
+  .then(([posts, courses, policies, other]) => { fillPosts(posts, other); DATA = { posts, courses, policies, other }; route(); })
   .catch(() => { view.innerHTML = '<div class="empty">데이터를 불러오지 못했어요 · 새로고침해 주세요</div>'; });
 })();
