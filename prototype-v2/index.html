@@ -11,6 +11,12 @@
 </head>
 <body>
 <div id="app" class="shell">
+  <header class="mtop" aria-label="모바일 상단">
+    <button type="button" class="icon-btn" data-act="menu" aria-label="메뉴 열기" aria-expanded="false"><svg class="i-open" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10"/></svg><svg class="i-close" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    <a class="mtop-brand" href="#/" aria-label="일로 홈"><img src="assets/illo_logo.png" alt="일로"></a>
+    <a class="mtop-me" href="#/me" data-act="me-menu" aria-label="내 계정 메뉴"><img src="assets/avatar-haneul.jpg" alt=""></a>
+  </header>
+  <div class="scrim" data-act="menu-close" aria-hidden="true"></div>
   <aside class="side" aria-label="사이드바">
     <a class="brand" href="#/" aria-label="일로 홈"><img src="assets/illo_logo.png" alt="일로"></a>
     <button type="button" class="btn btn-line new-chat" data-act="new-chat"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>새 대화</button>

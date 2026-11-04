@@ -215,6 +215,10 @@ function route() {
   const { parts, q } = parse();
   const [a, b] = parts;
   let navKey = 'home', active = null;
+  document.body.classList.toggle('on-home', !a);
+  document.body.classList.toggle('on-chat', a === 'chat');
+  document.body.classList.toggle('on-trend', a === 'trend');
+  const mm = $('.mtop-me'); if (mm) { mm.hidden = !authed(); }
   if (a !== 'login' && a !== 'signup') document.body.classList.remove('auth-on');
   if (a === 'login') { renderLogin(); return; }
   if (a === 'signup') { renderSignup(); return; }
@@ -235,12 +239,16 @@ function route() {
 function renderMe2() {
   const slot = $('#me-slot'); if (!slot) return;
   slot.innerHTML = authed()
-    ? `<button type="button" class="me" data-act="me-menu" aria-haspopup="menu"${location.hash.startsWith('#/me') ? ' aria-current="page"' : ''}><img src="assets/avatar-haneul.jpg" alt=""><span><strong>김하늘</strong><span>시연용 계정</span></span><span class="sub" style="margin-left:auto">⋯</span></button>`
+    ? `<button type="button" class="me" data-act="me-menu" aria-haspopup="menu"${location.hash.startsWith('#/me') ? ' aria-current="page"' : ''}><img src="assets/avatar-haneul.jpg" alt=""><span><strong>김하늘</strong><span>시연용 계정</span></span><span class="sub" style="margin-left:auto">⋯</span></button>
+      <div class="me-mob"><button type="button" class="me-tg" data-act="me-toggle" aria-expanded="false"><span>김하늘</span><span class="sub">프로필</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
+        <div class="me-exp" hidden><div class="me-card"><img src="assets/avatar-haneul.jpg" alt=""><span><strong>김하늘</strong><span class="sub">시연용 계정 · SNS 콘텐츠 마케터</span></span></div>
+        <div class="me-links"><a href="#/me">마이페이지</a><a href="#/me/resume">기본 이력서</a><a href="#/me/memory">나의 기억</a><a href="#/apply">지원서</a><button type="button" data-act="logout">로그아웃</button></div></div></div>`
     : `<div class="login-box"><span class="sub" style="line-height:1.5">로그인하면 이력서로 비교하고, 대화와 기억이 저장돼요</span><a class="btn btn-dark" href="#/login" style="width:100%">로그인</a><a class="btn btn-line" href="#/signup" style="width:100%">회원가입</a></div>`;
 }
 function meMenu(btn) {
   closeMenu(); const r = btn.getBoundingClientRect(); const m = document.createElement('div'); m.id = 'ctx-menu'; m.className = 'menu'; m.setAttribute('role', 'menu');
   m.style.left = r.left + 'px'; m.style.top = Math.max(8, r.top - 176) + 'px';
+  if (r.top < 200) { m.style.top = (r.bottom + 8) + 'px'; m.style.left = 'auto'; m.style.right = Math.max(8, innerWidth - r.right) + 'px'; }
   m.innerHTML = `<button type="button" role="menuitem" data-m="me">마이페이지</button><button type="button" role="menuitem" data-m="resume">기본 이력서</button><button type="button" role="menuitem" data-m="apply">지원서</button><div class="menu-sep"></div><button type="button" role="menuitem" data-m="out" class="danger">로그아웃</button>`;
   document.body.appendChild(m); $('button', m).focus();
   m.onclick = (e) => { const b = e.target.closest('[data-m]'); if (!b) return; closeMenu(); const k = b.dataset.m;
@@ -402,12 +410,13 @@ function composerHTML({ placeholder, tools = true, stop = false, chips = '' }) {
       <button type="button" class="tool" data-tool="policy">${ic('policy')}정책 자격 확인</button>` : chips}
       <span class="sp"></span>
       <button type="button" class="icon-btn" data-tool="mic" aria-label="말로 입력하기">${ic('mic')}</button>
-      ${stop ? `<button type="button" class="btn btn-line" data-stop>${ic('stop')}멈추기</button>` : ''}
-      <button type="submit" class="btn btn-primary" data-send disabled>${ic('send')}보내기</button>
+      ${stop ? `<button type="button" class="btn btn-line" data-stop>${ic('stop')}<span class="send-t">멈추기</span></button>` : ''}
+      <button type="submit" class="btn btn-primary" data-send disabled>${ic('send')}<span class="send-t">보내기</span></button>
     </div></form>`;
 }
 function wireComposer(root, onSend) {
   const f = $('[data-composer]', root); const ta = $('textarea', f); const send = $('[data-send]', f);
+  if (matchMedia('(max-width:767px)').matches) ta.placeholder = '물어보세요';
   const sync = () => { send.disabled = !ta.value.trim(); ta.style.height = 'auto'; ta.style.height = Math.min(ta.scrollHeight, 200) + 'px'; };
   ta.addEventListener('input', sync);
   ta.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); if (ta.value.trim()) f.requestSubmit(); } });
@@ -481,6 +490,7 @@ function renderHome() {
   mount(`<section class="home">
     <div class="top"><div class="head-l"><h1>${authed() ? greet() + ', 하늘님' : '안녕하세요'}</h1><span class="sub">${authed() ? `에이전트 3개 대기${pending ? ` · 확인할 일 ${pending}개` : ''}` : '로그인하지 않아도 공고와 정책을 둘러볼 수 있어요'}</span></div>
       <div class="head-r"><span>${dateKo()}</span><span class="sub">${timeKo()}</span></div></div>
+    <div class="m-hello"><span>${authed() ? '안녕하세요 <em>하늘님</em>' : '안녕하세요'}</span><span>무엇을 준비할까요?</span></div>
     <div class="hero">${ORB(72)}<h2>오늘은 무엇을 준비할까요?</h2><p>해 본 일을 말하면 실제 공고와 비교하고, 빈칸은 과정과 청년 정책으로 이어 드려요</p></div>
     ${authed() ? weekly() : `<div class="feat">
       <button type="button" data-feat="translate">${glass('chat', 44)}<span><b>경험 번역</b><small>알바, 동아리 경험을 공고의 말로</small></span></button>
@@ -488,7 +498,7 @@ function renderHome() {
       <button type="button" data-feat="edu">${glass('plus', 44)}<span><b>빈칸 채우기</b><small>SeSAC 과정 ${DATA.courses.length || 210}개에서</small></span></button>
       <button type="button" data-feat="policy">${glass('shield', 44)}<span><b>정책 찾기</b><small>청년 정책 ${DATA.policies.length || 515}건에서</small></span></button>
     </div>`}
-    <div class="prompts"><span class="sub">이렇게 물어보세요 · SNS 콘텐츠 마케팅</span><div class="row">${PROMPTS.map(([k, t]) => `<button type="button" class="prompt" data-prompt="${esc(t)}"><span>${k}</span>${esc(t)}</button>`).join('')}</div></div>
+    <div class="prompts"><span class="m-agent">${ORB(18)}<b>일로</b></span><span class="sub">이렇게 물어보세요 · SNS 콘텐츠 마케팅</span><div class="row">${PROMPTS.map(([k, t]) => `<button type="button" class="prompt" data-prompt="${esc(t)}"><i class="p-ic">${k === '비교' ? `<b class="p-doc">${companyLogo('카카오스타일', '', 26)}<u><s class="ok"></s><s class="ok"></s><s class="part"></s><s class="no"></s></u></b>` : glass(k === '빈칸' ? 'plus' : 'shield', 30)}</i><em>${esc(t)}</em><span>${k}</span></button>`).join('')}</div></div>
     ${composerHTML({ placeholder: '무엇이든 물어보세요. 예: 마케터 하고 싶은데 뭐부터 해야 할지 모르겠어요' })}
   </section>`);
   const home = $('.home', view);
@@ -524,11 +534,11 @@ function renderChat(id) {
   const fresh = sessionStorage.getItem('illo2-run') === id && !c.done;
   mount(`<div class="chat">
     <section class="ws" aria-labelledby="ws-h">
-      <div class="ws-head"><div class="head-l"><h2 id="ws-h">작업 공간</h2><span class="sub" id="ws-sub">에이전트 준비 중</span></div><span class="sub">시연용 예시 결과예요</span></div>
+      <div class="ws-head"><div class="head-l"><h2 id="ws-h">작업 공간</h2><span class="sub" id="ws-sub">에이전트 준비 중</span></div><span class="sub ws-demo">시연용 예시 결과예요</span><button type="button" class="btn btn-line sm ws-close" data-act="ws-toggle">대화로</button></div>
       <div id="ws-body" style="display:flex;flex-direction:column;gap:14px"></div>
     </section>
     <section class="talk" aria-label="대화">
-      <div class="talk-h"><div class="head-l"><h1>${esc(c.title)}</h1><span class="sub" id="talk-sub">지원은 하지 않아요 · 고르는 건 하늘님</span></div><div class="head-r"><span>${dateKo()}</span><span class="sub">${timeKo()}</span></div></div>
+      <div class="talk-h"><div class="head-l"><h1>${esc(c.title)}</h1><span class="sub" id="talk-sub">지원은 하지 않아요 · 고르는 건 하늘님</span></div><button type="button" class="btn btn-line sm ws-open-btn" data-act="ws-toggle">작업 공간</button><div class="head-r"><span>${dateKo()}</span><span class="sub">${timeKo()}</span></div></div>
       <div class="msgs" id="msgs" aria-live="polite"></div>
       ${composerHTML({ placeholder: '이어서 물어보세요. 예: 일부 3개는 뭘 더 적으면 돼?', tools: false, stop: true })}
     </section></div>`);
@@ -890,6 +900,13 @@ async function answerFollow(ctx, v, kind, instant) {
 
 /* ---------- 트렌드 스펙 (real counts from the original site: 104 postings = 2026 59 + 2023~25 45, 팀 수집 2026.10.27) ---------- */
 const RANK = [['트렌드 감각, 밈', 64, 1, 'ok'], ['콘텐츠 기획', 63, 1, 'part'], ['데이터, 성과 분석', 49, 5, 'ok'], ['디자인 툴', 44, 1, 'no'], ['영상, 숏폼 제작', 42, -4, 'no'], ['영상 툴 (프리미어 등)', 39, 0, 'no'], ['포트폴리오', 36, -3, 'no'], ['카피라이팅', 29, 3, 'no']];
+/* TOP 8 as a leaderboard (mobile): medal, round icon, name + one line, change chip */
+const RANK_IC = ['chat', 'docs', 'search', 'folder', 'plus', 'mail', 'cal', 'shield'];
+const RANK_BG = ['#EAF1FF', '#F1ECFF', '#E6F6EE', '#FFF1E2', '#FDECEC', '#EEF4FF', '#FFF4E5', '#EAF7F1'];
+function medal(n) {
+  const c = [['#F7C64A', '#E9A92B', '#E5484D'], ['#D5DAE2', '#AEB6C2', '#3182F6'], ['#E3A06A', '#C27A43', '#E8A33D']][n - 1];
+  return `<svg class="medal" viewBox="0 0 28 34" aria-hidden="true" style="fill:initial;stroke:none"><path d="M7 1h5l3 9H10z" fill="${c[2]}"/><path d="M21 1h-5l-3 9h5z" fill="${c[2]}" opacity=".85"/><circle cx="14" cy="21" r="10" fill="${c[1]}"/><circle cx="14" cy="21" r="8" fill="${c[0]}"/><text x="14" y="25" text-anchor="middle" font-size="11" font-weight="700" fill="#fff" font-family="Pretendard,sans-serif">${n}</text></svg>`;
+}
 function renderTrend() {
   let mine = true;
   mount(`<div class="page trend">
@@ -897,10 +914,11 @@ function renderTrend() {
       <label class="toggle"><input type="checkbox" data-mine checked><span class="sw"></span>내 이력서와 겹쳐 보기</label></div>
     <div class="bento">
       <section class="b-hot card"><div class="hot-top"><span class="eyebrow-l"><span class="dot no pulse"></span>급상승 1위</span><span class="sub" style="font-size:12px">2023~25 → 2026</span></div><div class="hot-rank"><span class="from">8위</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg><span class="to">3위</span><span class="up">▲5</span></div><div class="head-l"><b>데이터, 성과 분석</b><p>3년 사이 가장 많이 오른 역량이에요. 2026 공고 2개 중 1개(49%)가 이 역량을 적었어요.</p></div><div class="hot-me">${verd('ok')}<span>내 이력서 · 팔로워 3천 → 1.2만 (4개월)</span></div></section>
-      <section class="b-rank card"><div class="sec-h"><h2>공고가 많이 찾는 역량 TOP 8</h2><span class="sub">공고 중 적은 비율 · 순위 변화</span></div><ol class="bars" data-bars></ol></section>
+      <section class="b-rank card"><span class="rank-src">SNS 콘텐츠 마케팅 공고 104건 · 2026.10.27</span><div class="sec-h"><h2>공고가 많이 찾는 역량 TOP 8</h2><span class="sub">공고 중 적은 비율 · 순위 변화</span></div><div class="rank-key" data-rkey><span><span class="dot ok"></span>내 이력서 맞음</span><span><span class="dot part"></span>일부</span><span><span class="dot no"></span>없음</span></div><ol class="bars" data-bars></ol><ol class="lb" data-lb></ol></section>
       <section class="b-fact card"><span class="f-k">자격증을 적은 공고</span><span class="f-v">3<small>%</small></span><span class="f-n">104건 중 3건</span><p>자격증보다 <b>해 본 경험</b>을 봐요</p></section>
       <section class="b-fact card"><span class="f-k">외국어를 적은 공고</span><span class="f-v">14<small>%</small></span><span class="f-n">104건 중 15건</span><p>글로벌 채널 공고에서 주로 나와요</p></section>
       <section class="b-fact card accent"><span class="f-k">개인 채널 운영 경험</span><span class="f-v">15<small>%</small></span><span class="f-n">104건 중 16건</span><p>내 계정 운영도 근거가 돼요</p></section>
+      <div class="b-facts-m">${[['자격증을 적은 공고', 3, '104건 중 3건', '자격증보다 해 본 경험을 봐요'], ['외국어를 적은 공고', 14, '104건 중 15건', '글로벌 채널 공고에서 주로'], ['개인 채널 운영 경험', 15, '104건 중 16건', '내 계정 운영도 근거가 돼요']].map(([k, v, n, d]) => `<div><span class="f-k">${k}</span><span class="f-v">${v}<small>%</small></span><span class="f-n">${n}</span><p>${d}</p></div>`).join('')}</div>
       <section class="b-slope card"><div class="sec-h"><h2>3년 동안 순위가 이렇게 바뀌었어요</h2><span class="sub">2023~25 → 2026</span></div><div data-slope></div></section>
       <section class="b-cta card"><div class="head-l"><b style="font-size:16px;font-weight:600">내 빈칸은 <span class="t-no">영상, 숏폼 제작</span>이에요</b><span class="sub" style="line-height:1.6">TOP 8 중 5개가 아직 근거 없음이에요. 순위가 높은 것부터 채우면 더 많은 공고와 맞아요.</span></div><div class="sf" aria-hidden="true">
   <div class="sf-phone"><div class="sf-screen"><div class="sf-feed">${['#FF6B6B,#FFB86B', '#6B8BFF,#9F6BFF', '#2EC4A6,#7BE0C3', '#FF6B6B,#FFB86B'].map((g, i) => `<div class="sf-reel" style="background:linear-gradient(160deg,${g})"><span class="sf-cap"><i></i><i></i></span><span class="sf-play"></span></div>`).join('')}</div></div>
@@ -913,10 +931,16 @@ function renderTrend() {
     <div class="sf-chips"><span>컷 편집</span><span>자막</span><span>캡컷</span><span>3초 훅</span></div></div>
   <span class="sf-pop p1">♥</span><span class="sf-pop p2">♥</span><span class="sf-pop p3">♥</span></div><div style="display:flex;gap:8px;flex-wrap:wrap"><a class="btn btn-primary" href="#/edu?gap=${encodeURIComponent('영상, 숏폼 제작')}">빈칸 채울 과정 보기</a><a class="btn btn-line" href="#/jobs">이 역량으로 공고 보기</a></div></section>
     </div>
+    <a class="lb-me" href="#/edu?gap=${encodeURIComponent('영상, 숏폼 제작')}"><img src="assets/avatar-haneul.jpg" alt=""><span><small>내 이력서 · TOP 8 중</small><b>맞음 2 · 일부 1</b></span><span class="lb-me-r">빈칸 채우기 ›</span></a>
     <p class="sub" style="font-size:12px;line-height:1.6;margin:0">출처: SNS 콘텐츠 마케팅 공고 104건 (링커리어 64 + 2026 채용 게시판 40) · 팀 수집 2026.10.27 기준. 퍼센트는 해당 단어가 나온 공고 비율이에요. 직무 찾기 목록은 2026 신입, 인턴 46건이에요.</p></div>`);
   const root = $('.pane', view);
+  const drawLb = () => {
+    const VT = { ok: '맞음', part: '일부', no: '근거 없음' };
+    const hot = RANK.reduce((b, r, j) => r[2] > RANK[b][2] ? j : b, 0);
+    $('[data-lb]', root).innerHTML = RANK.map(([k, pct, d, v], i) => `<li class="${i === hot ? 'hot' : ''}" style="animation-delay:${i * 50}ms"><span class="lb-rk">${i < 3 ? medal(i + 1) : i + 1}</span><span class="lb-ic" style="background:${RANK_BG[i]}">${glass(RANK_IC[i], 30)}</span><span class="lb-t"><b>${esc(k)}${i === hot ? '<i class="lb-hot">급상승</i>' : ''}</b><small>공고 ${pct}%${mine ? ` · <em class="v-${v}">${VT[v]}</em>` : ''}</small></span><span class="lb-d ${d > 0 ? 'up' : d < 0 ? 'down' : ''}">${d > 0 ? '▲' + d : d < 0 ? '▼' + -d : '–'}</span></li>`).join('');
+  };
   const drawBars = () => {
-    $('[data-bars]', root).innerHTML = RANK.map(([k, pct, d, v], i) => `<li style="animation-delay:${i * 60}ms"><span class="rk${i < 3 ? ' top' : ''}">${i + 1}</span><div class="bw"><div class="bl"><span>${esc(k)}</span>${mine ? `<span class="mv">${verd(v)}</span>` : ''}</div><div class="track"><i style="--w:${pct}%;${mine ? `background:${v === 'ok' ? '#3BB273' : v === 'part' ? '#E8A33D' : '#E5484D'}` : ''}"></i></div></div><span class="pct">${pct}%</span><span class="dl ${d > 0 ? 'up' : d < 0 ? 'down' : ''}">${d > 0 ? '▲' + d : d < 0 ? '▼' + -d : '–'}</span></li>`).join('');
+    $('[data-bars]', root).innerHTML = RANK.map(([k, pct, d, v], i) => `<li style="animation-delay:${i * 60}ms"><span class="rk${i < 3 ? ' top' : ''}">${i + 1}</span><div class="bw"><div class="bl"><span>${esc(k)} <em class="bp">${pct}%</em></span>${mine ? `<span class="mv">${verd(v)}</span>` : ''}</div><div class="track"><i style="--w:${pct}%;${mine ? `background:${v === 'ok' ? '#3BB273' : v === 'part' ? '#E8A33D' : '#E5484D'}` : ''}"></i></div></div><span class="pct">${pct}%</span><span class="dl ${d > 0 ? 'up' : d < 0 ? 'down' : ''}">${d > 0 ? '▲' + d : d < 0 ? '▼' + -d : '–'}</span></li>`).join('');
   };
   const drawSlope = () => {
     const W = 560, x1 = 190, x2 = W - 190, top = 34, gap = 24, y = (r) => top + (r - 1) * gap, H = y(11) + 14;
@@ -925,8 +949,8 @@ function renderTrend() {
         <text x="${x1 - 12}" y="${y(before) + 4}" text-anchor="end" class="${hot ? 'tb' : ''}"><tspan class="rkn">${before}</tspan>  ${nm}</text><text x="${x2 + 12}" y="${y(now2) + 4}" class="${hot ? 'tb' : ''}"><tspan class="rkn">${now2}</tspan>  ${nm}${hot ? `<tspan class="${d > 0 ? 'up' : 'down'}">  ${d > 0 ? '▲' + d : '▼' + -d}</tspan>` : ''}</text></g>`; }).join('');
     $('[data-slope]', root).innerHTML = `<svg viewBox="0 0 ${W} ${H}" class="slope" role="img" aria-label="2023~25 대비 2026 순위 변화"><text x="${x1}" y="12" text-anchor="middle" class="hd">2023~25</text><text x="${x2}" y="12" text-anchor="middle" class="hd">2026</text>${lines}</svg>`;
   };
-  root.addEventListener('change', (e) => { if (e.target.matches('[data-mine]')) { mine = e.target.checked; drawBars(); } });
-  drawBars(); drawSlope(); markHL();
+  root.addEventListener('change', (e) => { if (e.target.matches('[data-mine]')) { mine = e.target.checked; drawBars(); drawLb(); $('[data-rkey]', root).style.visibility = mine ? '' : 'hidden'; } });
+  drawBars(); drawLb(); drawSlope(); markHL();
 }
 
 /* ---------- tasks (할 일): AI suggestions saved as a checklist ---------- */
@@ -978,7 +1002,7 @@ function savedDue(id, v) {
   if (id.startsWith('pol-')) { const q = DATA.policies.find((x) => x.id === id); if (!q) return null; if (q.end && q.st !== '상시') return [q.end.slice(0, 4) + '-' + q.end.slice(4, 6) + '-' + q.end.slice(6, 8), '신청 마감']; return null; }
   return null;
 }
-const KCOL = { 할일: 'var(--ink)', 공고: '#3182F6', 교육: '#22A05B', 정책: '#E8A33D' };
+const KCOL = { 할일: '#3182F6', 공고: '#8B5CF6', 교육: '#22A05B', 정책: '#F08A24' };
 function renderTasks(focus) {
   let tab = 'open', stab = '전체';
   const T0 = now(); let ym = [T0.getFullYear(), T0.getMonth()]; let sel = ymd(T0);
@@ -1330,7 +1354,7 @@ function filterBar(root, groups, st, draw) {
   });
   paint(); return paint;
 }
-const FILTER_HTML = `<div class="fwrap"><div class="fbar" data-fbar></div><div class="card fpanel" data-fpanel hidden></div><div class="fsel" data-fsel hidden></div></div>`;
+const FILTER_HTML = `<button type="button" class="f-fab" data-act="f-open" aria-label="필터 열기"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg>필터</button><div class="f-scrim" data-act="f-close"></div><div class="fwrap"><div class="f-head"><b>필터</b><button type="button" class="btn btn-dark sm" data-act="f-close">결과 보기</button></div><div class="fbar" data-fbar></div><div class="card fpanel" data-fpanel hidden></div><div class="fsel" data-fsel hidden></div></div>`;
 const pager = (page, pages) => pages <= 1 ? '' : `<div class="pager">${page > 1 ? `<button type="button" class="pg" data-pg="${page - 1}" aria-label="이전">‹</button>` : ''}${Array.from({ length: pages }, (_, i) => i + 1).filter((n) => Math.abs(n - page) < 3 || n === 1 || n === pages).map((n, i, a) => (i && n - a[i - 1] > 1 ? '<span class="sub">…</span>' : '') + `<button type="button" class="pg" data-pg="${n}"${n === page ? ' aria-current="page"' : ''}>${n}</button>`).join('')}${page < pages ? `<button type="button" class="pg" data-pg="${page + 1}" aria-label="다음">›</button>` : ''}</div>`;
 
 /* ---------- jobs ---------- */
@@ -1363,8 +1387,8 @@ function renderJobs() {
   let paint;
   const draw = () => {
     const job = J[st.f.job[0]]; const ql = st.q.toLowerCase(); const f = st.f;
-    $('[data-jtitle]', root).textContent = `직무 찾기 · ${job.label}`;
-    $('[data-jsub]', root).textContent = st.f.job[0] === 'sns' ? `2026 신입, 인턴 공고 ${job.posts.length}건 · 링커리어 수집 · 문장 비교 가능` : `공고 ${job.posts.length}건 · 잡코리아 수집 · 이 직무는 목록만 보여요 (문장 비교는 SNS 콘텐츠 마케팅만)`;
+    $('[data-jtitle]', root).innerHTML = `직무 찾기<span class="h1-x"> · ${esc(job.label)}</span>`;
+    $('[data-jsub]', root).innerHTML = st.f.job[0] === 'sns' ? `<span class="m-only">${esc(job.label)} · </span>2026 신입, 인턴 공고 ${job.posts.length}건 · 링커리어 수집 · 문장 비교 가능` : `공고 ${job.posts.length}건 · 잡코리아 수집 · 이 직무는 목록만 보여요 (문장 비교는 SNS 콘텐츠 마케팅만)`;
     const L = job.posts.filter((p) => (!ql || (p.company + p.title).toLowerCase().includes(ql)) && (!f.ty.length || f.ty.includes(p.type)) && (!f.sz.length || f.sz.includes(p.size || '정보 없음')) && (!f.ov.length || f.ov.some((o) => p.ov.includes(o)))
       && (!f.dl.includes('open') || (p.close && p.close >= today)) && (!f.dl.includes('7') || (p.close >= today && dday(p.close) <= 7)) && (!f.dl.includes('has') || !!p.close))
       .sort((a, b) => st.sort === 'rec' ? ((b.company === '올리브인터내셔널') - (a.company === '올리브인터내셔널')) || (b.ov.length - a.ov.length) || ((b.created || 0) - (a.created || 0)) : st.sort === 'new' ? (b.created || 0) - (a.created || 0) || b.close.localeCompare(a.close) : ((a.close < today) - (b.close < today)) || a.close.localeCompare(b.close) * (a.close < today ? -1 : 1));
@@ -1683,12 +1707,20 @@ function meMemory(body) {
 
 /* ---------- boot ---------- */
 document.addEventListener('click', (e) => {
-  const mm = e.target.closest('[data-act="me-menu"]'); if (mm) { e.stopPropagation(); meMenu(mm); return; }
+  const mm = e.target.closest('[data-act="me-menu"]'); if (mm) { e.preventDefault(); e.stopPropagation(); meMenu(mm); return; }
   if (e.target.closest('[data-act="login"]')) { openLogin(); return; }
   if (e.target.closest('[data-act="draft"]')) { const pol = DATA.policies.find((p) => p.id === 'pol-20261018005400213991'); openDraft(pol, null, null); return; }
   if (e.target.closest('[data-act="new-chat"]')) { go('#/'); setTimeout(() => { const t = $('#ask'); if (t) t.focus(); }, 80); }
+  const mb = e.target.closest('[data-act="menu"]'); if (mb) { const open = !document.body.classList.contains('menu-open'); document.body.classList.toggle('menu-open', open); mb.setAttribute('aria-expanded', open); return; }
+  if (e.target.closest('[data-act="menu-close"]') || (document.body.classList.contains('menu-open') && e.target.closest('.side a, .side [data-act="new-chat"]'))) { document.body.classList.remove('menu-open'); $('[data-act="menu"]')?.setAttribute('aria-expanded', 'false'); }
+  const tg = e.target.closest('[data-act="me-toggle"]'); if (tg) { const ex = $('.me-exp'); const open = ex.hidden; ex.hidden = !open; tg.setAttribute('aria-expanded', open); return; }
+  if (e.target.closest('[data-act="logout"]')) { document.body.classList.remove('menu-open'); store.set('user', false); toast('로그아웃했어요 · 이 기기에 저장된 내용은 남아 있어요'); go('#/'); renderSide(); return; }
+  if (e.target.closest('[data-act="f-open"]')) { document.body.classList.add('f-open'); return; }
+  if (e.target.closest('[data-act="f-close"]')) { document.body.classList.remove('f-open'); return; }
+  const wt = e.target.closest('[data-act="ws-toggle"]'); if (wt) { document.body.classList.toggle('ws-open'); return; }
 });
-window.addEventListener('hashchange', route);
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') document.body.classList.remove('menu-open', 'ws-open', 'f-open'); });
+window.addEventListener('hashchange', () => { document.body.classList.remove('menu-open', 'ws-open', 'f-open'); route(); });
 /* mock fill: postings without 기업 형태 or 마감일 get a stable example value */
 const SIZES = ['중소기업', '스타트업', '중견기업', '중소기업', '대기업', '스타트업'];
 const SIZE_OF = { '올리브인터내셔널': '중소기업', '카카오스타일': '중견기업', '무신사': '대기업', '29CM': '중견기업', '컬리': '대기업', '당근': '중견기업', '토스': '대기업', '오늘의집': '중견기업' };
