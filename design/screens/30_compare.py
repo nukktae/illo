@@ -2,6 +2,11 @@
 
 # ===== v6 compare: the posting as written, AI results marked on its own sentences, one side panel =====
 
+COMPARE_COLORS = {
+    'ok': ('#166534', '#E8F5EC'),
+    'part': (OR, OR_BG),
+    'no': ('#B42318', '#FDECEC'),
+}
 MK = {'ok': ('맞음', BLUE_D, BLUE_BG), 'part': ('일부', OR, OR_BG), 'no': ('없음', SUB, '#EEF0F3')}
 # Each posting line: text pieces (piece, mark-or-None) and what the comparison found for it.
 POST_REQ = [
@@ -73,13 +78,18 @@ V6_JS = r'''  constructor(props) {
   }
 '''
 
-HL = {'ok': f'border: 1px solid {BLUE_D}; background: {BLUE_BG}; color: {BLUE_D}; border-radius: 4px; padding: 1px 2px; font-weight: 600; text-decoration: none; -webkit-box-decoration-break: clone; box-decoration-break: clone;',
-      'part': f'border: 1px solid {OR}; background: {OR_BG}; color: {OR}; border-radius: 4px; padding: 1px 2px; font-weight: 600; text-decoration: none; -webkit-box-decoration-break: clone; box-decoration-break: clone;',
-      'no': 'border: 1px solid #6B7684; background: #D5DCE5; color: #333D4B; border-radius: 4px; padding: 1px 2px; font-weight: 600; text-decoration: none; -webkit-box-decoration-break: clone; box-decoration-break: clone;'}
+HL = {
+    key: (f'border: 1px solid {foreground}; background: {background}; color: {foreground}; '
+          'border-radius: 4px; padding: 1px 2px; font-weight: 600; text-decoration: none; '
+          '-webkit-box-decoration-break: clone; box-decoration-break: clone;')
+    for key, (foreground, background) in COMPARE_COLORS.items()
+}
 
 
-def mk_badge(k):
+def mk_badge(k, *, compare=False):
     t, c, bg = MK[k]
+    if compare:
+        c, bg = COMPARE_COLORS[k]
     return f'<span style="flex-shrink: 0; padding: 2px 8px; border-radius: 6px; background: {bg}; color: {c}; font-size: 12px; font-weight: 700;">{t}</span>'
 
 
@@ -91,7 +101,7 @@ def post_li(pieces, finds, mobile):
         a = f'<a href="{pre}{href}" style="flex-shrink: 0; font-size: 13px; font-weight: 600; text-decoration: none; white-space: nowrap;">{act} ›</a>' if act else ''
         if act == '트렌드 보기':
             a = f'<button id="p03-trend-trigger" type="button" onClick="@@openTrend@@" style="flex-shrink: 0; border: none; padding: 0; background: none; color: {BLUE}; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer;">{act} ›</button>'
-        ev += f'<div style="display: flex; flex-wrap: wrap; align-items: flex-start; gap: 8px; font-size: 13px; line-height: 1.5; color: #4E5968;">{mk_badge(k)}<span style="flex: 1 1 100px; min-width: 0;">{note}</span>{a}</div>'
+        ev += f'<div style="display: flex; flex-wrap: wrap; align-items: flex-start; gap: 8px; font-size: 13px; line-height: 1.5; color: #4E5968;">{mk_badge(k, compare=True)}<span style="flex: 1 1 100px; min-width: 0;">{note}</span>{a}</div>'
     evb = (f'<sc-if value="@@done@@" hint-placeholder-val="@@false@@"><div style="display: flex; flex-direction: column; gap: 6px; margin-top: 8px; padding: 10px 12px; border-radius: 10px; background: #F9FAFB;">{ev}</div></sc-if>' if ev else
            f'<sc-if value="@@done@@" hint-placeholder-val="@@false@@"><div style="margin-top: 6px; font-size: 12px; color: {MUTE};">관심, 태도 문장이라 비교하지 않았어요</div></sc-if>')
     return f'<li style="padding: 2px 0;"><span style="font-size: 15px; line-height: 1.75; color: #333D4B;">{txt}</span>{evb}</li>'
@@ -149,12 +159,15 @@ def next_rows(mobile):
     return f'<div style="display: flex; flex-direction: column; gap: 8px;">{out}</div>'
 
 
+RING_COLORS = {'ok': '#22C55E', 'part': '#F59E0B', 'no': '#EF4444'}
+
+
 def score_ring():
     r, c = 30, 2 * 3.14159 * 30
     one = c / 6
     arc = lambda color, length, offset: f'<circle cx="38" cy="38" r="{r}" fill="none" stroke="{color}" stroke-width="9" stroke-linecap="butt" stroke-dasharray="{length - 2:.1f} {c:.1f}" stroke-dashoffset="{-offset:.1f}" transform="rotate(-90 38 38)"/>'
-    return (f'<span role="img" aria-label="6개 중 맞음 1, 일부 1" style="position: relative; width: 76px; height: 76px; flex-shrink: 0;"><svg width="76" height="76" viewBox="0 0 76 76" aria-hidden="true">'
-            f'<circle cx="38" cy="38" r="{r}" fill="none" stroke="#EEF0F3" stroke-width="9"/>{arc(BLUE, one, 0)}{arc("#FFB331", one, one)}</svg>'
+    return (f'<span role="img" aria-label="6개 중 맞음 1, 일부 1, 없음 4" style="position: relative; width: 76px; height: 76px; flex-shrink: 0;"><svg width="76" height="76" viewBox="0 0 76 76" aria-hidden="true">'
+            f'<circle cx="38" cy="38" r="{r}" fill="none" stroke="#EEF0F3" stroke-width="9"/>{arc(RING_COLORS["ok"], one, 0)}{arc(RING_COLORS["part"], one, one)}{arc(RING_COLORS["no"], 4 * one, 2 * one)}</svg>'
             f'<span style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 17px; font-weight: 800; letter-spacing: -0.02em;">2<span style="font-size: 13px; color: {MUTE}; font-weight: 600;">/6</span></span></span>')
 
 
@@ -188,7 +201,7 @@ def side_panel(mobile):
              f'<div style="display: flex; justify-content: space-between; align-items: center;">{example_badge}<button type="button" onClick="@@reset@@" style="display: flex; align-items: center; gap: 4px; border: none; background: none; padding: 0; font-size: 12px; color: {MUTE}; cursor: pointer;">{refresh}다시 비교</button></div>'
              f'{example_notice}'
              f'<div style="display: flex; align-items: center; gap: 16px;">{score_ring()}<span style="font-size: 20px; font-weight: 700; line-height: 1.4; letter-spacing: -0.02em;">공고 요구 6개 중<br><span style="color: {BLUE};">2개</span>가 이어져요</span></div>'
-             f'<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px;">{tile(1, "맞음", BLUE_BG, BLUE_D)}{tile(1, "일부", OR_BG, OR)}{tile(4, "없음", "#F2F4F6", "#4E5968")}</div>'
+             f'<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px;">{tile(1, "맞음", COMPARE_COLORS["ok"][1], COMPARE_COLORS["ok"][0])}{tile(1, "일부", COMPARE_COLORS["part"][1], COMPARE_COLORS["part"][0])}{tile(4, "없음", COMPARE_COLORS["no"][1], COMPARE_COLORS["no"][0])}</div>'
              f'<span style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: {SUB};">{point}{"아래" if mobile else "왼쪽"} 공고 문장에 같은 색으로 표시했어요</span>'
              f'<div style="height: 1px; background: {LINE};"></div>'
              f'<div style="display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 17px; font-weight: 700;">어느 부분을 먼저 채울까요?</span><span style="font-size: 12px; color: {MUTE};">고르는 건 나예요. 비어 있는 4개 기준으로 추천했어요</span></div>'

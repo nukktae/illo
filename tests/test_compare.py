@@ -43,14 +43,14 @@ class CompareTests(unittest.TestCase):
 
     def test_P03_T33_missing_box(self):
         style = self.ns['HL']['no']
-        for value in ('background: #D5DCE5', 'color: #333D4B', 'font-weight: 600', 'text-decoration: none', 'box-decoration-break: clone'):
+        for value in ('background: #FDECEC', 'color: #B42318', 'font-weight: 600', 'text-decoration: none', 'box-decoration-break: clone'):
             self.assertIn(value, style)
         self.assertNotIn('underline', style)
-        self.assertIn('border: 1px solid #6B7684', style)
+        self.assertIn('border: 1px solid #B42318', style)
         self.assertEqual(self.ns['MK']['no'][2], '#EEF0F3')
 
-    def test_P03_T56_T57_matched_and_partial_boxes(self):
-        for key, bg, color in (('ok', '#E8F3FF', '#1B64DA'), ('part', '#FFF6E5', '#C26A00')):
+    def test_P03_T56_T57_T60_matched_and_partial_boxes(self):
+        for key, bg, color in (('ok', '#E8F5EC', '#166534'), ('part', '#FFF6E5', '#C26A00')):
             with self.subTest(state=key):
                 style = self.ns['HL'][key]
                 for rule in (f'background: {bg}', f'color: {color}',
@@ -61,7 +61,37 @@ class CompareTests(unittest.TestCase):
                     self.assertIn(rule, style)
                 self.assertNotIn('nowrap', style)
                 self.assertNotIn('inline-block', style)
-                self.assertNotIn('border:', self.ns['mk_badge'](key))
+                self.assertNotIn('border:', self.ns['mk_badge'](key, compare=True))
+
+    def test_P03_T64_evidence_badge_colors(self):
+        for key, label, color, bg in (('ok', '맞음', '#166534', '#E8F5EC'),
+                                      ('part', '일부', '#C26A00', '#FFF6E5'),
+                                      ('no', '없음', '#B42318', '#FDECEC')):
+            with self.subTest(state=key):
+                badge = self.ns['mk_badge'](key, compare=True)
+                self.assertIn(f'background: {bg}', badge)
+                self.assertIn(f'color: {color}', badge)
+                self.assertIn(f'>{label}</span>', badge)
+                self.assertNotIn('border:', badge)
+                self.assertIn('padding: 2px 8px', badge)
+
+    def test_P03_T65_ring_colors_and_proportions(self):
+        import xml.etree.ElementTree as ET
+        ring = self.ns['score_ring']()
+        svg = ET.fromstring(re.search(r'<svg.*?</svg>', ring)[0])
+        arcs = [e for e in svg if 'stroke-dasharray' in e.attrib]
+        self.assertEqual([e.get('stroke') for e in arcs], ['#22C55E', '#F59E0B', '#EF4444'])
+        for arc, units, offset in zip(arcs, (1, 1, 4), (0, 1, 2)):
+            length, circumference = map(float, arc.get('stroke-dasharray').split())
+            self.assertAlmostEqual((length + 2) / circumference, units / 6, delta=.001)
+            self.assertAlmostEqual(float(arc.get('stroke-dashoffset')) / circumference, -offset / 6, delta=.001)
+        self.assertIn('6개 중 맞음 1, 일부 1, 없음 4', ring)
+        self.assertIn('>2<span', ring)
+        self.assertIn('>/6</span>', ring)
+
+    def test_P03_T66_shared_badge_default_preserved(self):
+        for key, bg in (('ok', '#E8F3FF'), ('part', '#FFF6E5'), ('no', '#EEF0F3')):
+            self.assertIn(f'background: {bg}', self.ns['mk_badge'](key))
 
     def test_P03_T32_white_body(self):
         for mobile in (False, True):
@@ -70,7 +100,7 @@ class CompareTests(unittest.TestCase):
             self.assertIn('aria-label="공고 본문"', result)
             self.assertNotIn('background: #EDF2F8;', self.ns['side_panel'](mobile))
 
-    def test_P03_T54_contrast(self):
+    def test_P03_T54_T62_contrast(self):
         def luminance(color):
             values = [int(color[i:i + 2], 16) / 255 for i in (1, 3, 5)]
             values = [v / 12.92 if v <= 0.04045 else ((v + .055) / 1.055) ** 2.4 for v in values]
@@ -78,13 +108,14 @@ class CompareTests(unittest.TestCase):
         def contrast(a, b):
             light, dark = sorted((luminance(a), luminance(b)), reverse=True)
             return (light + .05) / (dark + .05)
-        style = self.ns['HL']['no']
-        background = re.search(r'background: (#[A-Fa-f0-9]{6})', style)[1]
-        foreground = re.search(r'color: (#[A-Fa-f0-9]{6})', style)[1]
-        border = re.search(r'border: 1px solid (#[A-Fa-f0-9]{6})', style)[1]
-        self.assertGreaterEqual(contrast(foreground, background), 4.5)
-        for adjacent in (background, '#FFFFFF'):
-            self.assertGreaterEqual(contrast(border, adjacent), 3)
+        for key in ('ok', 'no'):
+            style = self.ns['HL'][key]
+            background = re.search(r'background: (#[A-Fa-f0-9]{6})', style)[1]
+            foreground = re.search(r'color: (#[A-Fa-f0-9]{6})', style)[1]
+            border = re.search(r'border: 1px solid (#[A-Fa-f0-9]{6})', style)[1]
+            self.assertGreaterEqual(contrast(foreground, background), 4.5)
+            for adjacent in (background, '#FFFFFF'):
+                self.assertGreaterEqual(contrast(border, adjacent), 3)
         blank = self.ns['posting_section']('빈 목차', '', True)
         blank_color = re.search(r'color: (#[A-Fa-f0-9]{6})', blank)[1]
         self.assertGreaterEqual(contrast(blank_color, '#FFFFFF'), 4.5)
