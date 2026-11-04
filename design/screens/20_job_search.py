@@ -75,7 +75,7 @@ FCHIP_ON = FCHIP + f' border: 1px solid {BLUE}; background: {BLUE_BG}; color: {B
 FCHIP_OFF = FCHIP + ' border: 1px solid #E5E8EB; background: #FFFFFF; color: #4E5968;'
 LIST_JS = MATCH_JS + f'''  constructor(props) {{ super(props); const jm = (typeof location !== 'undefined' && location.hash.match(/job=(\\w+)/)); this.state = {{ mode: 'new', trendOpen: {TREND_JS}, page: 1, sort: 'rec', ty: 'all', q: '', job: jm ? jm[1] : 'sns', jq: '', fo: '', fty: [], fsz: [], fdl: [] }}; }}
   renderVals() {{
-    const D = {JOBS_JSON}, profile = {PROFILE_JSON};
+    const user = !!this.illoGet('illo-user', null), D = {JOBS_JSON}, profile = user ? {PROFILE_JSON} : {{}};
     const job = D[this.state.job] ? this.state.job : 'sns', J = D[job], POSTS = J.posts, isSns = job === 'sns';
     const BG = {json.dumps(LOGO_BG)};
     const s = this.state, m = DESK ? (s.fty.length && s.fty.every((t) => t === '경력') ? 'exp' : 'new') : s.mode, set = (o) => this.setState(Object.assign({{ page: 1 }}, o));
@@ -91,7 +91,7 @@ LIST_JS = MATCH_JS + f'''  constructor(props) {{ super(props); const jm = (typeo
     L = this.rankPosts(L, profile, s.sort);
     const unregistered = !this.hasResumeContent(profile);
     const allPending = L.length > 0 && L.every(p => p.match.status === 'pending');
-    const sortNote = s.sort !== 'rec' ? '' : unregistered ? '이력서를 등록하면 겹치는 역량 순으로 볼 수 있어요. 현재는 최신순이에요' : allPending ? '역량 분석 준비 중이에요. 현재는 최신순이에요' : '';
+    const sortNote = s.sort !== 'rec' ? '' : unregistered ? (user ? '이력서를 등록하면 겹치는 역량 순으로 볼 수 있어요. 현재는 최신순이에요' : '로그인하면 내 이력서와 겹치는 역량 순으로 볼 수 있어요. 현재는 최신순이에요') : allPending ? '역량 분석 준비 중이에요. 현재는 최신순이에요' : '';
     if (s.sort === 'close') L = L.slice().sort((a, b) => open(a) - open(b));
     const per = 10, pages = Math.max(1, Math.ceil(L.length / per)), page = Math.min(s.page, pages);
     const rows = L.slice((page - 1) * per, page * per).map((p) => {{
@@ -100,7 +100,7 @@ LIST_JS = MATCH_JS + f'''  constructor(props) {{ super(props); const jm = (typeo
       const md = p.d ? p.d.slice(5).replace('-', '.') : '';
       return {{ views: p.v ? p.v.toLocaleString('ko-KR') : '-', dueStyle: 'font-size: 12px; font-weight: 700; color: ' + (n !== null && n <= 7 ? '{RED}' : '{MUTE}') + ';', logoImg: p.logo || '', hasLogo: !!p.logo, noLogo: !p.logo, c: p.c, t: p.t, tags, ty: p.ty, size: p.s || '정보 없음', closeTxt: p.d ? '~ ' + md : '상시 채용', closeStyle: 'font-size: 14px; color: ' + (n !== null && n < 0 ? '{MUTE}' : '{INK}') + ';', init: p.c.replace(/[()㈜\\s]/g, '').slice(0, 1), logo: 'width: 40px; height: 40px; flex-shrink: 0; border-radius: 12px; background: ' + BG[code % BG.length] + '; color: #FFFFFF; font-size: 16px; font-weight: 700; display: flex; align-items: center; justify-content: center;',
         ov: p.match.status === 'unregistered' ? '이력서를 등록해주세요' : p.match.status === 'pending' ? '역량 분석 준비 중' : '내 경험과 겹치는 역량 ' + p.match.count,
-        ovStyle: 'padding: 3px 8px; border-radius: 6px; font-size: 12px; ' + (p.match.status === 'analyzed' ? 'background: {BLUE_BG}; color: {BLUE_D};' : 'background: #F2F4F6; color: #4E5968;'), demo: p.demo, notDemo: !p.demo, url: p.u || '#',
+        ovStyle: (user ? '' : 'display: none; ') + 'padding: 3px 8px; border-radius: 6px; font-size: 12px; ' + (p.match.status === 'analyzed' ? 'background: {BLUE_BG}; color: {BLUE_D};' : 'background: #F2F4F6; color: #4E5968;'), demo: p.demo, notDemo: !p.demo, url: p.u || '#',
         sv: this.sv({{ id: p.id, kind: '공고', t: p.t, s: p.c + ' · ' + p.ty, u: p.u, h: p.demo ? 'S3-compare.dc.html' : '' }}),
         due: n !== null && n >= 0 ? (n === 0 ? 'D-DAY' : 'D-' + n) : '', hasDue: n !== null && n >= 0, noDue: !(n !== null && n >= 0) }};
     }});
@@ -126,7 +126,7 @@ LIST_JS = MATCH_JS + f'''  constructor(props) {{ super(props); const jm = (typeo
     const fopts = jobOn ? jobOpts : og ? og[2].map((v) => {{ const on = s[og[0]].indexOf(v) >= 0; return {{ label: v, on: on ? 'true' : 'false', go: toggle(og[0], v), style: on ? '{FCHIP_ON}' : '{FCHIP_OFF}' }}; }}) : [];
     const fsel = [];
     FG.forEach(([k, label]) => s[k].forEach((v) => fsel.push({{ label: label + ' > ' + v, go: toggle(k, v) }})));
-    return {{ unregistered, registered: !unregistered, sortNote, hasSortNote: !!sortNote, jobName: J.label, isSns, notSns: !isSns, showFit: isSns && m === 'new', fitTodo: !isSns && m === 'new', jobs, jq: s.jq, setJq: (e) => this.setState({{ jq: e && e.target ? e.target.value : '' }}), noJob: jobs.length === 0, srcNote: J.src + ' ' + POSTS.length + '건' + (POSTS.some((p) => p.mockD) ? ' · 조회수, 원본에 없는 마감일과 기업 형태는 시연용 예시' : '') + (isSns ? ' · 시연은 올리브인터내셔널 공고로 비교해요' : ' · 공고 비교는 SNS 콘텐츠 마케팅으로 시연해요'),
+    return {{ unregistered, registered: !unregistered, fitMine: user && !unregistered, fitGuest: !user, fitNoResume: user && unregistered, sortNote, hasSortNote: !!sortNote, jobName: J.label, isSns, notSns: !isSns, showFit: isSns && m === 'new', fitTodo: !isSns && m === 'new', jobs, jq: s.jq, setJq: (e) => this.setState({{ jq: e && e.target ? e.target.value : '' }}), noJob: jobs.length === 0, srcNote: J.src + ' ' + POSTS.length + '건' + (POSTS.some((p) => p.mockD) ? ' · 조회수, 원본에 없는 마감일과 기업 형태는 시연용 예시' : '') + (isSns ? ' · 시연은 올리브인터내셔널 공고로 비교해요' : ' · 공고 비교는 SNS 콘텐츠 마케팅으로 시연해요'),
       cntAll: '전체 ' + cnt('all'), cntIntern: '인턴 ' + cnt('인턴'), cntNew: '신입 ' + cnt('신입'),
       count: m === 'new' ? '신입, 인턴 공고 ' + POSTS.length + '건' : (isSns ? '경력 공고 22건 · 2026.10 수집' : '경력 공고는 준비 중'), isNew: m === 'new', isExp: m === 'exp', newStyle: st(m === 'new'), expStyle: st(m === 'exp'), pickNew: () => this.setState({{ mode: 'new' }}), pickExp: () => this.setState({{ mode: 'exp' }}),
       {TREND_VALS},
@@ -239,11 +239,38 @@ def list_card(mobile):
             f'      {list_toolbar(mobile)}<sc-if value="@@hasSortNote@@" hint-placeholder-val="@@true@@"><p role="status" style="margin: 0; font-size: 13px; line-height: 1.5; color: {SUB};">@@sortNote@@</p></sc-if>\n      <div>{list_rows(mobile)}</div>\n'
             f'      <span style="font-size: 12px; color: {MUTE};">출처: @@srcNote@@</span>\n    </section>\n')
 
+# P02-F11 신입, 인턴은 직무 적합도: 이 직무 공고가 많이 찾는 역량 8개를 내 이력서와 맞춰 본다 (규칙: 같은 경험과 근거가 있으면 맞음, 일부만 있으면 일부).
+# 합격 여부는 말하지 않는다. 로그인 전에는 순위만 보여 주고 로그인을 권한다. 경력은 공고 목록 (P02-F09)
+FIT_MINE = {'콘텐츠 기획': ('ok', '카드뉴스 주 1회 제작'), '디자인 툴': ('ok', '캔바'), '데이터, 성과 분석': ('part', '팔로워 수치만')}
+
+
 def job_fit_card_d():
-    items = ''.join(f'<span style="display: flex; align-items: center; gap: 6px; font-size: 14px; color: #4E5968;"><span style="font-weight: 700; color: {BLUE_D};">{i}</span>{name}</span>' for i, (name, _, _) in enumerate(RANK, 1))
-    return (f'<section aria-label="이 직무가 원하는 역량" style="display: flex; align-items: center; gap: 24px; padding: 20px 28px; {CARD}">'
-            f'<h2 style="flex-shrink: 0; margin: 0; font-size: 15px; font-weight: 700;">많이 찾는 역량</h2><div style="display: flex; gap: 8px 16px; flex-wrap: wrap;">{items}</div>'
-            f'<div style="flex-shrink: 0; margin-left: auto; display: flex; align-items: center; gap: 16px;"><sc-if value="@@unregistered@@" hint-placeholder-val="@@true@@"><span style="padding: 3px 8px; border-radius: 6px; background: #F2F4F6; color: #4E5968; font-size: 12px;">이력서를 등록해주세요</span></sc-if><button type="button" onClick="@@openTrend@@" style="flex-shrink: 0; border: none; background: none; padding: 0; font-size: 14px; font-weight: 600; color: {BLUE_D}; cursor: pointer; font-family: inherit; white-space: nowrap;">이 직무 트렌드 보기 ›</button></div></section>')
+    plain = ''.join(f'<span style="display: flex; align-items: center; gap: 6px; font-size: 14px; color: #4E5968;"><span style="font-weight: 700; color: {BLUE_D};">{i}</span>{name}</span>' for i, (name, _, _) in enumerate(RANK, 1))
+    col = {'ok': ('#166534', '#E8F5EC', '맞음'), 'part': (OR, OR_BG, '일부')}
+    mine = ''
+    for i, (name, _, _) in enumerate(RANK, 1):
+        st = FIT_MINE.get(name)
+        if st:
+            fg, bg, lab = col[st[0]]
+            mine += (f'<span title="{lab}: {st[1]}" style="display: flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 999px; background: {bg}; color: {fg}; font-size: 13px; font-weight: 600;">'
+                     f'<span style="font-size: 11px;">{lab}</span>{name}</span>')
+        else:
+            mine += f'<span style="display: flex; align-items: center; padding: 6px 10px; border-radius: 999px; background: {FILL}; color: {SUB}; font-size: 13px;">{name}</span>'
+    n_ok = sum(1 for v in FIT_MINE.values() if v[0] == 'ok'); n_part = sum(1 for v in FIT_MINE.values() if v[0] == 'part')
+    trend = f'<button type="button" onClick="@@openTrend@@" style="flex-shrink: 0; border: none; background: none; padding: 0; font-size: 14px; font-weight: 600; color: {BLUE_D}; cursor: pointer; font-family: inherit; white-space: nowrap;">이 직무 트렌드 보기 ›</button>'
+    guest = (f'<sc-if value="@@fitGuest@@" hint-placeholder-val="@@true@@"><section aria-label="이 직무가 원하는 역량" style="display: flex; align-items: center; gap: 24px; padding: 20px 28px; {CARD}">'
+             f'<h2 style="flex-shrink: 0; margin: 0; font-size: 15px; font-weight: 700;">많이 찾는 역량</h2><div style="display: flex; gap: 8px 16px; flex-wrap: wrap;">{plain}</div>'
+             f'<div style="flex-shrink: 0; margin-left: auto; display: flex; align-items: center; gap: 16px;"><a href="L1-login.dc.html?next=S1-list.dc.html" style="font-size: 13px; color: {SUB}; text-decoration: none; white-space: nowrap;">로그인하면 내 이력서와 맞춰 봐요 ›</a>{trend}</div></section></sc-if>')
+    noresume = (f'<sc-if value="@@fitNoResume@@" hint-placeholder-val="@@false@@"><section aria-label="이 직무가 원하는 역량" style="display: flex; align-items: center; gap: 24px; padding: 20px 28px; {CARD}">'
+                f'<h2 style="flex-shrink: 0; margin: 0; font-size: 15px; font-weight: 700;">많이 찾는 역량</h2><div style="display: flex; gap: 8px 16px; flex-wrap: wrap;">{plain}</div>'
+                f'<div style="flex-shrink: 0; margin-left: auto; display: flex; align-items: center; gap: 16px;"><a href="S5-resume.dc.html" style="font-size: 13px; color: {SUB}; text-decoration: none; white-space: nowrap;">이력서를 등록하면 맞춰 봐요 ›</a>{trend}</div></section></sc-if>')
+    fit = (f'<sc-if value="@@fitMine@@" hint-placeholder-val="@@false@@"><section aria-label="내 이력서와 이 직무" style="display: flex; flex-direction: column; gap: 14px; padding: 22px 28px; {CARD}">'
+           f'<div style="display: flex; align-items: baseline; gap: 12px;"><h2 style="margin: 0; font-size: 17px; font-weight: 700;">이 직무와 내 이력서</h2>'
+           f'<span style="font-size: 14px; color: {SUB};">공고가 많이 찾는 역량 {len(RANK)}개 중 <b style="color: #166534;">맞음 {n_ok}</b> · <b style="color: {OR};">일부 {n_part}</b></span>'
+           f'<span style="margin-left: auto;">{trend}</span></div>'
+           f'<div style="display: flex; gap: 8px; flex-wrap: wrap;">{mine}</div>'
+           f'<span style="font-size: 12px; line-height: 1.5; color: {MUTE};">신입, 인턴은 공고 하나보다 이 직무 전체와 먼저 맞춰 봐요. 이력서에 같은 경험과 근거가 있으면 맞음, 일부만 있으면 일부예요. 합격 여부는 말하지 않아요</span></section></sc-if>')
+    return guest + noresume + fit
 
 
 def job_fit_card(mobile):
@@ -255,6 +282,7 @@ def job_fit_card(mobile):
 
 s1_body = f'''  <div style="padding: 28px 56px 0; display: flex; justify-content: space-between; align-items: center;">
     <h1 style="margin: 0; font-size: 32px; font-weight: 700; letter-spacing: -0.02em;">@@jobName@@</h1>
+    {flow_steps(1)}
   </div>
   <div style="margin: 24px 56px 0; display: flex; flex-direction: column; gap: 14px;">{filter_bar()}</div>
   <div style="display: flex; flex-direction: column; gap: 16px; padding: 24px 56px 56px;">

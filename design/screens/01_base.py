@@ -91,6 +91,28 @@ def AVATAR_IMG(size):
     return f'<img src="/_blob/70b2d2f6c328b6f5ee29ac16d9bb4509" alt="" style="width: {size}px; height: {size}px; flex-shrink: 0; border-radius: 50%; object-fit: cover; display: block;">'
 
 
+# P02-F10 진행 단계: 직무 찾기 -> 공고 비교 -> 다음 행동 (데스크톱 세 화면 상단 오른쪽). 지난 단계는 링크, 지금 단계는 파랑, 다음 단계는 회색
+FLOW = [('직무 찾기', 'S1-list.dc.html'), ('공고 비교', 'S3-compare.dc.html#result'), ('다음 행동', 'S4-next.dc.html')]
+
+
+def flow_steps(active):
+    out = ''
+    for i, (label, href) in enumerate(FLOW, 1):
+        if i < active:
+            dot = (f'<span style="width: 20px; height: 20px; border-radius: 50%; background: {BLUE_BG}; color: {BLUE_D}; display: flex; align-items: center; justify-content: center;">'
+                   f'<svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>')
+            item = f'<a href="{href}" style="display: flex; align-items: center; gap: 6px; color: {SUB}; text-decoration: none;">{dot}{label}</a>'
+        elif i == active:
+            dot = f'<span style="width: 20px; height: 20px; border-radius: 50%; background: {BLUE}; color: #FFFFFF; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center;">{i}</span>'
+            item = f'<span aria-current="step" style="display: flex; align-items: center; gap: 6px; color: {INK}; font-weight: 700;">{dot}{label}</span>'
+        else:
+            dot = f'<span style="width: 20px; height: 20px; border-radius: 50%; background: {FILL}; color: {MUTE}; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center;">{i}</span>'
+            item = f'<span style="display: flex; align-items: center; gap: 6px; color: {MUTE};">{dot}{label}</span>'
+        sep = '' if i == 1 else f'<li aria-hidden="true" style="color: #C9CED6;">›</li>'
+        out += f'{sep}<li style="display: flex;">{item}</li>'
+    return (f'<nav aria-label="진행 단계"><ol style="margin: 0; padding: 0; list-style: none; display: flex; align-items: center; gap: 10px; font-size: 13px;">{out}</ol></nav>')
+
+
 def auth_desktop():
     return (f'<div style="justify-self: end; display: flex; align-items: center; gap: 8px;">'
             f'<sc-if value="@@loggedOut@@" hint-placeholder-val="@@true@@"><a href="L1-login.dc.html" style="height: 40px; padding: 0 14px; display: flex; align-items: center; color: {INK}; font-size: 14px; font-weight: 600; text-decoration: none;">로그인</a>'
@@ -188,7 +210,7 @@ def trend_popup(mobile, cta_href, close_label="공고 목록으로 돌아가기"
       <div style="display: flex; flex-direction: column; gap: 2px; padding: 12px 14px; border-radius: 14px; background: #FFF4F4;"><span style="font-size: 11px; font-weight: 600; color: {RED};">급상승</span><span style="font-size: 15px; font-weight: 700;">데이터, 성과 분석 8위에서 3위로</span></div>
       <div style="display: flex; flex-direction: column;">{trend_rows(RANK, pad='0 4px')}</div>
       <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px;">{facts}</div>
-      <span style="font-size: 11px; line-height: 1.5; color: {MUTE};">출처: SNS 콘텐츠 마케팅 {SRC104}. 퍼센트는 해당 단어가 나온 공고 비율</span>
+      <span style="font-size: 11px; line-height: 1.5; color: {MUTE};">출처: SNS 콘텐츠 마케팅 {SRC104}. 104건 = 2026 공고 59건 + 2023~25 공고 45건. 직무 찾기 목록은 2026 신입, 인턴 46건이에요. 퍼센트는 해당 단어가 나온 공고 비율</span>
       {cta}
     </div>
   </div>

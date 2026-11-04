@@ -40,7 +40,7 @@ def gap_card(active, mobile):
 def next_page(active, title, lead, content, mobile):
     pre = 'm-' if mobile else ''
     head = (f'<div style="display: flex; flex-direction: column; gap: {12 if mobile else 16}px; {"padding: 4px 0 0;" if mobile else "padding: 20px 56px 0;"}">'
-            + ('' if mobile else f'<a href="S3-compare.dc.html#result" style="font-size: 14px; color: {SUB}; text-decoration: none;">‹ 비교 결과</a>')
+            + ('' if mobile else f'<div style="display: flex; align-items: center; justify-content: space-between; gap: 16px;"><a href="S3-compare.dc.html#result" style="font-size: 14px; color: {SUB}; text-decoration: none;">‹ 비교 결과</a>{flow_steps(3)}</div>')
             + f'{next_tabs(active, mobile)}<div style="display: flex; flex-direction: column; gap: 6px; {"padding: 4px 4px 0;" if mobile else ""}"><h1 style="margin: 0; font-size: {22 if mobile else 30}px; font-weight: 700; line-height: 1.35; letter-spacing: -0.02em;">{title}</h1>'
             f'<span style="font-size: {14 if mobile else 15}px; line-height: 1.55; color: {SUB};">{lead}</span></div></div>')
     if mobile:

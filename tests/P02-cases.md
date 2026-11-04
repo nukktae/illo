@@ -26,5 +26,6 @@
 | P02-T20 | test_job_search.py: 고유 교집합·안정 정렬·타입·사전 이력서·빈 내용·seed 분리 | 로컬 통과 |
 | P02-T21 | test_job_search.py / job_search_browser.mjs: 제목 우선·7직무 순서 | 로컬 통과 |
 | P02-T22 | review_layout_browser.mjs (QA_PAGE=list): 동일 조건 첫 공고 top·높이; browser 스크립트의 320px 넘침 | 로컬 통과 |
+| P02-T23 | test_job_search.py: 로그아웃이면 겹치는 역량 박스 숨김, 손님용 역량 줄 (fitGuest), 정렬 안내 "로그인하면"; 로그인하면 직무 적합도 (fitMine)와 박스 표시 | 로컬 통과 |
 
 실제 P05 편집/삭제 전파·다른 직무 실제 역량 분석은 미구현이다. T08~T11은 별도 합성 자료 검증이며 실제 연동 통과가 아니다.

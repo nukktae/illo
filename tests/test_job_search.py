@@ -57,9 +57,18 @@ for(const job of Object.keys(data)) {
  page.state.page=2;page.renderVals().setQ({target:{value:'NOTFOUND_TEST'}});assert.equal(page.state.page,1);assert.equal(page.renderVals().rows.length,0);
  page.renderVals().clearQ();assert(page.renderVals().rows.length<=10);
 }
-console.log('PASS P02 logic: match states, stable sorting, 7 jobs, search, pagination reset');
+// P02-T23 logged out: no personal overlap tag, guest fit strip, no 직무 적합도
+globalThis.LOGGED_IN = false; page.state.job='sns'; page.state.sort='rec'; page.state.q=''; page.state.page=1;
+const out=page.renderVals();
+assert(out.rows.every(p=>p.ovStyle.startsWith('display: none')));
+assert(out.fitGuest && !out.fitMine && !out.fitNoResume);
+assert(out.sortNote.includes('로그인하면'));
+globalThis.LOGGED_IN = true;
+const inn=page.renderVals();
+assert(inn.fitMine && !inn.fitGuest && inn.rows.every(p=>!p.ovStyle.startsWith('display: none')));
+console.log('PASS P02 logic: match states, stable sorting, 7 jobs, search, pagination reset, logged-out tag hidden');
 '''
-        script = "class Base {setState(v){Object.assign(this.state,v)} sv(){return {}}}\nclass Page extends Base {" + ns['LIST_JS'] + "}\n" + harness
+        script = "class Base {setState(v){Object.assign(this.state,v)} sv(){return {}} illoGet(k,d){return k==='illo-user' ? (globalThis.LOGGED_IN === false ? null : {name:'김하늘'}) : d}}\nclass Page extends Base {" + ns['LIST_JS'] + "}\n" + harness
         script = script.replace('JSON.parse(process.env.JOB_DATA)', ns['JOBS_JSON']).replace('JSON.parse(process.env.PROFILE_DATA)', ns['PROFILE_JSON'])
         result = subprocess.run(['node'], input=script, capture_output=True, text=True)
         self.assertEqual(result.returncode, 0, result.stderr)

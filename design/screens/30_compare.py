@@ -210,7 +210,7 @@ def side_panel(mobile):
     return f'<aside style="{sticky} display: flex; flex-direction: column; padding: {"20px" if mobile else "24px"}; {CARD}">{before}{after}</aside>'
 
 
-v6_body = (f'  <div style="padding: 16px 56px 0;"><a href="S1-list.dc.html" style="font-size: 14px; color: {SUB}; text-decoration: none;">‹ 공고 목록</a></div>\n'
+v6_body = (f'  <div style="padding: 16px 56px 0; display: flex; align-items: center; justify-content: space-between; gap: 16px;"><a href="S1-list.dc.html" style="font-size: 14px; color: {SUB}; text-decoration: none;">‹ 공고 목록</a>{flow_steps(2)}</div>\n'
            f'  <div style="display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 24px; padding: 16px 56px 56px; align-items: start;">{posting_card(False)}{side_panel(False)}</div>\n')
 V6_SCRIPT = V6_JS.replace('__HL__', json.dumps(HL, ensure_ascii=False))
 boards['S3-compare.dc.html'] = ('S2 공고 원문 + AI 비교 (한 화면)', dpage('S3-compare.dc.html', '공고와 내 경험 비교', 'find', v6_body + compare_trend_popup(False), V6_SCRIPT, saves=('olive',)))
